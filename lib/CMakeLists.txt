@@ -1,0 +1,36 @@
+INCLUDE_DIRECTORIES(include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/common/)
+
+FILE(GLOB CLIENT_SRCS *.cpp)
+
+SET(client_depends "gio-2.0 dlog json-glib-1.0 capi-appfw-application bundle capi-system-info")
+
+IF("${PROFILE}" STREQUAL "mobile")
+ADD_DEFINITIONS("-D_MOBILE_")
+#SET(client_depends "${client_depends} security-server")
+ENDIF("${PROFILE}" STREQUAL "mobile")
+
+IF("${PROFILE}" STREQUAL "tv")
+ADD_DEFINITIONS("-D_TV_")
+SET(client_depends "${client_depends}")
+ENDIF("${PROFILE}" STREQUAL "tv")
+
+pkg_check_modules(client_pkgs REQUIRED ${client_depends})
+INCLUDE_DIRECTORIES(${client_pkgs_INCLUDE_DIRS})
+LINK_DIRECTORIES(${client_pkgs_LIBRARY_DIRS})
+
+ADD_DEFINITIONS("-DBROKER_DBUS_INTERFACE=\"${DBUS_INTERFACE}\"")
+
+ADD_LIBRARY(${CLIENT} SHARED ${CLIENT_SRCS})
+TARGET_LINK_LIBRARIES(${CLIENT} ${client_pkgs_LIBRARIES})
+SET_TARGET_PROPERTIES(${CLIENT} PROPERTIES VERSION ${FULLVER} SOVERSION ${MAJORVER})
+INSTALL(TARGETS ${CLIENT} DESTINATION ${LIB_INSTALL_DIR})
+
+SET(PREFIX ${CMAKE_INSTALL_PREFIX})
+CONFIGURE_FILE("${CLIENT}.pc.in" "${CLIENT}.pc" @ONLY)
+INSTALL(FILES "${CLIENT}.pc" DESTINATION lib/pkgconfig)
+
+FILE(GLOB CLIENT_HEADER include/*.h)
+FOREACH(hfile ${CLIENT_HEADER})
+	INSTALL(FILES ${hfile} DESTINATION include)
+ENDFOREACH(hfile)
