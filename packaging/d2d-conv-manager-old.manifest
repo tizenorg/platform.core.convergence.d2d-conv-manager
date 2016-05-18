@@ -1,0 +1,59 @@
+<manifest>
+	<define>
+		<domain name="d2d-conv-manager" />
+		<permit>
+			<smack permit="_" type="rw" />
+    			<smack permit="dbus" type="rwx" />
+			<smack permit="system::use_internet" type="rw" />
+		</permit>
+		<request>
+			<smack request="connman::get" type="rw" />
+			<smack request="dbus" type="rwx" />
+			<smack request="_" type="rw" />
+			<smack request="system::use_internet" type="rwx" />
+			<smack request="app-svc::db" type="rwxa" />
+			<smack request="aul::launch" type="x" />
+			<smack request="connman" type="rw" />
+			<smack request="connman::get" type="rw" />
+			<smack request="connman::set" type="rw" />
+			<smack request="net-config" type="rwx" />
+
+			<smack request="privilege::tizen::internet" type="rw" />
+
+			<smack request="privilege::tizen::wifidirect" type="rw" />
+			<smack request="wifi-direct" type="rw" />
+			<smack request="wifi-direct::admin" type="rw" />
+			<smack request="wifi-direct::discover" type="rw" />
+			<smack request="wifi-direct::info" type="rw" />
+			<smack request="wifi-direct::native" type="rw" />
+
+			<smack request="tizen::vconf::wifidirect" type="r" />
+
+			<smack request="privilege::tizen::network.get" type="rw" />
+			<smack request="telephony_framework::api_ps_public" type="rw"/>
+			<smack request="telephony_framework::properties" type="rw"/>
+			<smack request="tizen::vconf::network" type="rw"/>
+
+			<smack request="connman::profile" type="rw"/>
+			<smack request="privilege::tizen::network.profile" type="rw" />
+
+			<smack request="connman::set" type="rw" />
+			<smack request="privilege::tizen::network.set" type="rw" />
+
+			<smack request="bluez" type="rw" />
+			<smack request="bt-service::public" type="w" />
+			<smack request="bt-service::platform" type="w" />
+			<smack request="privilege::tizen::bluetooth.admin" type="rw" />
+			<smack request="privilege::tizen::bluetooth" type="rw" />
+			<smack request="tizen::vconf::public::r" type="rwx"/>
+			<smack request="device::sys_logging" type="w" />
+			<smack request="device::app_logging" type="w" />
+			<smack request="sdbd" type="r" />
+			<smack request="iotcon" type="rw" />
+			<smack request="tizen::vconf::setting::admin" type="rl" />
+		</request>
+	</define>
+	<request>
+		<domain name="d2d-conv-manager" />
+	</request>
+</manifest>
