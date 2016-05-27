@@ -67,6 +67,7 @@ bool conv::peer_creds::get(GDBusConnection *connection, const char *unique_name,
 	*creds = new(std::nothrow) credentials(package_id, client, session, user);
 	IF_FAIL_CATCH_TAG(*creds, _E, "Memory allocation failed");
 
+	g_free(app_id);
 	return true;
 
 CATCH:

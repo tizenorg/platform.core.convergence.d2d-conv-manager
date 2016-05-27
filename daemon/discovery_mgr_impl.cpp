@@ -22,12 +22,14 @@
 
 #include "common.h"
 #include "util.h"
+#include <algorithm>
+#include <functional>
+
+using namespace std;
 
 static conv::discovery_manager_impl *_instance = NULL;
 typedef std::map<std::string, conv::device_iface*> discovered_ones_map_t;
 static discovered_ones_map_t discovered_results;
-
-using namespace std;
 
 conv::discovery_manager_impl::discovery_manager_impl()
 {
@@ -41,26 +43,23 @@ conv::discovery_manager_impl::~discovery_manager_impl()
 int conv::discovery_manager_impl::init()
 {
 	_D("Discovery_Manager Init!!..");
-	register_provider(new conv::smartview_discovery_provider());
-	register_provider(new conv::ble_discovery_provider());
-	register_provider(new conv::iotcon_discovery_provider());
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::smartview_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "smartview_discover_provider register failed");
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::ble_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "ble_discovery_provider register failed");
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::iotcon_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "iotcon_discovery_provider register failed");
 
 	request_map.clear();
 	request_timer_map.clear();
-
 
 	return CONV_ERROR_NONE;
 }
 
 int conv::discovery_manager_impl::release()
 {
-	for (discovery_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
+	for (discovery_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it)
 		(*it)->stop();
-	}
 
-	for (discovery_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
+	for (discovery_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it)
 		delete *it;
-	}
 
 	provider_list.clear();
 
@@ -76,15 +75,13 @@ int conv::discovery_manager_impl::notify_time_up(std::string client)
 {
 	// 1. When no client is using discovery, it should be stopped
 	_D("notify_time_up.. with current discovery count :%d", count_discovery_request);
-	if (--count_discovery_request == 0)
-	{
+	if (--count_discovery_request == 0) {
 		stop_discovery();
 	}
 
 	// 2. Reqeust to stop timer related to client in the timer_map
 	timer_map_t::iterator timer_itr = request_timer_map.find(client);
-	if (timer_itr != request_timer_map.end())
-	{
+	if (timer_itr != request_timer_map.end()) {
 		int timer_id = timer_itr->second;
 		_D("timer_id[%d]", timer_id);
 		conv::util::misc_stop_timer(reinterpret_cast<void*> (timer_id));
@@ -92,8 +89,7 @@ int conv::discovery_manager_impl::notify_time_up(std::string client)
 
 	// 3. Notify the client that the requested discovery has been finished
 	request_map_t::iterator request_itr = request_map.find(client);
-	if (request_itr != request_map.end())
-	{
+	if (request_itr != request_map.end()) {
 		json no_data;
 		request* cur_Req = request_itr->second;
 		cur_Req->publish(CONV_DISCOVERY_FINISHED, no_data);
@@ -126,13 +122,10 @@ int conv::discovery_manager_impl::checkBoundaryForTimeout(int givenTimeout)
 int conv::discovery_manager_impl::handle_request(request* request_obj)
 {
 	_D("handle_request called .. request:%x _instance:%x", request_obj, _instance);
-	if ( _instance )
-	{
-		if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_START) )
-		{
+	if ( _instance ) {
+		if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_START) ) {
 			if ( !conv::privilege_manager::is_allowed(request_obj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-					!conv::privilege_manager::is_allowed(request_obj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) )
-			{
+					!conv::privilege_manager::is_allowed(request_obj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) ) {
 				_E("permission denied");
 				request_obj->reply(CONV_ERROR_PERMISSION_DENIED);
 				delete request_obj;
@@ -143,14 +136,11 @@ int conv::discovery_manager_impl::handle_request(request* request_obj)
 			count_discovery_request++;
 
 			for (discovery_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it)
-			{
 				// Discovery Provider Starts!!!!
 				(*it)->start();
-			}
 
 			const char* client = request_obj->get_sender();
-			if (client == NULL)
-			{
+			if (client == NULL) {
 				_D("client is empty..");
 				return CONV_ERROR_INVALID_OPERATION;
 			}
@@ -163,34 +153,29 @@ int conv::discovery_manager_impl::handle_request(request* request_obj)
 
 			request_map_t::iterator map_itr = request_map.find(string(client));
 
-			if ( map_itr == request_map.end())
-			{
+			if ( map_itr == request_map.end()) {
 				// current request inserted into request_map..
 				request_map.insert(request_map_t::value_type(string(client), request_obj));
 				_D("client[%s] inserted into request_map", client);
-			}
-			else
-			{
+			} else {
 				_D("client[%s] already in request_map.. Replace!!!", client);
 				map_itr->second = request_obj;
 			}
 
 			// request timer
 			gpointer *param = g_new0(gpointer, 2);
-			param[0] = reinterpret_cast<void*>(new string(client));
+			param[0] = reinterpret_cast<void*>(new(std::nothrow) string(client));
 			param[1] = reinterpret_cast<void*>(this);
 
 			int timer_id = reinterpret_cast<int>(conv::util::misc_start_timer(timer_worker, timeout, param));
 			request_timer_map[ string(client) ] = timer_id;
 
 			request_obj->reply(CONV_ERROR_NONE);
-
-			//delete request_obj;
 		} else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_STOP) ){
 			stop_discovery();
 
 			request_obj->reply(CONV_ERROR_NONE);
-			//delete request_obj;
+			delete request_obj;
 		}
 
 		return CONV_ERROR_NONE;
@@ -217,20 +202,21 @@ int conv::discovery_manager_impl::register_provider(discovery_provider_base *pro
 {
 	if (!provider) {
 		_E("Provider NULL");
-		throw static_cast<int>(CONV_ERROR_INVALID_PARAMETER);
+		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
 	provider_list.push_back(provider);
 
-	if (provider->init() != CONV_ERROR_NONE) {
-		_E("Provider initialization failed");
-		throw CONV_ERROR_INVALID_OPERATION;
-	}
-
 	if (provider->set_manager(this) != CONV_ERROR_NONE) {
 		_E("Provider set_manager failed");
-		throw CONV_ERROR_INVALID_OPERATION;
+		return CONV_ERROR_INVALID_OPERATION;
 	}
+
+	if (provider->init() != CONV_ERROR_NONE) {
+		_E("Provider initialization failed");
+		return CONV_ERROR_INVALID_OPERATION;
+	}
+
 	return CONV_ERROR_NONE;
 }
 int conv::discovery_manager_impl::convert_device_into_json(conv::device_iface* device_info, json* json_data)
@@ -253,7 +239,46 @@ int conv::discovery_manager_impl::convert_service_into_json(conv::service_iface*
 	return CONV_ERROR_NONE;
 }
 
-int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* disc_device, conv::service_iface* disc_service)
+static bool serviceComparision(conv::service_iface* obj, int serviceType)
+{
+	if (obj->getServiceType() == serviceType)
+		return true;
+	else
+		return false;
+}
+
+// return value : the number of new services
+int conv::discovery_manager_impl::merge_exclude_services(conv::device_iface* org_device, conv::device_iface* new_device)
+{
+	int new_serv_count = 0;
+	std::list<service_iface*> org_serv_list;
+	std::list<service_iface*> new_serv_list;
+
+	org_device->get_services_list(&org_serv_list);
+	_D("[%d] Services in the origin device info[%s]", org_serv_list.size(), org_device->getName().c_str() );
+	new_device->get_services_list(&new_serv_list);
+	_D("[%d] Services in the new device info[%s]", new_serv_list.size(), new_device->getName().c_str() );
+
+	std::list<service_iface*>::iterator new_iter = new_serv_list.begin();
+	for (; new_iter != new_serv_list.end(); ++new_iter) {
+		service_iface* cur_serv = *new_iter;
+		std::list<service_iface*>::iterator org_iter =
+			std::find_if(org_serv_list.begin(), org_serv_list.end(), std::bind(serviceComparision, std::placeholders::_1, cur_serv->getServiceType()));
+		if (org_iter != org_serv_list.end()) {
+			// already exists in org_device.. means it's not new!.. so remove the service from new!!
+			new_device->remove_service(cur_serv);
+			// add the service into the original device
+			org_device->add_service(cur_serv);
+			_D("Service[%d] has been already found in Device[%s]", cur_serv->getServiceType(), org_device->getName().c_str() );
+		} else {
+			_D("New Service[%d] found in Device[%s]", cur_serv->getServiceType(), org_device->getName().c_str() );
+			new_serv_count++;
+		}
+	}
+	return new_serv_count;
+}
+
+int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* disc_device)
 {
 	_D("Append Discovered Result.. Device:%x, Service:%x");
 	IF_FAIL_RETURN_TAG((disc_device != NULL), CONV_ERROR_INVALID_PARAMETER, _E, "device_iface not initialized..");
@@ -261,14 +286,14 @@ int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* d
 	_D("Check if key[%s] exists in discovered_results", disc_device->getId().c_str());
 	discovered_ones_map_t::iterator itor_disc;
 	itor_disc = discovered_results.find(disc_device->getId());
-	if (itor_disc != discovered_results.end())
-	{
+	if (itor_disc != discovered_results.end()) {
 		_D("update discovered device's info [%s]", disc_device->getId().c_str());
 		device_iface* cur_device = itor_disc->second;
-		cur_device->add_service(disc_service);
-	}
-	else
-	{
+
+		int count_new_services = merge_exclude_services(cur_device, disc_device);
+		if (count_new_services == 0)
+			return CONV_ERROR_NONE;
+	} else {
 		_D("newbie!! discovered device's info [%s]", disc_device->getId().c_str());
 		discovered_results.insert(discovered_ones_map_t::value_type(disc_device->getId(), disc_device));
 	}
@@ -278,19 +303,13 @@ int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* d
 	convert_device_into_json(disc_device, &device_json);
 
 	_D("Convert service info into json type..");
-	if (disc_service !=NULL)
-		convert_service_into_json(disc_service, &device_json);
-	else
-	{
-		typedef std::list<service_iface*> serv_list_t;
-		serv_list_t serv_list;
-		disc_device->get_services_list(&serv_list);
+	typedef std::list<service_iface*> serv_list_t;
+	serv_list_t serv_list;
+	disc_device->get_services_list(&serv_list);
 
-		for (serv_list_t::iterator iterPos = serv_list.begin(); iterPos != serv_list.end(); ++iterPos)
-		{
-			service_iface* cur_serv = *iterPos;
-			convert_service_into_json(cur_serv, &device_json);
-		}
+	for (serv_list_t::iterator iterPos = serv_list.begin(); iterPos != serv_list.end(); ++iterPos) {
+		service_iface* cur_serv = *iterPos;
+		convert_service_into_json(cur_serv, &device_json);
 	}
 
 	// 1.set data info about device
@@ -300,8 +319,7 @@ int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* d
 	_D("Iterate through request_map to publish..");
 	int index = 0;
 	request_map_t::iterator IterPos;
-	for (IterPos = request_map.begin(); IterPos != request_map.end(); ++IterPos)
-	{
+	for (IterPos = request_map.begin(); IterPos != request_map.end(); ++IterPos) {
 		request* cur_Req = IterPos->second;
 		cur_Req->publish(CONV_ERROR_NONE, device_json);
 

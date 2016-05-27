@@ -37,10 +37,9 @@ conv::service_manager_impl::~service_manager_impl()
 
 int conv::service_manager_impl::init()
 {
-	register_provider(new conv::app_comm_service_provider());
-	register_provider(new conv::remote_app_control_service_provider());
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::app_comm_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "app_comm_service_provider register failed");
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::remote_app_control_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "remote_app_control_service_provider register failed");
 
-	//TBD
 	register_discovery_info();
 	return CONV_ERROR_NONE;
 }
@@ -162,14 +161,14 @@ int conv::service_manager_impl::register_provider(conv::service_provider_base *p
 {
 	if (!provider) {
 		_E("Provider NULL");
-		throw static_cast<int>(CONV_ERROR_INVALID_PARAMETER);
+		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
 	provider_list.push_back(provider);
 
 	if (provider->init() != CONV_ERROR_NONE) {
 		_E("Provider initialization failed");
-		throw CONV_ERROR_INVALID_OPERATION;
+		return CONV_ERROR_INVALID_OPERATION;
 	}
 
 	return CONV_ERROR_NONE;

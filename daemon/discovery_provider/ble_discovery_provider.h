@@ -24,7 +24,7 @@
 
 #include "../discovery_provider_base.h"
 #include "../request.h"
-#include "../service.h"
+#include "smartview/service.h"
 
 namespace conv {
 	class ble_discovery_provider : public discovery_provider_base  {
@@ -38,13 +38,9 @@ namespace conv {
 			int start();
 			int stop();
 
-			int set_manager(discovery_manager_impl* disc_manager);
 			int notice_discovered(conv::service* conv_service);
 
 		private:
-			discovery_manager_impl*	discovery_manager;
-
-			// for double check..
 			map <string, conv::service*> cache;
 
 			int checkExistence(conv::service* conv_service);

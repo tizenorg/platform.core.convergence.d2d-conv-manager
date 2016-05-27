@@ -31,9 +31,6 @@ namespace conv {
 			client_manager_impl();
 			~client_manager_impl();
 
-	//		int start(int time, request_info* request, json option);
-	//		int stop();
-
 			int init();
 			int release();
 			int handle_request(request* request_obj);

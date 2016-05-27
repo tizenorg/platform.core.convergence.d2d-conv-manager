@@ -60,7 +60,6 @@ static void handle_response(const gchar *sender, GVariant *param, GDBusMethodInv
 	g_variant_get(param, "(i&si&s)", &req_id, &subject, &error, &data);
 	_D("[Response] ReqId: %d, Subject: %s, Error: %d", req_id, subject, error);
 
-	// conv::response_handler::deliver(subject, req_id, error, data);
 	response_cb_map_t::iterator it = response_cb_map->find(subject);
 	IF_FAIL_VOID_TAG(it!= response_cb_map->end(), _E, "Unknown subject'%s'", subject);
 	it->second(subject, req_id,  error, data);
@@ -88,16 +87,12 @@ static void handle_method_call(GDBusConnection *conn, const gchar *sender,
 
 bool conv::dbus_client::init()
 {
-//	static GMutex connection_mutex;
-//	conv::scope_mutex sm(&connection_mutex);
-
 	_D("dbus_client init with dbus_connection %d response_cb_map:%x", dbus_connection, response_cb_map);
 	if (dbus_connection) {
 		return true;
 	}
 
-	//response_cb_map = g_new0 (response_cb_map_t,1);
-	response_cb_map = new (std::nothrow) response_cb_map_t;
+	response_cb_map = new(std::nothrow) response_cb_map_t;
 	_D("dbus_client init with response_cb_map:%x", response_cb_map);
 
 	GError *gerr = NULL;

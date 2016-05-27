@@ -69,20 +69,18 @@ json::json(const json& j)
 
 json::json(const char* s)
 {
-	if (s) {
+	if (s)
 		parse(s);
-	} else {
+	else
 		parse(EMPTY_JSON_OBJECT);
-	}
 }
 
 json::json(const std::string& s)
 {
-	if (s.empty()) {
+	if (s.empty())
 		parse(EMPTY_JSON_OBJECT);
-	} else {
+	else
 		parse(s.c_str());
-	}
 }
 
 json::~json()
@@ -125,31 +123,31 @@ json& json::operator=(const json& j)
 {
 	release();
 	json_node = json_node_copy(j.json_node);
-	if (!json_node) {
+	if (!json_node)
 		_E("Json object copy failed");
-	}
+
 	return *this;
 }
 
 json& json::operator=(const char* s)
 {
 	release();
-	if (s) {
+	if (s)
 		parse(s);
-	} else {
+	else
 		parse(EMPTY_JSON_OBJECT);
-	}
+
 	return *this;
 }
 
 json& json::operator=(const std::string& s)
 {
 	release();
-	if (s.empty()) {
+	if (s.empty())
 		parse(EMPTY_JSON_OBJECT);
-	} else {
+	else
 		parse(s.c_str());
-	}
+
 	return *this;
 }
 
@@ -162,13 +160,6 @@ bool json::operator!=(const json& rhs)
 {
 	return !operator==(rhs);
 }
-
-/* TODO
-bool json::contains(const json& subset) const
-{
-	return false;
-}
-*/
 
 char* json::dup_cstr()
 {
@@ -188,9 +179,8 @@ char* json::dup_cstr()
 	return output;
 
 CATCH:
-	if (jgen) {
+	if (jgen)
 		g_object_unref(jgen);
-	}
 
 	_E("Memory allocation failed");
 	return NULL;
@@ -225,11 +215,9 @@ static char** tokenize_path(const char* path, int* length)
 
 	*length = 1;
 
-	for (pch = path; *pch != '\0'; pch++) {
-		if (*pch == PATH_DELIM) {
+	for (pch = path; *pch != '\0'; pch++)
+		if (*pch == PATH_DELIM)
 			*length = *length + 1;
-		}
-	}
 
 	tokens = static_cast<char**>(g_malloc((*length) * sizeof(char*)));
 	IF_FAIL_RETURN_TAG(tokens, NULL, _E, "Memory allocation failed");
@@ -248,17 +236,16 @@ static char** tokenize_path(const char* path, int* length)
 			begin = pch + 1;
 		}
 
-		if (*pch == '\0') {
+		if (*pch == '\0')
 			break;
-		}
 	}
 
 	return tokens;
 
 CATCH:
-	for (j = 0; j < i; j++) {
+	for (j = 0; j < i; j++)
 		g_free(tokens[j]);
-	}
+
 	g_free(tokens);
 	return NULL;
 }
@@ -267,9 +254,9 @@ static void free_tokenized_path(int length, char** tokens)
 {
 	int i;
 	if (tokens) {
-		for (i = 0; i < length; i++) {
+		for (i = 0; i < length; i++)
 			g_free(tokens[i]);
-		}
+
 		g_free(tokens);
 	}
 }
@@ -303,6 +290,7 @@ static JsonObject* traverse(JsonNode* jnode, const char* path, bool force)
 				goto CATCH;
 			}
 		}
+
 		child_node = json_object_get_member(jobj, path_token[depth]);
 		IF_FAIL_CATCH(child_node && json_node_get_node_type(child_node) == JSON_NODE_OBJECT);
 
@@ -364,9 +352,8 @@ bool json::set(const char* path, const char* key, double val, int prec)
 	JsonObject *jobj = traverse(json_node, path, true);
 	IF_FAIL_RETURN(jobj, false);
 
-	if (json_object_has_member(jobj, key)) {
+	if (json_object_has_member(jobj, key))
 		json_object_remove_member(jobj, key);
-	}
 
 	//NOTE: json-glib causes a precision issue while handling double values
 	json_object_set_string_member(jobj, key, double_to_string(val, prec).c_str());
@@ -381,9 +368,8 @@ bool json::set(const char* path, const char* key, std::string val)
 	JsonObject *jobj = traverse(json_node, path, true);
 	IF_FAIL_RETURN(jobj, false);
 
-	if (json_object_has_member(jobj, key)) {
+	if (json_object_has_member(jobj, key))
 		json_object_remove_member(jobj, key);
-	}
 
 	json_object_set_string_member(jobj, key, val.c_str());
 	return true;
@@ -415,9 +401,8 @@ bool json::remove(const char* path, const char* key)
 	JsonObject *jobj = traverse(json_node, path, true);
 	IF_FAIL_RETURN(jobj, false);
 
-	if (json_object_has_member(jobj, key)) {
-			json_object_remove_member(jobj, key);
-	}
+	if (json_object_has_member(jobj, key))
+		json_object_remove_member(jobj, key);
 
 	return true;
 }
@@ -436,9 +421,9 @@ bool json::get(const char* path, const char* key, json* val)
 	node = json_object_dup_member(jobj, key);
 	IF_FAIL_RETURN_TAG(node, false, _E, "Memory allocation failed");
 
-	if (val->json_node) {
+	if (val->json_node)
 		json_node_free(val->json_node);
-	}
+
 	val->json_node = node;
 
 	return true;
@@ -484,14 +469,13 @@ bool json::get(const char* path, const char* key, int64_t* val)
 	IF_FAIL_RETURN(node, false);
 
 	GType vtype = json_node_get_value_type(node);
-	if (vtype == G_TYPE_INT64) {
+	if (vtype == G_TYPE_INT64)
 		*val = json_node_get_int(node);
-	} else if (vtype == G_TYPE_STRING) {
+	else if (vtype == G_TYPE_STRING)
 		//TODO: if the string is not a number?
 		*val = static_cast<int64_t>(string_to_double(json_node_get_string(node)));
-	} else {
+	else
 		return false;
-	}
 
 	return true;
 }
@@ -505,16 +489,15 @@ bool json::get(const char* path, const char* key, double* val)
 	IF_FAIL_RETURN(node, false);
 
 	GType vtype = json_node_get_value_type(node);
-	if (vtype == G_TYPE_DOUBLE) {
+	if (vtype == G_TYPE_DOUBLE)
 		*val = json_node_get_double(node);
-	} else if (vtype == G_TYPE_INT64) {
+	else if (vtype == G_TYPE_INT64)
 		*val = json_node_get_int(node);
-	} else if (vtype == G_TYPE_STRING) {
+	else if (vtype == G_TYPE_STRING)
 		//NOTE: json-glib causes a precision issue while handling double values
 		*val = string_to_double(json_node_get_string(node));
-	} else {
+	else
 		return false;
-	}
 
 	return true;
 }
@@ -581,6 +564,7 @@ static JsonArray* search_array(JsonNode* jnode, const char* path, const char* ke
 			return NULL;
 		}
 	}
+
 	node = json_object_get_member(jobj, key);
 	IF_FAIL_RETURN_TAG(node && json_node_get_node_type(node) == JSON_NODE_ARRAY,
 			NULL, _W, "Type mismatched: %s", key);
@@ -748,9 +732,9 @@ bool json::get_array_elem(const char* path, const char* key, int index, json* va
 	JsonNode *node_copy = json_node_copy(node);
 	IF_FAIL_RETURN_TAG(node_copy, false, _E, "Memory allocation failed");
 
-	if (val->json_node) {
+	if (val->json_node)
 		json_node_free(val->json_node);
-	}
+
 	val->json_node = node_copy;
 
 	return true;
@@ -884,18 +868,18 @@ bool json::node_equals(json_node_t* lhs, json_node_t* rhs)
 	IF_FAIL_RETURN(ltype == rtype, false);
 
 	switch (ltype) {
-		case JSON_NODE_VALUE:
-			IF_FAIL_RETURN(value_equals(lhs, rhs), false);
-			break;
-		case JSON_NODE_OBJECT:
-			IF_FAIL_RETURN(object_equals(lhs, rhs), false);
-			break;
-		case JSON_NODE_ARRAY:
-			IF_FAIL_RETURN(array_equals(lhs, rhs), false);
-			break;
-		default:
-			_W("Unsupported type");
-			return false;
+	case JSON_NODE_VALUE:
+		IF_FAIL_RETURN(value_equals(lhs, rhs), false);
+		break;
+	case JSON_NODE_OBJECT:
+		IF_FAIL_RETURN(object_equals(lhs, rhs), false);
+		break;
+	case JSON_NODE_ARRAY:
+		IF_FAIL_RETURN(array_equals(lhs, rhs), false);
+		break;
+	default:
+		_W("Unsupported type");
+		return false;
 	}
 
 	return true;
@@ -908,15 +892,15 @@ bool json::value_equals(json_node_t* lhs, json_node_t* rhs)
 	IF_FAIL_RETURN(ltype == rtype, false);
 
 	switch (ltype) {
-		case G_TYPE_INT64:
-			return json_node_get_int(lhs) == json_node_get_int(rhs);
-		case G_TYPE_DOUBLE:
-			return json_node_get_double(lhs) == json_node_get_double(rhs);
-		case G_TYPE_STRING:
-			return STR_EQ(json_node_get_string(lhs), json_node_get_string(rhs));
-		default:
-			_W("Unsupported type");
-			return false;
+	case G_TYPE_INT64:
+		return json_node_get_int(lhs) == json_node_get_int(rhs);
+	case G_TYPE_DOUBLE:
+		return json_node_get_double(lhs) == json_node_get_double(rhs);
+	case G_TYPE_STRING:
+		return STR_EQ(json_node_get_string(lhs), json_node_get_string(rhs));
+	default:
+		_W("Unsupported type");
+		return false;
 	}
 }
 
