@@ -29,7 +29,7 @@ conv::client::client(string client_id, GDBusMethodInvocation *inv)
 conv::client::~client()
 {
 	for (service_info_map_t::iterator it = service_info_map.begin(); it != service_info_map.end(); ++it) {
-//		delete (it->second);
+		delete (it->second);
 	}
 	service_info_map.clear();
 }
@@ -54,13 +54,10 @@ conv::service_info_base* conv::client::get_service_info(string type, string id)
 	service_info_map_t::iterator it;
 	it = service_info_map.find(std::pair<string, string>(type, id));
 
-	if ( it != service_info_map.end() )
-	{
+	if ( it != service_info_map.end() ) {
 		_D("service info found : %s, %s", type.c_str(), id.c_str());
 		return (service_info_base*)(it->second);
-	}
-	else
-	{
+	} else {
 		_D("service info not found : %s, %s", type.c_str(), id.c_str());
 		return NULL;
 	}

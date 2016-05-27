@@ -43,7 +43,7 @@ namespace conv {
 			int handle_request(request* request_obj);
 
 			// discovery_manager aggregates devices with services which have been discovered through the registered discover providers
-			int append_discovered_result(device_iface* disc_device, service_iface* disc_service);
+			int append_discovered_result(device_iface* disc_device);
 			int notify_time_up(std::string client);
 			int stop_discovery();
 			int start_discovery();
@@ -71,6 +71,7 @@ namespace conv {
 			int set_discovery_filter(request* req_obj);
 			int isvalid_discovery_on_filter(json& filter_json);
 			int checkBoundaryForTimeout(int givenTimeout);
+			int merge_exclude_services(conv::device_iface* org_device, conv::device_iface* new_device);
 	};
 
 	namespace discovery_manager {

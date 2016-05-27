@@ -163,8 +163,7 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 
 	iotcon_state_get_int(state, CONV_JSON_REPLY, &reply);
 
-	if ( reply == 1 )
-	{
+	if (reply == 1) {
 		bool waiting_reply = false;
 
 		// check if it's already launched and waiting for app_control response
@@ -177,8 +176,7 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 			}
 		}
 
-		if ( !waiting_reply )
-		{
+		if (!waiting_reply) {
 			int req_id;
 			int reply_id = get_req_id();
 
@@ -198,8 +196,7 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 		iotcon_response_result_e result;
 		ret = app_control_send_launch_request(app_control, NULL, NULL);
 
-		if (ret != APP_CONTROL_ERROR_NONE)
-		{
+		if (ret != APP_CONTROL_ERROR_NONE) {
 			_E("Launch request failed(%d)", ret);
 			result = IOTCON_RESPONSE_ERROR;
 		} else {
@@ -240,8 +237,7 @@ void conv::remote_app_control_service_provider::iotcon_request_cb(iotcon_resourc
 
 	_D("request type : %d", type);
 
-	if (IOTCON_REQUEST_PUT == type)
-	{
+	if (IOTCON_REQUEST_PUT == type) {
 		iotcon_representation_h req_repr;
 		_I("GET request");
 
@@ -314,8 +310,7 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 
-	if ( svc_info->iotcon_info_obj.iotcon_resource_handle != NULL )
-	{
+	if (svc_info->iotcon_info_obj.iotcon_resource_handle != NULL) {
 		_D("already started");
 		return CONV_ERROR_INVALID_OPERATION;
 	}
@@ -352,8 +347,7 @@ int conv::remote_app_control_service_provider::stop_request(request* request_obj
 
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 
-	if ( svc_info->iotcon_info_obj.iotcon_resource_handle == NULL )
-	{
+	if (svc_info->iotcon_info_obj.iotcon_resource_handle == NULL) {
 		_D("not even started");
 		return CONV_ERROR_INVALID_OPERATION;
 	}
@@ -415,17 +409,15 @@ static void on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 	}
 
 	_D(RED("publishing_response"));
-	json result;
-	json payload;
-	json description;
+	if (cb_info.request_obj) {
+		json result;
+		json payload;
+		json description;
 
-	payload.set(NULL, CONV_JSON_APP_CONTROL, appctl_char);
+		payload.set(NULL, CONV_JSON_APP_CONTROL, appctl_char);
+		result.set(NULL, CONV_JSON_DESCRIPTION, cb_info.request_obj->get_description());
+		result.set(NULL, CONV_JSON_PAYLOAD, payload);
 
-	result.set(NULL, CONV_JSON_DESCRIPTION, cb_info.request_obj->get_description());
-	result.set(NULL, CONV_JSON_PAYLOAD, payload);
-
-	if ( cb_info.request_obj )
-	{
 		cb_info.request_obj->publish(CONV_ERROR_NONE, result);
 		_D("response published");
 	}
@@ -457,8 +449,7 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 	iotcon_state_add_str(state, CONV_JSON_APP_CONTROL, (char*)app_control.c_str());
 	iotcon_state_add_int(state, CONV_JSON_REPLY, reply);
 
-	if ( reply == 1 )
-	{
+	if (reply == 1) {
 		int req_id = get_req_id();
 		iotcon_state_add_int(state, CONV_JSON_REQ_ID, req_id);
 
@@ -484,10 +475,27 @@ int conv::remote_app_control_service_provider::register_request(request* request
 {
 	_D("communcation/recv requested");
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
-	svc_info->registered_request = request_obj;
 
-	request_obj->reply(CONV_ERROR_NONE);
-	_D("subscribe requested");
+	switch (request_obj->get_type()) {
+	case REQ_SUBSCRIBE:
+		if (svc_info->registered_request != NULL) {
+			delete svc_info->registered_request;
+		}
+		svc_info->registered_request = request_obj;
+		request_obj->reply(CONV_ERROR_NONE);
+		_D("subscribe requested");
+		break;
+	case REQ_UNSUBSCRIBE:
+		svc_info->registered_request = NULL;
+		request_obj->reply(CONV_ERROR_NONE);
+		delete request_obj;
+		break;
+	default:
+		request_obj->reply(CONV_ERROR_INVALID_OPERATION);
+		delete request_obj;
+		return CONV_ERROR_INVALID_OPERATION;
+		break;
+	}
 
 	return CONV_ERROR_NONE;
 }
@@ -524,7 +532,7 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 	remote_app_control_service_info *svc_info = NULL;
 	service_info_base* svc_info_base = client_obj->get_service_info(_type, device_id);
 
-	if ( svc_info_base != NULL ) {
+	if (svc_info_base != NULL) {
 		_D("service instance already exists");
 		svc_info = reinterpret_cast<remote_app_control_service_info*>(svc_info_base);
 
@@ -533,11 +541,10 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 			_D("casting failed");
 			return CONV_ERROR_INVALID_OPERATION;
 		}
-	}
-	else
-	{
+	} else {
 		_D("allocating new service instance");
-		svc_info = new remote_app_control_service_info();
+		svc_info = new(std::nothrow) remote_app_control_service_info();
+		IF_FAIL_RETURN_TAG(svc_info, CONV_ERROR_OUT_OF_MEMORY, _E, "svc_info alloc failed");
 
 		svc_info->device_id = device_id;
 		svc_info->device_name = device_name;

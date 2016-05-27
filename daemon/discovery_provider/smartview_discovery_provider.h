@@ -24,8 +24,8 @@
 
 #include "../discovery_provider_base.h"
 #include "../request.h"
-#include "../service.h"
-#include "../device.h"
+#include "smartview/service.h"
+#include "smartview/device.h"
 
 #include <msf-api/Search.h>
 #include <msf-api/Service.h>
@@ -43,13 +43,10 @@ namespace conv {
 			int start();
 			int stop();
 
-			int set_manager(discovery_manager_impl* disc_manager);
 			int notice_discovered(Service *service);
-
 		private:
 			Service service;
 			Search*	search;
-			discovery_manager_impl*	discovery_manager;
 
 			map <string, conv::service*> cache; // for double check
 

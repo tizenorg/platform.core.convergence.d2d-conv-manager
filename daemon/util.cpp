@@ -28,7 +28,7 @@ using namespace std;
 std::string conv::util::get_bt_mac_address()
 {
 	static std::string g_mac_address;
-	if(g_mac_address.empty()){
+	if(g_mac_address.empty()) {
 		bt_initialize();
 		char* mac_address;
 		bt_adapter_enable();
@@ -49,9 +49,7 @@ std::string conv::util::get_device_name()
 	static std::string g_device_name;
 	if(g_device_name.empty()) {
 		char* device_name = vconf_get_str(VCONFKEY_SETAPPL_DEVICE_NAME_STR);
-		//jhp27.park
-		if (device_name == NULL)
-		{
+		if (device_name == NULL) {
 			g_device_name = "Tizen";
 		} else {
 			g_device_name = device_name;
@@ -82,17 +80,14 @@ static char make_p2p_mac(char c)
 std::string conv::util::get_p2p_mac_address()
 {
 	static std::string g_p2p_mac_address;
-	if(g_p2p_mac_address.empty()){
+	if(g_p2p_mac_address.empty()) {
 		char p2p_mac[MAC_ADDR_STR_LEN];
 		memset(p2p_mac, 0x0, MAC_ADDR_STR_LEN);
 
 		char* temp_addr = vconf_get_str(VCONFKEY_WIFI_BSSID_ADDRESS);
-		if (temp_addr == NULL)
-		{
+		if (temp_addr == NULL) {
 			_E("vconf_get_str Failed for %s", VCONFKEY_WIFI_BSSID_ADDRESS);
-		}
-		else
-		{
+		} else {
 			memcpy(p2p_mac, temp_addr, MAC_ADDR_STR_LEN-1);
 			p2p_mac[1] = make_p2p_mac(p2p_mac[1]);
 			_I("P2P mac is %s", p2p_mac);
@@ -109,8 +104,7 @@ static gboolean misc_timer_worker(gpointer ud)
 {
 	_D("timer_work..");
     gpointer *tdata = (gpointer*)ud;
-    if (tdata[0])
-    {
+    if (tdata[0]) {
         ((conv::util::timer_function)tdata[0])(tdata[1]);
     }
     return TRUE;
@@ -124,10 +118,8 @@ void* conv::util::misc_start_timer(timer_function function, unsigned int interva
 
 	_D("misc_start_timer with interval[%d]", interval);
     src = g_timeout_source_new(interval*1000);
-    //ASSERT(src != NULL);
 
     tdata = g_new0(gpointer, 2);
-    //ASSERT(tdata != NULL);
 
     tdata[0] = (void*)function;
     tdata[1] = data;
@@ -144,10 +136,8 @@ void conv::util::misc_stop_timer(void *timer)
 {
     guint id = (guint) timer;
 	_D("Requested Stop Timer[%d]", id);
-    if (id)
-    {
-        if (!g_source_remove(id))
-        {
+    if (id) {
+        if (!g_source_remove(id)) {
             _E("g_source_remove is fail (timer)");
         }
     }

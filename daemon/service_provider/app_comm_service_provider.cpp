@@ -106,24 +106,21 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 
 	app_comm_service_info *svc_info = NULL;
 
-	if (is_local == 1)
-	{
+	if (is_local == 1) {
 		service_info_base* svc_info_base = client_obj->get_service_info(_type, "LOCAL_HOST");
 
 		if ( svc_info_base != NULL ) {
 			_D("local service instance already exists");
 			svc_info = reinterpret_cast<app_comm_service_info*>(svc_info_base);
 
-			if (svc_info == NULL)
-			{
+			if (svc_info == NULL) {
 				_D("casting failed");
 				return CONV_ERROR_INVALID_OPERATION;
 			}
-		}
-		else
-		{
+		} else {
 			_D("allocating new service instance for local service");
-			svc_info = new app_comm_service_info();
+			svc_info = new(std::nothrow) app_comm_service_info();
+			ASSERT_ALLOC(svc_info);
 
 			svc_info->is_local = true;
 			client_obj->add_service_info(_type, "LOCAL_HOST", (service_info_base*)svc_info);
@@ -137,19 +134,18 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 			_D("service instance already exists");
 			svc_info = reinterpret_cast<app_comm_service_info*>(svc_info_base);
 
-			if (svc_info == NULL)
-			{
+			if (svc_info == NULL) {
 				_D("casting failed");
 				return CONV_ERROR_INVALID_OPERATION;
 			}
-		}
-		else
-		{
+		} else {
 			_D("allocating new service instance");
-			svc_info = new app_comm_service_info();
+			svc_info = new(std::nothrow) app_comm_service_info();
+			ASSERT_ALLOC(svc_info);
 
 			_D("uri : %s", uri.c_str());
-			svc_info->service_obj = new Service(id, version, name, type, uri);
+			svc_info->service_obj = new(std::nothrow) Service(id, version, name, type, uri);
+			ASSERT_ALLOC(svc_info->service_obj);
 			svc_info->is_local = false;
 			client_obj->add_service_info(_type, id, (service_info_base*)svc_info);
 
@@ -177,10 +173,8 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("iteration");
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) )
-		{
-			if ( (*iter)->application != NULL  )
-			{
+		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
+			if ( (*iter)->application != NULL  ) {
 				_D("already started");
 				// check if it's connected and re-try if it's not
 				return CONV_ERROR_INVALID_OPERATION;
@@ -192,17 +186,16 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		}
 	}
 
-	if ( app_info == NULL )
-	{
-		app_info = new application_info();
+	if ( app_info == NULL ) {
+		app_info = new(std::nothrow) application_info();
+		ASSERT_ALLOC(app_info);
 
 		app_info->service_listener.uri = uri;
 		app_info->service_listener.channel_id = channel_id;
 	}
 
 	// if it's local -> server application
-	if ( svc_info->is_local )
-	{
+	if ( svc_info->is_local ) {
 		_D("COMMUNCATION_START : local channel. channel_id : %s", channel_id.c_str());
 		Channel* application = Service::getLocal().createChannel(channel_id);
 
@@ -222,7 +215,8 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		svc_info->application_info_list.push_back(app_info);
 	} else {
 		_D("COMMUNCATION_START : uri : %s, channel_id : %s", uri.c_str(), channel_id.c_str());
-		Application* application = new Application(svc_info->service_obj, uri, channel_id);
+		Application* application = new(std::nothrow) Application(svc_info->service_obj, uri, channel_id);
+		ASSERT_ALLOC(application);
 
 		// add listeners
 		app_info->service_listener.request_obj = svc_info->registered_request;
@@ -260,19 +254,16 @@ int conv::app_comm_service_provider::stop_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("%s, %s", (*iter)->service_listener.uri.c_str(), (*iter)->service_listener.channel_id.c_str());
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) )
-		{
+		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
 			application_info *app_info = *iter;
 
 			_D("COMMUNCATION_STOP : uri : %s, channel_id : %s", uri.c_str(), channel_id.c_str());
 
-			if ( *iter == NULL )
-			{
+			if ( *iter == NULL ) {
 				_D("iter is NULL");
 			}
 
-			if ( svc_info->is_local )
-			{
+			if ( svc_info->is_local ) {
 				result_disconnect.app_info = app_info;
 				app_info->application->set_disconnect_result(NULL);
 				app_info->application->disconnect();
@@ -316,17 +307,14 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("iteration");
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) )
-		{
-			if ( (*iter)->application != NULL  )
-			{
+		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
+			if ( (*iter)->application != NULL ) {
 				_D("app_info exists and application instance exists");
 				app_info = (*iter);
 
 				Clients* client_list = app_info->application->getclients();
 
-				if ( svc_info->registered_request == NULL)
-				{
+				if ( svc_info->registered_request == NULL) {
 					_D("No callback is registered");
 					request_obj->reply(CONV_ERROR_INVALID_OPERATION);
 					delete request_obj;
@@ -410,19 +398,18 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("iteration");
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) )
-		{
-			if ( (*iter)->application != NULL  )
-			{
+		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
+			if ( (*iter)->application != NULL ) {
 				_D("publishing payload");
 
 				json payload;
 
 				request_obj->get_payload_from_description(&payload);
 
-				char* message = new char[strlen(payload.str().c_str())+1];
+				char* message = new(std::nothrow) char[strlen(payload.str().c_str())+1];
+				ASSERT_ALLOC(message);
 
-				strcpy(message, payload.str().c_str());
+				strncpy(message, payload.str().c_str(), strlen(payload.str().c_str()));
 
 				string payload_str = payload.str();
 
@@ -430,7 +417,7 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 
 				_D("publishing done");
 
-				delete message;
+				delete[] message;
 				return CONV_ERROR_NONE;
 			}
 		}
@@ -444,11 +431,27 @@ int conv::app_comm_service_provider::register_request(request* request_obj)
 {
 	_D("communcation/recv requested");
 	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
-	svc_info->registered_request = request_obj;
 
-	request_obj->reply(CONV_ERROR_NONE);
-	_D("subscribe requested");
-
+	switch (request_obj->get_type()) {
+	case REQ_SUBSCRIBE:
+		if ( svc_info->registered_request != NULL ) {
+			delete svc_info->registered_request;
+		}
+		svc_info->registered_request = request_obj;
+		request_obj->reply(CONV_ERROR_NONE);
+		_D("subscribe requested");
+		break;
+	case REQ_UNSUBSCRIBE:
+		svc_info->registered_request = NULL;
+		request_obj->reply(CONV_ERROR_NONE);
+		delete request_obj;
+		break;
+	default:
+		request_obj->reply(CONV_ERROR_INVALID_OPERATION);
+		delete request_obj;
+		return CONV_ERROR_INVALID_OPERATION;
+		break;
+	}
 	return CONV_ERROR_NONE;
 }
 
@@ -463,27 +466,24 @@ int conv::app_comm_service_provider::get_service_info_for_discovery(json* json_o
 	char* address = NULL;
 	int ret = connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV4, &address);
 
-	if(ret != CONNECTION_ERROR_NONE)
-	{
+	if(ret != CONNECTION_ERROR_NONE) {
 		_E("connection error");
-		if (connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV6, &address) != CONNECTION_ERROR_NONE)
-		{
+		if (connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV6, &address) != CONNECTION_ERROR_NONE) {
 			_E("connection error");
 			connection_destroy(connection);
 			return CONV_ERROR_NOT_SUPPORTED;
 		}
 	}
 
-	if ( address == NULL || strlen(address) < 1 )
-	{
+	if ( address == NULL || strlen(address) < 1 ) {
 		_E("connection error");
 		connection_destroy(connection);
 		return CONV_ERROR_NOT_SUPPORTED;
 	} else {
-		char uri[1000];
+		char uri[200];
 		Service local_service = Service::getLocal();
 
-		sprintf(uri, "http://%s:8001/api/v2/", address);
+		snprintf(uri, sizeof(uri), "http://%s:8001/api/v2/", address);
 
 		json info;
 

@@ -45,53 +45,39 @@ int conv::request_handler::handle_request(request* request_obj)
 	int result = CONV_ERROR_INVALID_OPERATION;
 
 	switch (request_obj->get_type()) {
-		case REQ_SUBSCRIBE:
-			_D("Requested type : REQ_SUBSCRIBE..");
-			if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV) )
-			{
-				result = service_manager::handle_request(request_obj);
-			}
-			else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_START) )
-			{
-				result = connection_manager::handle_request(request_obj);
-			}
-			break;
-		case REQ_UNSUBSCRIBE:
-			if (!strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV) )
-			{
-				result = service_manager::handle_request(request_obj);
-			}
-			else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_START) )
-			{
-				result = connection_manager::handle_request(request_obj);
-			}
-			break;
-		case REQ_READ:
-			break;
-		case REQ_READ_SYNC:
-			break;
-		case REQ_WRITE:
-			_D("Requested type : REQ_WRITE..");
-			if (!strcmp (request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_START) || !strcmp (request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_STOP))
-			{
-				return discovery_manager::handle_request (request_obj);
-			}
-			else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_START) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_STOP)
-					|| !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_SET) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_GET))
-			{
-				result = service_manager::handle_request(request_obj);
-			}
-			else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_START) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_STOP) )
-			{
-				result = connection_manager::handle_request(request_obj);
-			}
-			break;
-		case REQ_SUPPORT:
-			break;
-		default:
-			_E("Invalid type of request");
-			request_obj->reply(result);
-			delete request_obj;
+	case REQ_SUBSCRIBE:
+		_D("Requested type : REQ_SUBSCRIBE..");
+		if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV) )
+			result = service_manager::handle_request(request_obj);
+		else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_START) )
+			result = connection_manager::handle_request(request_obj);
+		break;
+	case REQ_UNSUBSCRIBE:
+		if (!strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV) )
+			result = service_manager::handle_request(request_obj);
+		else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_START) )
+			result = connection_manager::handle_request(request_obj);
+		break;
+	case REQ_READ:
+		break;
+	case REQ_READ_SYNC:
+		break;
+	case REQ_WRITE:
+		_D("Requested type : REQ_WRITE..");
+		if (!strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_START) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_STOP))
+			return discovery_manager::handle_request (request_obj);
+		else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_START) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_STOP)
+				|| !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_SET) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_COMMUNICATION_GET))
+			result = service_manager::handle_request(request_obj);
+		else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_START) || !strcmp(request_obj->get_subject(), CONV_SUBJECT_CONNECTION_STOP) )
+			result = connection_manager::handle_request(request_obj);
+		break;
+	case REQ_SUPPORT:
+		break;
+	default:
+		_E("Invalid type of request");
+		request_obj->reply(result);
+		delete request_obj;
 	}
 
 	return result;

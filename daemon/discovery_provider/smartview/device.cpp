@@ -18,6 +18,8 @@
 #include "device.h"
 #include "log.h"
 #include "d2d_conv_manager.h"
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
@@ -29,14 +31,53 @@ conv::device::~device()
 {
 }
 
+template <typename T>
+struct GenericComparator
+{
+	typedef int (T::*GETTER)() const;
+	GETTER m_getterFunc;
+	int m_data;
+	GenericComparator(GETTER getterFunc, int data)
+	{
+		m_getterFunc = getterFunc;
+		m_data = data;
+	}
+	bool operator()(const T & obj)
+	{
+		if ((obj.*m_getterFunc)() == m_data)
+			return true;
+		else
+			return false;
+	}
+};
+
+static bool serviceComparision(conv::service_iface* obj, int serviceType)
+{
+	if (obj->getServiceType() == serviceType)
+		return true;
+	else
+		return false;
+}
+
 int conv::device::add_service(service_iface* service_obj)
 {
-	service_list.push_back(service_obj);
+	service_list_t::iterator itr;
+	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, service_obj->getServiceType()));
+
+	if (itr == service_list.end()) {
+		_D("New Service Type[%d] added to the device[%s]",
+											service_obj->getServiceType(), getId().c_str());
+		service_list.push_back(service_obj);
+	} else {
+		_D("Service Type[%d] is already included in device[%s] so skipped!",
+											service_obj->getServiceType(), getId().c_str());
+	}
 	return CONV_ERROR_NONE;
 }
 
 int conv::device::remove_service(service_iface* service_obj)
 {
+	service_list.remove(service_obj);
 	return CONV_ERROR_NONE;
 }
 

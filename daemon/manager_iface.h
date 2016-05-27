@@ -29,7 +29,6 @@ namespace conv {
 			virtual int init() = 0;
 			virtual int release() = 0;
 			virtual int handle_request(request* request_obj) = 0;
-//			virtual int publish(const char* subject, json data_updated, json option) = 0;
 	};	/* class manager_iface */
 }
 

@@ -19,15 +19,15 @@
 
 #include <string>
 #include <vector>
-#include "service_iface.h"
-#include "conv_json.h"
+#include "../../service_iface.h"
+#include "../../conv_json.h"
 
-#include "device_iface.h"
+#include "../../device_iface.h"
 
 namespace conv {
 	class device : public device_iface {
 		public:
-			typedef std::vector<service_iface*> service_list_t;
+			typedef std::list<service_iface*> service_list_t;
 			device();
 			~device();
 
