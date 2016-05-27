@@ -48,6 +48,12 @@ BuildRequires: boost-thread
 BuildRequires: boost-system
 BuildRequires: boost-filesystem
 
+%if "%{?profile}" == "tv"
+ExcludeArch: aarch64 %ix86 x86_64
+%else
+ExcludeArch: %{arm} aarch64 %ix86 x86_64
+%endif
+
 %description
 D2D Convergence Manager Service
 
