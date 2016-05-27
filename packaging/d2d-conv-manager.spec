@@ -48,6 +48,12 @@ BuildRequires: boost-thread
 BuildRequires: boost-system
 BuildRequires: boost-filesystem
 
+%if "%{profile}" == "tv" || "%{TIZEN_PROFILE_TV}" == "1" || "%{TIZEN_PRODUCT_TV}" == "1"
+ExcludeArch: aarch64 %ix86 x86_64
+%else
+ExcludeArch: %{arm} aarch64 %ix86 x86_64
+%endif
+
 %description
 D2D Convergence Manager Service
 
