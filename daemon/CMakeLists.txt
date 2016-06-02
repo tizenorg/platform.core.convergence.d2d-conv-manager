@@ -9,6 +9,7 @@ FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} discovery_provider/*.cpp)
 FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} service_provider/*.cpp)
 FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} access_control/*.cpp)
 FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} discovery_provider/iotcon/*.cpp)
+FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} discovery_provider/smartview/*.cpp)
 
 SET(provider_deps "glib-2.0 dlog json-glib-1.0 iotcon capi-appfw-app-manager msf-api iotcon vconf capi-network-bluetooth capi-network-wifi-direct capi-appfw-application bundle capi-network-connection cynara-creds-gdbus cynara-client cynara-session capi-appfw-package-manager")
 #	SET(provider_deps "${provider_deps} security-server")
@@ -34,9 +35,4 @@ ADD_EXECUTABLE(${DAEMON} ${DAEMON_SRCS})
 
 TARGET_LINK_LIBRARIES(${DAEMON} ${daemon_pkgs_LIBRARIES} -lpthread)
 
-
 INSTALL(TARGETS ${DAEMON} DESTINATION ${BIN_INSTALL_DIR})
-
-SET(DBUS_SERVICE_FILE "org.tizen.d2dconv")
-CONFIGURE_FILE(${DBUS_SERVICE_FILE}.service.in ${DBUS_SERVICE_FILE}.service @ONLY)
-INSTALL(FILES ${DBUS_SERVICE_FILE}.service DESTINATION ${SHARE_INSTALL_PREFIX}/dbus-1/services)

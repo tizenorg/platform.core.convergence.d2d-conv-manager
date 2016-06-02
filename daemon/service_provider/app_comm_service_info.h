@@ -31,7 +31,7 @@ namespace conv {
 	class app_comm_service_listener : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
 									public OnMessageListener, public OnErrorListener {
 		public:
-			conv::request* request_obj;
+			conv::request** request_obj;
 			string uri;
 			string channel_id;
 
@@ -46,7 +46,7 @@ namespace conv {
 			}
 
 			void onClientConnect(Client client){
-				_D("onClientDisconnect Called");
+				_D("onClientConnect Called");
 				publish_response(CONV_ERROR_NONE, "onClientConnect", &client);
 			}
 
@@ -58,11 +58,10 @@ namespace conv {
 			void onMessage(Message message){
 				_D("onMessage Called");
 
-				if ( request_obj != NULL )
+				if ((*request_obj) != NULL)
 				{
 					_D(RED("publishing_response"));
 					json result;
-					json payload;
 					json message_json;
 					json description;
 
@@ -74,21 +73,20 @@ namespace conv {
 					message_json.set(NULL, CONV_JSON_FROM, message.m_from);
 					string payload_str(reinterpret_cast<const char*>(message.m_payload), message.m_payload_size);
 
-					json payload_json = payload_str;
-					message_json.set(NULL, CONV_JSON_PAYLOAD, payload_json);
-					message_json.set(NULL, CONV_JSON_PAYLOAD_SIZE, message.m_payload_size);
+					json payload = payload_str;
 
+					payload.set(NULL, CONV_JSON_PAYLOAD_SIZE, message.m_payload_size);
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onMessage");
 					payload.set(NULL, CONV_JSON_MESSAGE, message_json);
 
-					description = request_obj->get_description();
+					description = (*request_obj)->get_description();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
-					request_obj->publish(CONV_ERROR_NONE, result);
+					(*request_obj)->publish(CONV_ERROR_NONE, result);
 				}
 			}
 
@@ -101,7 +99,7 @@ namespace conv {
 				bool isHost = client->isHost();
 				int connecttime = client->getConnectTime();
 
-				if ( request_obj != NULL )
+				if ((*request_obj) != NULL)
 				{
 					_D(RED("publishing_response"));
 					json result;
@@ -116,14 +114,14 @@ namespace conv {
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, result_type);
 					payload.set(NULL, CONV_JSON_CLIENT, client_json);
 
-					description = request_obj->get_description();
+					description = (*request_obj)->get_description();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
-					request_obj->publish(error, result);
+					(*request_obj)->publish(error, result);
 				}
 			}
 	};
@@ -133,6 +131,7 @@ namespace conv {
 		public:
 			Channel* application;
 			app_comm_service_listener service_listener;
+			Service local_service;
 	};
 
 	typedef vector<application_info*> application_info_list_t;

@@ -122,7 +122,6 @@ rm -f %{_unitdir_user}/default.target.wants/%{name}.service
 %config %{_sysconfdir}/dbus-1/session.d/d2d-conv-manager.conf
 %{_unitdir_user}/%{name}.service
 %{_bindir}/%{name}d
-%{_datadir}/dbus-1/services/org.tizen.d2dconv.service
 %{_bindir}/%{name}-test
 %{_datadir}/license/%{name}
 

@@ -15,6 +15,8 @@
  */
 
 #include "device_adapter.h"
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
@@ -27,9 +29,27 @@ conv::device_adapter::~device_adapter()
 {
 }
 
+static bool serviceComparision(conv::service_iface* obj, int serviceType)
+{
+	if (obj->getServiceType() == serviceType)
+		return true;
+	else
+		return false;
+}
+
 int conv::device_adapter::add_service(service_iface* service_obj)
 {
-	service_list.push_back(service_obj);
+	service_list_t::iterator itr;
+	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, service_obj->getServiceType()));
+
+	if (itr == service_list.end()) {
+		_D("New Service Type[%d] added to the device[%s]",
+											service_obj->getServiceType(), getId().c_str());
+		service_list.push_back(service_obj);
+	} else {
+		_D("Service Type[%d] is already included in device[%s] so skipped!",
+											service_obj->getServiceType(), getId().c_str());
+	}
 	return CONV_ERROR_NONE;
 }
 
@@ -56,8 +76,7 @@ string conv::device_adapter::getAddress()
 
 int conv::device_adapter::get_services_list(std::list<service_iface*> *list)
 {
-	for (service_list_t::iterator iterPos = service_list.begin(); iterPos != service_list.end(); ++iterPos)
-	{
+	for (service_list_t::iterator iterPos = service_list.begin(); iterPos != service_list.end(); ++iterPos) {
 		list->push_back(*iterPos);
 	}
 	return CONV_ERROR_NONE;

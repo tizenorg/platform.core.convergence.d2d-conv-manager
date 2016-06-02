@@ -13,7 +13,7 @@ SET(CMAKE_EXE_LINKER_FLAGS " -Wl,--hash-style=both")
 
 SET(CLIENT "d2d-conv-manager")
 SET(DAEMON "d2d-conv-managerd")
-SET(DBUS_INTERFACE "org.tizen.d2d-conv-manager")
+SET(DBUS_INTERFACE "org.tizen.d2dconv")
 
 ADD_SUBDIRECTORY(lib)
 ADD_SUBDIRECTORY(daemon)

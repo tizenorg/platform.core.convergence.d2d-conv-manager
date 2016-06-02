@@ -37,10 +37,9 @@ conv::service_manager_impl::~service_manager_impl()
 
 int conv::service_manager_impl::init()
 {
-	register_provider(new conv::app_comm_service_provider());
-	register_provider(new conv::remote_app_control_service_provider());
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::app_comm_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "app_comm_service_provider register failed");
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::remote_app_control_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "remote_app_control_service_provider register failed");
 
-	//TBD
 	register_discovery_info();
 	return CONV_ERROR_NONE;
 }
@@ -162,14 +161,14 @@ int conv::service_manager_impl::register_provider(conv::service_provider_base *p
 {
 	if (!provider) {
 		_E("Provider NULL");
-		throw static_cast<int>(CONV_ERROR_INVALID_PARAMETER);
+		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
 	provider_list.push_back(provider);
 
 	if (provider->init() != CONV_ERROR_NONE) {
 		_E("Provider initialization failed");
-		throw CONV_ERROR_INVALID_OPERATION;
+		return CONV_ERROR_INVALID_OPERATION;
 	}
 
 	return CONV_ERROR_NONE;
@@ -278,8 +277,7 @@ int conv::service_manager_impl::get_service_info_for_discovery(json* service_jso
 
 	for (service_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
 		json service_info;
-		if ( (*it)->get_service_info_for_discovery(&service_info) == CONV_ERROR_NONE )
-		{
+		if ((*it)->get_service_info_for_discovery(&service_info) == CONV_ERROR_NONE) {
 			service_json->array_append(NULL, "service_list", service_info);
 		}
 	}
@@ -316,8 +314,7 @@ static void iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h reque
 		return;
 	}
 
-	if (IOTCON_REQUEST_GET == type)
-	{
+	if (IOTCON_REQUEST_GET == type) {
 		iotcon_representation_h resp_repr;
 		_I("GET request");
 

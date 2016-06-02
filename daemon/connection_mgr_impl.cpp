@@ -51,8 +51,7 @@ int conv::connection_manager_impl::handle_request(request* request_obj)
 	int error = CONV_ERROR_INVALID_OPERATION;
 
 	if ( !conv::privilege_manager::is_allowed(request_obj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-			!conv::privilege_manager::is_allowed(request_obj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) )
-	{
+			!conv::privilege_manager::is_allowed(request_obj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) ) {
 		_E("permission denied");
 		request_obj->reply(CONV_ERROR_PERMISSION_DENIED);
 		delete request_obj;

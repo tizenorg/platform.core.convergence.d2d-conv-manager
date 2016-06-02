@@ -76,7 +76,7 @@ conv::client* conv::client_manager_impl::get_client(std::string client_id)
 	}
 
 	_D("new client obj created");
-	client* client_obj = new conv::client(client_id, NULL);
+	client* client_obj = new(std::nothrow) conv::client(client_id, NULL);
 
 	client_list.push_back(client_obj);
 	return client_obj;

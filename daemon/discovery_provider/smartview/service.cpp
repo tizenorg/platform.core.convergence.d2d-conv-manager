@@ -54,7 +54,7 @@ string conv::service::getUri()
 
 int conv::service::getServiceType()
 {
-	return 0; //string("oic.r.tizen.app-communication");
+	return 0;
 }
 
 string conv::service::getServiceInfo()

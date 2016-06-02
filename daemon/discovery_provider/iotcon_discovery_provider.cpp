@@ -38,8 +38,6 @@ typedef std::map <string, conv::resource_handle> discovery_process_map_t;
 static discovery_complete_list_t	discovery_complete_list;
 static discovery_process_map_t		discovery_process_map;
 
-static conv::discovery_manager_impl* disc_manager;
-
 conv::iotcon_discovery_provider::iotcon_discovery_provider()
 {
 }
@@ -55,8 +53,9 @@ int conv::iotcon_discovery_provider::init()
 		_E("Failed iotcon_connect... Error:%d", ret);
 	}
 
-	if (resource_h_map != NULL)	delete resource_h_map;
-	resource_h_map = new (std::nothrow) resource_h_map_t;
+	if (resource_h_map != NULL)
+		delete resource_h_map;
+	resource_h_map = new(std::nothrow) resource_h_map_t;
 
 	return CONV_ERROR_NONE;
 }
@@ -65,7 +64,8 @@ int conv::iotcon_discovery_provider::release()
 {
 	iotcon_deinitialize();
 
-	if (resource_h_map != NULL)	delete resource_h_map;
+	if (resource_h_map != NULL)
+		delete resource_h_map;
 
 	return CONV_ERROR_NONE;
 }
@@ -113,17 +113,17 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	discovery_complete_list_t::iterator itor;
 	_D("Check if key[%s] already exists in complete_list", discoveryKey.c_str());
 	itor = find(discovery_complete_list.begin(), discovery_complete_list.end(), discoveryKey);
-	if (itor != discovery_complete_list.end() )	return;	// Already done pushing upwards..
+	if (itor != discovery_complete_list.end() )
+		return;	// Already done pushing upwards..
 
 	// Retreive info from process_map..
 	resource_handle cur_resource_h;
 	discovery_process_map_t::iterator itor_process;
 	itor_process = discovery_process_map.find(discoveryKey);
 	_D("Check if key[%s] exists in process_map", discoveryKey.c_str());
-	if (itor_process != discovery_process_map.end())
+	if (itor_process != discovery_process_map.end()) {
 		cur_resource_h = itor_process->second;
-	else
-	{
+	} else {
 		_D("Not supposed to happen");
 		return;
 	}
@@ -176,8 +176,7 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 
 	char* service_json_char = NULL;
 	ret = iotcon_state_get_str(recv_state, "service_json", &service_json_char);
-	if (service_json_char == NULL)
-	{
+	if (service_json_char == NULL) {
 		_D("service_json does not exist...");
 		service_json_char = const_cast<char*>("");
 	}
@@ -188,19 +187,16 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	_D("on_response : device_id[%s] device_name[%s] device_type[%s] version[%s] service_list[%s]"
 									, device_id, device_name, device_type, version, service_list);
 
-	if (disc_manager != NULL)
-	{
+	if (_discovery_manager != NULL) {
 		device_adapter*	device = new(std::nothrow) device_adapter (cur_resource_h);
 
 		int num_service = service_list_json.array_get_size(NULL, "service_list");
-		for (int index = 0; index < num_service; index++)
-		{
+		for (int index = 0; index < num_service; index++) {
 			int serv_type_int;
 
 			json cur_service_json;
 			bool ret = service_list_json.get_array_elem(NULL, "service_list", index, &cur_service_json);
-			if (ret != true)
-			{
+			if (ret != true) {
 				_D("json get array elem with service_list error..");
 				continue;
 			}
@@ -215,7 +211,7 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 
 			device->add_service(serv);
 		}
-		disc_manager->append_discovered_result(device, NULL);
+		_discovery_manager->append_discovered_result(device);
 	}
 
 	discovery_complete_list.push_back(discoveryKey);
@@ -235,17 +231,17 @@ void conv::iotcon_discovery_provider::on_received_detail_info(iotcon_remote_reso
 	_D("On Received Detail Info.. with type[%d]", request_type);
 
 	switch (request_type) {
-		case IOTCON_REQUEST_GET :
-			_on_response_get(resource, response, NULL);
-			break;
-		case IOTCON_REQUEST_PUT:
-		case IOTCON_REQUEST_POST:
-		case IOTCON_REQUEST_DELETE:
-			_D("Not supported request_type");
-			break;
-		default:
-			_E("Invalid Request Type");
-			return;
+	case IOTCON_REQUEST_GET :
+		_on_response_get(resource, response, NULL);
+		break;
+	case IOTCON_REQUEST_PUT:
+	case IOTCON_REQUEST_POST:
+	case IOTCON_REQUEST_DELETE:
+		_D("Not supported request_type");
+		break;
+	default:
+		_E("Invalid Request Type");
+		return;
 	}
 }
 
@@ -309,11 +305,11 @@ int conv::iotcon_discovery_provider::add_iot_resource(iotcon_remote_resource_h r
 	iotcon_remote_resource_get_interfaces(resource, &resource_interfaces);
 
 	resource_handle res_handle;
-		// uri_path
+	// uri_path
 	res_handle.set_uri_path(string(resource_uri_path));
-		// host_address
+	// host_address
 	res_handle.set_host_address(string(resource_host));
-		// resource types
+	// resource types
 	iotcon_resource_types_foreach(resource_types, _get_resource_foreach_types, (void*)(&res_handle.get_types()) );
 
 	// Add resource handle into Temp Cache
@@ -356,14 +352,6 @@ int conv::iotcon_discovery_provider::start()
 
 int conv::iotcon_discovery_provider::stop()
 {
-	return CONV_ERROR_NONE;
-}
-
-int conv::iotcon_discovery_provider::set_manager(discovery_manager_impl* disco_manager)
-{
-	_D("set discovery manager..");
-	disc_manager = disco_manager;
-
 	return CONV_ERROR_NONE;
 }
 

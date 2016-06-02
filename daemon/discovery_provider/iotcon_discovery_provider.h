@@ -58,7 +58,6 @@ namespace conv {
 			int start();
 			int stop();
 
-			int set_manager(discovery_manager_impl* disc_manager);
 			static int notice_discovered(service_iface* service);
 	};
 }

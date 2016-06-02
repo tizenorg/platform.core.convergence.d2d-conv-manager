@@ -60,6 +60,8 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 
 	key.set(NULL, CONV_JSON_SERVICE, service);
 	key.set(NULL, CONV_JSON_TYPE, service_type);
+	key.set(NULL, CONV_JSON_IS_LOCAL, is_local);
+	_D("key:%s", key.str().c_str());
 
 	std::map<std::string, _conv_service_callback_info*>::iterator it = callback_map.find(key.str());
 	if (it == callback_map.end()) {
@@ -162,6 +164,7 @@ EXTAPI int conv_service_create(conv_service_h* handle)
 	ASSERT_ALLOC(*handle);
 
 	(*handle)->is_local = 1;
+	(*handle)->service_type = CONV_SERVICE_NONE;
 	(*handle)->connection_state = CONV_SERVICE_CONNECTION_STATE_CONNECTED;
 
 	return CONV_ERROR_NONE;
@@ -191,9 +194,7 @@ EXTAPI int conv_service_destroy(conv_service_h handle)
 	ASSERT_NOT_NULL(handle);
 
 	if ( handle->callback )
-	{
 		delete handle->callback;
-	}
 
 	delete handle;
 
@@ -213,9 +214,12 @@ EXTAPI int conv_service_set_listener_cb(conv_service_h handle, conv_service_list
 	json service = handle->jservice;
 
 	std::string type = convert_type_to_string(handle->service_type);
+	if (type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, type);
+	description.set(NULL, CONV_JSON_IS_LOCAL, handle->is_local);
 
 	_conv_service_callback_info *cb_info = new(std::nothrow)_conv_service_callback_info();
 	cb_info->cb = callback;
@@ -245,12 +249,15 @@ EXTAPI int conv_service_unset_listener_cb(conv_service_h handle)
 	json service = handle->jservice;
 
 	std::string type = convert_type_to_string(handle->service_type);
+	if (type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, type);
+	description.set(NULL, CONV_JSON_IS_LOCAL, handle->is_local);
 
 	int req_id;
-	int err = conv::dbus_client::request(REQ_UNSUBSCRIBE, &req_id, CONV_SUBJECT_COMMUNICATION_RECV, NULL, NULL, NULL);
+	int err = conv::dbus_client::request(REQ_UNSUBSCRIBE, &req_id, CONV_SUBJECT_COMMUNICATION_RECV, description.str().c_str(), NULL, NULL);
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Unset observe failed");
 
 	std::map<std::string, _conv_service_callback_info*>::iterator it = callback_map.find(description.str());
@@ -278,13 +285,13 @@ EXTAPI int conv_service_start(conv_service_h handle, conv_channel_h channel_hand
 	json channel;
 
 	if ( channel_handle != NULL )
-	{
 		channel = channel_handle->jchannel;
-	}
 
 	json service = handle->jservice;
 	json device = handle->jdevice;
 	std::string type = convert_type_to_string(handle->service_type);
+	if (type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_CHANNEL, channel);
@@ -298,7 +305,7 @@ EXTAPI int conv_service_start(conv_service_h handle, conv_channel_h channel_hand
 	return CONV_ERROR_NONE;
 }
 
-EXTAPI int conv_service_get(conv_service_h handle, conv_channel_h channel_handle, conv_payload_h payload_handle)
+EXTAPI int conv_service_read(conv_service_h handle, conv_channel_h channel_handle, conv_payload_h payload_handle)
 {
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
@@ -309,18 +316,17 @@ EXTAPI int conv_service_get(conv_service_h handle, conv_channel_h channel_handle
 	json channel;
 
 	if ( channel_handle != NULL )
-	{
 		channel = channel_handle->jchannel;
-	}
 
 	json payload;
 
-	if ( payload_handle != NULL) {
+	if ( payload_handle != NULL)
 		payload = payload_handle->jpayload;
-	}
 
 	json service = handle->jservice;
 	std::string type = convert_type_to_string(handle->service_type);
+	if (type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_CHANNEL, channel);
@@ -345,13 +351,13 @@ EXTAPI int conv_service_stop(conv_service_h handle, conv_channel_h channel_handl
 	json channel;
 
 	if ( channel_handle != NULL )
-	{
 		channel = channel_handle->jchannel;
-	}
 
 	json service = handle->jservice;
 	json device = handle->jdevice;
 	std::string type = convert_type_to_string(handle->service_type);
+	if (type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_CHANNEL, channel);
@@ -374,16 +380,20 @@ EXTAPI int conv_service_publish(conv_service_h handle, conv_channel_h channel_ha
 
 	json description;
 	json channel;
+	json payload;
 
-	if ( channel_handle != NULL )
-	{
+	if (channel_handle != NULL)
 		channel = channel_handle->jchannel;
-	}
 
-	json payload = payload_handle->jpayload;
+	if (payload_handle != NULL)
+		payload = payload_handle->jpayload;
+
 	json service = handle->jservice;
 	json device = handle->jdevice;
+
 	std::string type = convert_type_to_string(handle->service_type);
+	if (type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_CHANNEL, channel);
@@ -431,6 +441,8 @@ static int conv_service_unset_connected_cb(conv_service_h handle)
 	json service = handle->jservice;
 
 	std::string service_type = convert_type_to_string(handle->service_type);
+	if (service_type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, service_type);
@@ -478,13 +490,14 @@ EXTAPI int conv_service_connect(conv_service_h handle, conv_service_connected_cb
 	json device = handle->jdevice;
 
 	std::string service_type = convert_type_to_string(handle->service_type);
+	if (service_type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, service_type);
 	description.set(NULL, CONV_JSON_DEVICE, device);
 	description.set(NULL, CONV_JSON_IS_LOCAL, handle->is_local);
 
-	//temp
 	conv_service_set_connected_cb(handle, description, callback, user_data);
 
 	int err = conv::dbus_client::request(REQ_WRITE, &req_id, CONV_SUBJECT_CONNECTION_START, description.str().c_str(), NULL, NULL);
@@ -498,7 +511,6 @@ EXTAPI int conv_service_disconnect(conv_service_h handle)
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
 
-	//temp
 	conv_service_unset_connected_cb(handle);
 
 	int req_id;
@@ -507,6 +519,8 @@ EXTAPI int conv_service_disconnect(conv_service_h handle)
 	json service = handle->jservice;
 	json device = handle->jdevice;
 	std::string service_type = convert_type_to_string(handle->service_type);
+	if (service_type.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, service_type);
@@ -538,7 +552,8 @@ EXTAPI int conv_service_get_property_string(conv_service_h handle, const char* k
 
 	std::string strval;
 	bool ret = handle->jservice.get(NULL, key, &strval);	// path is NULL..
-	if (ret == false || strval.empty())	return CONV_ERROR_NO_DATA;
+	if (ret == false || strval.empty())
+		return CONV_ERROR_NO_DATA;
 	*value = strdup(strval.c_str());
 
 	return CONV_ERROR_NONE;
@@ -548,6 +563,10 @@ EXTAPI int conv_service_set_type(conv_service_h handle, conv_service_e value)
 {
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
+
+	std::string value_str = convert_type_to_string(value);
+	if (value_str.empty())
+		return CONV_ERROR_INVALID_PARAMETER;
 
 	handle->service_type = value;
 
@@ -586,8 +605,7 @@ conv_service_e convert_string_to_type(std::string type_name)
 {
 	conv_service_e service_type = CONV_SERVICE_NONE;
 
-	if ( !type_name.compare(CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION))
-	{
+	if ( !type_name.compare(CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION)) {
 		service_type = CONV_SERVICE_APP_TO_APP_COMMUNICATION;
 	} else if ( !type_name.compare(CONV_SERVICE_TYPE_REMOTE_APP_CONTROL)) {
 		service_type = CONV_SERVICE_REMOTE_APP_CONTROL;

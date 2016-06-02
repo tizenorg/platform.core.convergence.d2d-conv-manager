@@ -25,6 +25,7 @@
 
 #include "common.h"
 #include "d2d_conv_manager.h"
+#include "d2d_conv_internal.h"
 #include "conv_lib_json.h"
 #include "internal_types.h"
 #include "dbus_client.h"
@@ -84,3 +85,15 @@ EXTAPI int conv_channel_get_string(conv_channel_h handle, const char* key, char*
 	return CONV_ERROR_NONE;
 }
 
+// internal API
+EXTAPI int conv_channel_internal_export_to_string(conv_channel_h handle, char** value)
+{
+	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
+	ASSERT_NOT_NULL(handle);
+	ASSERT_NOT_NULL(value);
+
+	*value = g_strdup(handle->jchannel.str().c_str());
+	ASSERT_ALLOC(*value);
+
+	return CONV_ERROR_NONE;
+}

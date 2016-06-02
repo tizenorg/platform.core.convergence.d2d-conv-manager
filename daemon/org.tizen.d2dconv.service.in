@@ -1,5 +1,0 @@
-[D-BUS Service]
-Name=@DBUS_INTERFACE@
-Exec=@BIN_INSTALL_DIR@/d2d-conv-managerd
-
-Libs: -L${libdir} -pthread

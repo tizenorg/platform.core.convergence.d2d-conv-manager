@@ -17,8 +17,6 @@
 #include "smartview_discovery_provider.h"
 
 #include "../discovery_mgr_impl.h"
-#include "../service.h"
-#include "../device.h"
 #include "../conv_json.h"
 
 #include "../util.h"
@@ -31,14 +29,14 @@ class SearchListenerImpl : public SearchListener {
 		conv::smartview_discovery_provider*	disc_provider;
 
 	public:
-		void set_discovery_manager(conv::discovery_manager_impl* disc_manager)
+		void set_discovery_manager(conv::discovery_manager_impl* discovery_manager)
 		{
-			this->disc_manager = disc_manager;
+			this->disc_manager = discovery_manager;
 		}
 
-		void set_discovery_provider(conv::smartview_discovery_provider* disc_provider)
+		void set_discovery_provider(conv::smartview_discovery_provider* discovery_provider)
 		{
-			this->disc_provider = disc_provider;
+			this->disc_provider = discovery_provider;
 		}
 
 		void onStart() {
@@ -71,11 +69,17 @@ conv::smartview_discovery_provider::~smartview_discovery_provider()
 int conv::smartview_discovery_provider::init()
 {
 	_D("smartview_discovery init");
-	search = new Search();
-	if (listener_impl == NULL)
-	{
-		listener_impl = new SearchListenerImpl;
+	search = new(std::nothrow) Search();
+	ASSERT_ALLOC(search);
+	if (listener_impl == NULL) {
+		listener_impl = new(std::nothrow) SearchListenerImpl;
+		if ( listener_impl == NULL) {
+			_E("listener_impl allocation failed");
+			delete search;
+			return CONV_ERROR_OUT_OF_MEMORY;
+		}
 		listener_impl->set_discovery_provider(this);
+		listener_impl->set_discovery_manager(_discovery_manager);
 	}
 	search->setSearchListener(listener_impl);
 
@@ -86,8 +90,7 @@ int conv::smartview_discovery_provider::init()
 
 int conv::smartview_discovery_provider::release()
 {
-	if ( search != NULL )
-	{
+	if ( search != NULL ) {
 		delete search;
 	}
 
@@ -113,14 +116,6 @@ int conv::smartview_discovery_provider::stop()
 	return CONV_ERROR_NONE;
 }
 
-int conv::smartview_discovery_provider::set_manager(discovery_manager_impl* disc_manager)
-{
-	discovery_manager = disc_manager;
-
-	listener_impl->set_discovery_manager(disc_manager);
-	return CONV_ERROR_NONE;
-}
-
 conv::device* conv::smartview_discovery_provider::convert_into_conv_device(Service* smartview_service)
 {
 	string serv_name, serv_version, serv_type, serv_id, serv_uri;
@@ -138,15 +133,6 @@ conv::device* conv::smartview_discovery_provider::convert_into_conv_device(Servi
 	conv::device*	device_info = new(std::nothrow) conv::device;
 	device_info->setId(serv_id);
 	device_info->setName(serv_name);
-
-	/*
-	conv::service*	service_info = new(std::nothrow) conv::service;
-	service_info->setVersion (serv_version);
-	service_info->setType (serv_type);
-	service_info->setUri (serv_uri);
-
-	device_info->add_service (service_info);
-	*/
 
 	return device_info;
 }
@@ -172,8 +158,12 @@ conv::service* conv::smartview_discovery_provider::convert_into_conv_service(Ser
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_VERSION, serv_version);
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_TYPE, serv_type);
 
-	conv::service *conv_service = new conv::service;
+	conv::service *conv_service = new(std::nothrow) conv::service;
 
+	if ( conv_service == NULL ) {
+		_E("conv_service allocation failed");
+		return NULL;
+	}
 	conv_service->setName(serv_name);
 	conv_service->setVersion(serv_version);
 	conv_service->setType(serv_type);
@@ -242,7 +232,7 @@ int conv::smartview_discovery_provider::notice_discovered(Service* service)
 
 	if (!alreadyExisted) {
 		//the discovered one is NEW!!
-		discovery_manager->append_discovered_result(conv_device, conv_service);
+		_discovery_manager->append_discovered_result(conv_device);
 	}
 
 	return CONV_ERROR_NONE;

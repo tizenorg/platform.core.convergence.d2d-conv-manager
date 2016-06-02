@@ -1,7 +1,5 @@
 [Unit]
 Description=D2D Convergence Manager Daemon
-#Wants=net-config.service,bt-service
-#After=net-config.service,bt-service
 
 [Service]
 Type=dbus

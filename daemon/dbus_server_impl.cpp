@@ -93,7 +93,6 @@ static void handle_request(GDBusConnection* conn, const char *sender, GVariant *
 	conv::request *recv_request = NULL;
 	try{
 		recv_request = new conv::request(req_type, DEFAULT_APP_ID, req_id, subject, input, sender, creds, invocation);
-//		recv_request = new conv::request(req_type, app_id, req_id, subject, input, sender, NULL, invocation);
 	} catch (std::bad_alloc& ba) {
 		_E("Memory Allocation Failed..");
 		g_dbus_method_invocation_return_value(invocation, g_variant_new("(iss)", CONV_ERROR_INVALID_OPERATION, EMPTY_JSON_OBJECT, EMPTY_JSON_OBJECT));
@@ -122,11 +121,10 @@ static void handle_method_call(GDBusConnection *conn, const gchar *sender,
 	IF_FAIL_VOID_TAG(STR_EQ(obj_path, DBUS_PATH), _W, "Invalid path: %s", obj_path);
 	IF_FAIL_VOID_TAG(STR_EQ(iface, DBUS_IFACE), _W, "Invalid interface: %s", obj_path);
 
-	if (STR_EQ(method_name, METHOD_REQUEST)) {
+	if (STR_EQ(method_name, METHOD_REQUEST))
 		handle_request(conn, sender, param, invocation);
-	} else {
+	else
 		_W("Invalid method: %s", method_name);
-	}
 
 	_D("end of handle_method_call");
 }
@@ -203,9 +201,8 @@ bool conv::dbus_server_impl::init()
 
 void conv::dbus_server_impl::release()
 {
-	if (dbus_connection) {
+	if (dbus_connection)
 		g_dbus_connection_flush_sync(dbus_connection, NULL, NULL);
-	}
 
 	if (dbus_owner_id > 0) {
 		g_bus_unown_name(dbus_owner_id);
@@ -238,15 +235,9 @@ void conv::dbus_server_impl::publish(const char* dest, int req_id, const char* s
 	g_dbus_connection_call(dbus_connection, dest, DBUS_PATH, DBUS_IFACE,
 			METHOD_RESPOND, param, NULL, G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT, NULL, NULL, &err);
 
-	if (err != NULL)
-	{
+	if (err != NULL) {
 		_D("dbus_connection_call Error msg : %s", err->message);
-
 		HANDLE_GERROR(err);
-	}
-	else
-	{
-		_D("err is NULL");
 	}
 }
 

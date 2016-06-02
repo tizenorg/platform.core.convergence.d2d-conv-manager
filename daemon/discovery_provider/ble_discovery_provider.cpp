@@ -53,10 +53,6 @@ void _cb_activation(int error_code, wifi_direct_device_state_e device_state, voi
 
 bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* user_data)
 {
-//	conv::ble_discovery_provider* disc_provider = (conv::ble_discovery_provider*)user_data;
-
-//	conv::service *conv_service = new conv::service;
-
 #if 0//def TEMP_TEST
 	static int first = 1;
 	if (!strcmp(peer->device_name, "D2d note" ) ) {
@@ -67,6 +63,9 @@ bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* u
 #endif
 
 #if 0 // TODO: make and notice if it's device support d2d
+	conv::ble_discovery_provider* disc_provider = (conv::ble_discovery_provider*)user_data;
+	conv::service *conv_service = new(std::nothrow) conv::service;
+
 	conv_service->setName(peer->device_name);
 	conv_service->setVersion("0.0");
 	conv_service->setType("");
@@ -159,24 +158,19 @@ void _cb_connection(int error_code, wifi_direct_connection_state_e connection_st
 			if (owner) {
 				wifi_direct_get_ip_address(&ip_addr);
 				if (NULL != ip_addr) {
-					sprintf(status, "<color=#FFFFFF>GO - IP : %s", ip_addr);
+					snprintf(status, sizeof(status), "<color=#FFFFFF>GO - IP : %s", ip_addr);
 					free(ip_addr);
 				}
 
 			} else {
 				wifi_direct_get_ip_address(&ip_addr);
 				if (NULL != ip_addr) {
-					sprintf(status, "<color=#FFFFFF>STA - IP : %s", ip_addr);
+					snprintf(status, sizeof(status), "<color=#FFFFFF>STA - IP : %s", ip_addr);
 					free(ip_addr);
 				}
 			}
 		} else {
-			if (error_code == WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT)
-				_D("Error Code - WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT");
-			else if (error_code == WIFI_DIRECT_ERROR_AUTH_FAILED)
-				_D("Error Code - WIFI_DIRECT_ERROR_AUTH_FAILED");
-			else if (error_code == WIFI_DIRECT_ERROR_CONNECTION_FAILED)
-				_D("Error Code - WIFI_DIRECT_ERROR_CONNECTION_FAILED");
+			_E("Error : wifi direct (Error Code:%d)", error_code);
 		}
 	}
 	break;
@@ -251,6 +245,7 @@ void _cb_connection(int error_code, wifi_direct_connection_state_e connection_st
 	break;
 
 	default:
+		_D("event - %d", connection_state);
 		break;
 	}
 }
@@ -322,17 +317,12 @@ int conv::ble_discovery_provider::release()
 
 int conv::ble_discovery_provider::start()
 {
-	return start_wfd_discovery();
+	//return start_wfd_discovery();
+	return CONV_ERROR_NONE;
 }
 
 int conv::ble_discovery_provider::stop()
 {
-	return CONV_ERROR_NONE;
-}
-
-int conv::ble_discovery_provider::set_manager(discovery_manager_impl* disc_manager)
-{
-	discovery_manager = disc_manager;
 	return CONV_ERROR_NONE;
 }
 
@@ -344,16 +334,13 @@ int conv::ble_discovery_provider::checkExistence(conv::service* conv_service)
 
 	// insert into cache
 	string cache_key = conv_service->getId();	// Serivce URI as Map Key..
-	if (cache.find(cache_key) == cache.end())
-	{
+	if (cache.find(cache_key) == cache.end()) {
 		_D("conv_service with key[%s] does not exist..so go into the cache", cache_key.c_str());
 		cache.insert(map<string, conv::service*>::value_type(cache_key, conv_service));
 		return CONV_ERROR_NONE;
-	}
-	else
-	{
+	} else {
 		_D("conv_service with key[%s] already exists..", cache_key.c_str());
-		return 1;	// temp..
+		return 1;
 	}
 }
 
@@ -367,7 +354,8 @@ int conv::ble_discovery_provider::notice_discovered(conv::service* conv_service)
 
 	if (!alreadyExisted) {
 		//the discovered one is NEW!!
-		discovery_manager->append_discovered_result(NULL, conv_service);
+		// TO-DO : need to re-write this code
+		//_discovery_manager->append_discovered_result(NULL, conv_service);
 	}
 
 	return CONV_ERROR_NONE;
