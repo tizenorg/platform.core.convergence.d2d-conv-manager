@@ -23,12 +23,12 @@
 #include <gio/gio.h>
 #include "client.h"
 #include "conv_json.h"
-#include "device.h"
+#include "device_iface.h"
 #include "service_info_base.h"
 
 namespace conv {
 	class client {
-		typedef std::vector<device*> device_list_t;
+		typedef std::vector<device_iface*> device_list_t;
 		typedef std::pair<std::string, std::string> service_key_t;
 		typedef std::map<service_key_t, service_info_base*> service_info_map_t;
 

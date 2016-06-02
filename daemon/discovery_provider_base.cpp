@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef __CONV_DBUS_SERVER_INTERFACE_H__
-#define __CONV_DBUS_SERVER_INTERFACE_H__
+#include "discovery_mgr_impl.h"
 
-#include <sys/types.h>
+conv::discovery_manager_impl* conv::discovery_provider_base::_discovery_manager = NULL;
 
-namespace conv {
-	class dbus_server_iface {
-		public:
-			virtual ~dbus_server_iface() {}
-	};	/* class conv::dbus_server */
-
-}	/* namespace ctx */
-
-#endif	/* End of __CONV_DBUS_SERVER_INTERFACE_H__ */
+int conv::discovery_provider_base::set_manager(discovery_manager_impl* discovery_manager)
+{
+	_discovery_manager = discovery_manager;
+	return CONV_ERROR_NONE;
+}

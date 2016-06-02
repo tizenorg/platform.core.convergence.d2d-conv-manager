@@ -44,8 +44,7 @@ conv::request::request(int type,
 
 conv::request::~request()
 {
-	if ( __creds != NULL )
-	{
+	if ( __creds != NULL ) {
 		delete __creds;
 	}
 }

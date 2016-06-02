@@ -124,8 +124,6 @@ void service_remote_app_control_foreach_cb(conv_service_h handle, void* user_dat
 
 		}
 		printf("next\n");
-
-
 	}
 
 }
@@ -188,10 +186,10 @@ void service_app_communication_foreach_cb(conv_service_h handle, void* user_data
 
 			printf("conv_service_stop called..\n");
 			conv_service_stop(handle, channel_handle, NULL);
-			/*
+/*
 			printf("conv_service_get called..\n");
 			conv_service_get(handle, channel_handle, NULL, NULL);
-		*/
+*/
 			printf("conv_payload_destroy called..\n");
 			conv_payload_destroy(payload_handle);
 
@@ -358,7 +356,6 @@ void simple_test_conv_app_communication_start_stop_discovery()
 	conv_discovery_start(handle, 10, device_conv_app_communication_discovery_cb, NULL);
 }
 
-
 // Simple Test.. Start/Stop Discovery
 void simple_test_conv_start_stop_discovery()
 {
@@ -369,8 +366,7 @@ void simple_test_conv_start_stop_discovery()
 
 /*
 	printf("set discovery cb..\n");
-	//conv_set_discovery_cb (handle, simple_test_conv_discovery_cb, NULL);
-	conv_set_discovery_cb (handle, device_conv_discovery_cb, NULL);
+	conv_set_discovery_cb(handle, device_conv_discovery_cb, NULL);
 */
 
 	printf("conv_discovery_start called..\n");
@@ -443,7 +439,6 @@ int main(int argc, char** argv)
 	loop = g_main_loop_new(NULL, FALSE);
 
 	if (argc > 1) {
-		printf("1");
 		int type = atoi(argv[1]);
 		struct arg_data* args = g_slice_alloc(sizeof(*args));
 		args->type = type;

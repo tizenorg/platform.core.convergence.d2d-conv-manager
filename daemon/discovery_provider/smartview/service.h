@@ -18,8 +18,8 @@
 #define __CONV_SERVICE_H__
 
 #include <string>
-#include "conv_json.h"
-#include "service_iface.h"
+#include "../../conv_json.h"
+#include "../../service_iface.h"
 
 using namespace std;
 
@@ -39,7 +39,6 @@ namespace conv
 			int getServiceType();
 			string getServiceInfo();
 
-			//
 			void setName(string name);
 			void setVersion(string version);
 			void setType(string type);
@@ -56,7 +55,6 @@ namespace conv
 			int service_type;
 			string service_info;
 
-			//..
 			string service_version;
 			string service_id;
 			string service_uri;
