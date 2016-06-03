@@ -12,6 +12,8 @@ Source1002: 	lib%{name}.manifest
 
 %define BUILD_PROFILE %{?profile}%{!?profile:%{?tizen_profile_name}}
 
+ExcludeArch: aarch64 x86_64
+
 BuildRequires: cmake
 BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(glib-2.0)
