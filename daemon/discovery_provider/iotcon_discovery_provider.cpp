@@ -80,9 +80,9 @@ static bool _get_resource_foreach_types(const char* type, void* user_data)
 	return true;
 }
 
-static bool response_state_cb(iotcon_state_h state, const char* key, void* user_data)
+static bool response_attributes_cb(iotcon_attributes_h attributes, const char* key, void* user_data)
 {
-	_D("response_state_cb with the key[%s]", key);
+	_D("response_attributes_cb with the key[%s]", key);
 	return true;
 }
 
@@ -99,7 +99,7 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	int ret;
 	iotcon_response_result_e	response_result;
 	iotcon_representation_h		recv_repr;
-	iotcon_state_h				recv_state;
+	iotcon_attributes_h				recv_attributes;
 
 	unsigned int key_count;
 
@@ -139,19 +139,19 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	ret = iotcon_response_get_representation(response, &recv_repr);
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_response_get_representation() Fail[%d]", ret);
 
-	ret = iotcon_representation_get_state(recv_repr, &recv_state);
-	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_representation_get_state() Fail[%d]", ret);
+	ret = iotcon_representation_get_attributes(recv_repr, &recv_attributes);
+	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_representation_get_attributes() Fail[%d]", ret);
 
-	ret = iotcon_state_get_keys_count(recv_state, &key_count);
-	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_state_get_keys_count() Fail[%d]", ret);
-	_D("state key count : %d", key_count);
+	ret = iotcon_attributes_get_keys_count(recv_attributes, &key_count);
+	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_keys_count() Fail[%d]", ret);
+	_D("attributes key count : %d", key_count);
 
-	ret = iotcon_state_foreach(recv_state, response_state_cb, NULL);
-	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_state_for_each() Fail[%d]", ret);
+	ret = iotcon_attributes_foreach(recv_attributes, response_attributes_cb, NULL);
+	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_for_each() Fail[%d]", ret);
 
 	char *device_id = NULL, *device_name = NULL, *device_type = NULL, *version = NULL, *service_list = NULL;
-	ret = iotcon_state_get_str(recv_state, "device_id", &device_id);		// device id (ex. bt address)
-	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_state_get_str() Fail[%d]", ret);
+	ret = iotcon_attributes_get_str(recv_attributes, "device_id", &device_id);		// device id (ex. bt address)
+	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
 	cur_resource_h.set_device_id(string(device_id));
 
 #ifdef _TV_
@@ -166,16 +166,16 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	}
 #endif
 
-	ret = iotcon_state_get_str(recv_state, "device_name", &device_name);
-	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_state_get_str() Fail[%d]", ret);
+	ret = iotcon_attributes_get_str(recv_attributes, "device_name", &device_name);
+	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
 	cur_resource_h.set_device_name(string(device_name));
 
-	ret = iotcon_state_get_str(recv_state, "device_type", &device_type);
-	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_state_get_str() Fail[%d]", ret);
+	ret = iotcon_attributes_get_str(recv_attributes, "device_type", &device_type);
+	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
 	cur_resource_h.set_device_type(string(device_type));
 
 	char* service_json_char = NULL;
-	ret = iotcon_state_get_str(recv_state, "service_json", &service_json_char);
+	ret = iotcon_attributes_get_str(recv_attributes, "service_json", &service_json_char);
 	if (service_json_char == NULL) {
 		_D("service_json does not exist...");
 		service_json_char = const_cast<char*>("");

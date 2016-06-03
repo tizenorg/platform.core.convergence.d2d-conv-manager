@@ -78,7 +78,7 @@ static int _send_response(iotcon_request_h request, iotcon_representation_h repr
 		return CONV_ERROR_INVALID_OPERATION;
 	}
 
-	ret = iotcon_response_set_representation(response, IOTCON_INTERFACE_DEFAULT, repr);
+	ret = iotcon_response_set_representation(response, repr);
 	if (IOTCON_ERROR_NONE != ret) {
 		_E("iotcon_response_set_representation() Fail(%d)", ret);
 		iotcon_response_destroy(response);
@@ -113,8 +113,8 @@ static void _app_control_cb(app_control_h request, app_control_h reply, app_cont
 	bundle* p_bundle;
 	iotcon_representation_h rep;
 	iotcon_representation_create(&rep);
-	iotcon_state_h state;
-	iotcon_state_create(&state);
+	iotcon_attributes_h attributes;
+	iotcon_attributes_create(&attributes);
 
 	app_control_export_as_bundle(reply, &p_bundle);
 
@@ -123,10 +123,10 @@ static void _app_control_cb(app_control_h request, app_control_h reply, app_cont
 	bundle_encode(p_bundle, &p_bundle_raw, &len);
 	char* bundle_raw = reinterpret_cast<char*>(p_bundle_raw);
 
-	iotcon_state_add_str(state, CONV_JSON_APP_CONTROL, bundle_raw);
-	iotcon_state_add_int(state, CONV_JSON_REQ_ID,  cb_info.req_id);
+	iotcon_attributes_add_str(attributes, CONV_JSON_APP_CONTROL, bundle_raw);
+	iotcon_attributes_add_int(attributes, CONV_JSON_REQ_ID,  cb_info.req_id);
 
-	iotcon_representation_set_state(rep, state);
+	iotcon_representation_set_attributes(rep, attributes);
 
 	_D("Send response to sender");
 	_send_response(cb_info.request_handle, rep, IOTCON_RESPONSE_OK);
@@ -138,20 +138,20 @@ static void _app_control_cb(app_control_h request, app_control_h reply, app_cont
 
 static void handle_request(iotcon_representation_h rep, iotcon_request_h request)
 {
-	iotcon_state_h state;
+	iotcon_attributes_h attributes;
 	char* appctl_char;
 	app_control_h app_control;
 	int reply = 0;
 
-	int ret = iotcon_representation_get_state(rep, &state);
+	int ret = iotcon_representation_get_attributes(rep, &attributes);
 	if (IOTCON_ERROR_NONE != ret) {
-		_E("iotcon_representation_get_state() Fail(%d)", ret);
+		_E("iotcon_representation_get_attributes() Fail(%d)", ret);
 		return;
 	}
 
-	ret = iotcon_state_get_str(state, CONV_JSON_APP_CONTROL, &appctl_char);
+	ret = iotcon_attributes_get_str(attributes, CONV_JSON_APP_CONTROL, &appctl_char);
 	if (IOTCON_ERROR_NONE != ret) {
-		_E("iotcon_state_get_str() Fail(%d)", ret);
+		_E("iotcon_attributes_get_str() Fail(%d)", ret);
 		return;
 	}
 
@@ -161,7 +161,7 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 	app_control_create(&app_control);
 	app_control_import_from_bundle(app_control, appctl_bundle);
 
-	iotcon_state_get_int(state, CONV_JSON_REPLY, &reply);
+	iotcon_attributes_get_int(attributes, CONV_JSON_REPLY, &reply);
 
 	if (reply == 1) {
 		bool waiting_reply = false;
@@ -180,7 +180,7 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 			int req_id;
 			int reply_id = get_req_id();
 
-			iotcon_state_get_int(state, CONV_JSON_REQ_ID, &req_id);
+			iotcon_attributes_get_int(attributes, CONV_JSON_REQ_ID, &req_id);
 
 			app_control_cb_info_s cb_info;
 			cb_info.req_id = req_id;
@@ -390,9 +390,9 @@ static void on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 	ret = iotcon_response_get_representation(response, &repr);
 
 	int req_id = -1;
-	iotcon_state_h state;
-	iotcon_representation_get_state(repr, &state);
-	iotcon_state_get_int(state, CONV_JSON_REQ_ID, &req_id);
+	iotcon_attributes_h attributes;
+	iotcon_representation_get_attributes(repr, &attributes);
+	iotcon_attributes_get_int(attributes, CONV_JSON_REQ_ID, &req_id);
 
 	std::map<int, response_cb_info_s>::iterator find_iter = response_cb_map.find(req_id);
 
@@ -402,9 +402,9 @@ static void on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 
 	char* appctl_char;
 
-	ret = iotcon_state_get_str(state, CONV_JSON_APP_CONTROL, &appctl_char);
+	ret = iotcon_attributes_get_str(attributes, CONV_JSON_APP_CONTROL, &appctl_char);
 	if (IOTCON_ERROR_NONE != ret) {
-		_E("iotcon_state_get_str() Fail(%d)", ret);
+		_E("iotcon_attributes_get_str() Fail(%d)", ret);
 		return;
 	}
 
@@ -443,15 +443,15 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 	payload.get(NULL, CONV_JSON_APP_CONTROL, &app_control);
 	payload.get(NULL, CONV_JSON_REPLY, &reply);
 
-	iotcon_state_h state;
-	iotcon_state_create(&state);
+	iotcon_attributes_h attributes;
+	iotcon_attributes_create(&attributes);
 
-	iotcon_state_add_str(state, CONV_JSON_APP_CONTROL, (char*)app_control.c_str());
-	iotcon_state_add_int(state, CONV_JSON_REPLY, reply);
+	iotcon_attributes_add_str(attributes, CONV_JSON_APP_CONTROL, (char*)app_control.c_str());
+	iotcon_attributes_add_int(attributes, CONV_JSON_REPLY, reply);
 
 	if (reply == 1) {
 		int req_id = get_req_id();
-		iotcon_state_add_int(state, CONV_JSON_REQ_ID, req_id);
+		iotcon_attributes_add_int(attributes, CONV_JSON_REQ_ID, req_id);
 
 		response_cb_info_s cb_info;
 		cb_info.req_id = req_id;
@@ -459,10 +459,10 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 		response_cb_map[req_id] = cb_info;
 	}
 
-	iotcon_representation_set_state(representation, state);
+	iotcon_representation_set_attributes(representation, attributes);
 	svc_info->iotcon_info_obj.iotcon_representation_handle = representation;
 
-	iotcon_state_destroy(state);
+	iotcon_attributes_destroy(attributes);
 
 	error = iotcon_remote_resource_put(svc_info->iotcon_info_obj.iotcon_resource_handle, representation, NULL, on_response, NULL);
 

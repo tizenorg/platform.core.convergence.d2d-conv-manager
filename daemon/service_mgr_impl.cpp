@@ -195,7 +195,7 @@ static int _send_response(iotcon_request_h request, iotcon_representation_h repr
 		return CONV_ERROR_INVALID_OPERATION;
 	}
 
-	ret = iotcon_response_set_representation(response, IOTCON_INTERFACE_DEFAULT, repr);
+	ret = iotcon_response_set_representation(response, repr);
 	if (IOTCON_ERROR_NONE != ret) {
 		_E("iotcon_response_set_representation() Fail(%d)", ret);
 		iotcon_response_destroy(response);
@@ -219,7 +219,7 @@ static int _send_response(iotcon_request_h request, iotcon_representation_h repr
 static iotcon_representation_h _get_d2d_service_representation(conv::service_manager_impl* instance)
 {
 	int ret;
-	iotcon_state_h state;
+	iotcon_attributes_h attributes;
 	iotcon_representation_h repr;
 
 	ret = iotcon_representation_create(&repr);
@@ -228,9 +228,9 @@ static iotcon_representation_h _get_d2d_service_representation(conv::service_man
 		return NULL;
 	}
 
-	ret = iotcon_state_create(&state);
+	ret = iotcon_attributes_create(&attributes);
 	if (IOTCON_ERROR_NONE != ret) {
-		_E("iotcon_state_create() Fail(%d)", ret);
+		_E("iotcon_attributes_create() Fail(%d)", ret);
 		iotcon_representation_destroy(repr);
 		return NULL;
 	}
@@ -242,31 +242,31 @@ static iotcon_representation_h _get_d2d_service_representation(conv::service_man
 #endif
 	char* device_name = (char*) conv::util::get_device_name().c_str();
 
-	iotcon_state_add_str(state, CONV_JSON_DEVICE_ID, device_id);
-	iotcon_state_add_str(state, CONV_JSON_DEVICE_NAME, device_name);
+	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_ID, device_id);
+	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_NAME, device_name);
 #ifdef _TV_
 	string device_type("TV");
 #else
 	string device_type("MOBILE");
 #endif
-	iotcon_state_add_str(state, CONV_JSON_DEVICE_TYPE, (char*) device_type.c_str());
+	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_TYPE, (char*) device_type.c_str());
 
 	json service_json;
 	instance->get_service_info_for_discovery(&service_json);
 	char* service_json_char = service_json.dup_cstr();
 
-	iotcon_state_add_str(state, "service_json", service_json_char);
+	iotcon_attributes_add_str(attributes, "service_json", service_json_char);
 
-	ret = iotcon_representation_set_state(repr, state);
+	ret = iotcon_representation_set_attributes(repr, attributes);
 	g_free(service_json_char);
 	if (IOTCON_ERROR_NONE != ret) {
-		_E("iotcon_representation_set_state() Fail(%d)", ret);
-		iotcon_state_destroy(state);
+		_E("iotcon_representation_set_attributes() Fail(%d)", ret);
+		iotcon_attributes_destroy(attributes);
 		iotcon_representation_destroy(repr);
 		return NULL;
 	}
 
-	iotcon_state_destroy(state);
+	iotcon_attributes_destroy(attributes);
 
 	return repr;
 }
