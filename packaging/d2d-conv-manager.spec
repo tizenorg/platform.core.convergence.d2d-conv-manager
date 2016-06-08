@@ -24,7 +24,6 @@ BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(iotcon)
 #BuildRequires: pkgconfig(security-server)
 BuildRequires: pkgconfig(capi-appfw-app-manager)
-BuildRequires: pkgconfig(msf-api)
 BuildRequires: pkgconfig(libwebsockets)
 BuildRequires: pkgconfig(iotcon)
 BuildRequires: pkgconfig(vconf)
@@ -38,8 +37,11 @@ BuildRequires: pkgconfig(cynara-creds-gdbus)
 BuildRequires: pkgconfig(cynara-client)
 BuildRequires: pkgconfig(cynara-session)
 BuildRequires: pkgconfig(capi-appfw-package-manager)
-BuildRequires: capi-network-nsd
-BuildRequires: capi-network-nsd-devel
+BuildRequires: pkgconfig(nsd-dns-sd)
+BuildRequires: openssl
+BuildRequires: openssl-devel
+BuildRequires: curl
+BuildRequires: libcurl-devel
 
 %if "%{?BUILD_PROFILE}" == "mobile"
 
@@ -125,6 +127,7 @@ rm -f %{_unitdir_user}/default.target.wants/%{name}.service
 %{_unitdir_user}/%{name}.service
 %{_bindir}/%{name}d
 %{_bindir}/%{name}-test
+%{_bindir}/msf-api-test*
 %{_datadir}/license/%{name}
 
 %files lib

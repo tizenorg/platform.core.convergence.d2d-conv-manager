@@ -1,6 +1,7 @@
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/common/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/lib/include/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/daemon/lib)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/msf_tizen_client/include)
 
 SET(PTHREAD "pthread")
 
@@ -10,8 +11,10 @@ FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} service_provider/*.cpp)
 FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} access_control/*.cpp)
 FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} discovery_provider/iotcon/*.cpp)
 FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} discovery_provider/smartview/*.cpp)
+FILE(GLOB DAEMON_SRCS ${DAEMON_SRCS} ../msf_tizen_client/src/*.cpp)
 
-SET(provider_deps "glib-2.0 dlog json-glib-1.0 iotcon capi-appfw-app-manager msf-api iotcon vconf capi-network-bluetooth capi-network-wifi-direct capi-appfw-application bundle capi-network-connection cynara-creds-gdbus cynara-client cynara-session capi-appfw-package-manager")
+SET(provider_deps "glib-2.0 dlog json-glib-1.0 iotcon capi-appfw-app-manager iotcon vconf capi-network-bluetooth capi-network-wifi-direct capi-appfw-application bundle capi-network-connection cynara-creds-gdbus cynara-client cynara-session capi-appfw-package-manager")
+SET(provider_deps "${provider_deps} openssl libwebsockets libcurl nsd-dns-sd")
 #	SET(provider_deps "${provider_deps} security-server")
 # Mobile profile
 IF("${PROFILE}" STREQUAL "mobile")
