@@ -27,8 +27,8 @@
 #include "smartview/service.h"
 #include "smartview/device.h"
 
-#include <msf-api/Search.h>
-#include <msf-api/Service.h>
+#include "Search.h"
+#include "Service.h"
 
 namespace conv {
 

@@ -22,10 +22,10 @@
 #include <vector>
 #include "../service_info_base.h"
 #include "../request.h"
-#include <msf-api/Service.h>
-#include <msf-api/Clients.h>
-#include <msf-api/Application.h>
-#include <msf-api/Result.h>
+#include "Service.h"
+#include "Clients.h"
+#include "Application.h"
+#include "Result.h"
 
 namespace conv {
 	class app_comm_service_listener : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
