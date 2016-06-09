@@ -5,7 +5,9 @@
 #include "Debug.h"
 #include "Device.h"
 #include "Application.h"
-#include<curl/curl.h>
+
+#include <boost/uuid/uuid_generators.hpp>
+#include <curl/curl.h>
 
 string Service::ID_PROPERTY         = "id";
 string Service::VERSION_PROPERTY    = "ve";
@@ -17,6 +19,10 @@ Result_Base *Service::Resulturi = NULL;
 ServiceInfo Service::serviceval;
 
 Service Service::local_service;
+
+bool Service::success_get_id = false;
+string Service::remote_device_id = "";
+std::map<std::string, std::string> Service::dev_id_map;
 
 string Service::curl_data = "";
 
@@ -170,7 +176,69 @@ position Service::findServiceValue(string substrng, char *strng)
 void Service::getDeviceInfo(Result_Base *dev_result)
 {
 	dlog_print(DLOG_INFO, "MSF", "getDeviceInfo");
-	curl_service_calling(uri, 0, dev_result);
+	curl_service_calling(uri, 5000, dev_result);
+}
+
+string Service::make_new_id(string address)
+{
+	std::map<std::string, std::string>::iterator dev_id_map_itr = dev_id_map.find(address);
+	if (dev_id_map_itr != dev_id_map.end()) {
+		string dev_id = dev_id_map_itr->second;
+		MSF_DBG("dev_id[%s] is aleady exist", dev_id.c_str());
+		return dev_id;
+	}
+
+	boost::uuids::uuid u1 = boost::uuids::random_generator()();
+	int offset = 0;
+
+	char unique_id[40] = {0,};
+
+	snprintf(unique_id, sizeof(unique_id), "%x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x", u1.data[0], u1.data[1], u1.data[2], u1.data[3]
+																					, u1.data[4], u1.data[5], u1.data[6], u1.data[7]
+																					, u1.data[8], u1.data[9], u1.data[10], u1.data[11]
+																					, u1.data[12], u1.data[13], u1.data[14], u1.data[15]);
+	MSF_DBG("unique_id[%s] for address[%s] was newly generated", unique_id, address.c_str());
+
+	dev_id_map[address] = string(unique_id);
+
+	return string(unique_id);
+}
+
+string Service::getUniqueId(string address)
+{
+	string ret_id;
+
+	class GetLocalServiceCallback : public Result_Base
+	{
+		public:
+			void onSuccess(Service service)
+			{
+				MSF_DBG("getUniqueId() : success to get remote service info");
+				remote_device_id = service.getId();
+				success_get_id = true;
+			}
+
+			void onError(Error)
+			{
+				MSF_ERR("getUniqueId() : Fail to get remote service info");
+				success_get_id = false;
+			}
+	};
+
+	GetLocalServiceCallback r1Service;
+	string remote_uri = "http://" + address + "/api/v2/";
+	success_get_id = false;
+	getByURI(remote_uri, 5000, &r1Service);
+
+	if (success_get_id) {
+		MSF_DBG("remote_device_id[%s] for address[%s]", remote_device_id.c_str(), address.c_str());
+		ret_id = remote_device_id;
+	}
+	else {
+		ret_id = "";//Service::make_new_id(address);
+	}
+
+	return ret_id;
 }
 
 Service Service::getLocal(void)
@@ -192,14 +260,14 @@ Service Service::getLocal(void)
 
 	GetLocalServiceCallback r1Service;
 	string uri = "http://127.0.0.1:8001/api/v2/";
-	getByURI(uri, 0, &r1Service);
+	getByURI(uri, 2000, &r1Service);
 
 	return local_service;
 }
 
 void Service::getByURI(string uri,  Result_Base *result)
 {
-	getByURI(uri, 0, result);
+	getByURI(uri, 5000, result);
 }
 
 void Service::getByURI(string uri, long timeout,  Result_Base *result)
@@ -229,7 +297,7 @@ int Service::curl_service_calling(string uri, long timeout, void *dev_result_ptr
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 		//if (timeout != 0)
-			curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 5000);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
 
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Service::createdata);
 		//curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 5000);

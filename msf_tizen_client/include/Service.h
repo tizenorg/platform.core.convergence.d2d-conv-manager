@@ -29,11 +29,11 @@ struct ServiceInfo {
 
 class Service
 {
-	static  string ID_PROPERTY;
-	static  string VERSION_PROPERTY;
-	static  string NAME_PROPERTY;
-	static  string TYPE_PROPERTY;
-	static  string ENDPOINT_PROPERTY;
+	static string ID_PROPERTY;
+	static string VERSION_PROPERTY;
+	static string NAME_PROPERTY;
+	static string TYPE_PROPERTY;
+	static string ENDPOINT_PROPERTY;
 	string id = "";
 	string version = "";
 	string name = "";
@@ -43,6 +43,11 @@ class Service
 	typedef std::map<std::string, std::string> map_type;
 	static Service local_service;
 	void *result_ptr;
+
+	static bool success_get_id;
+	static string remote_device_id;
+	static std::map<std::string, std::string> dev_id_map;
+	static string make_new_id(string address);
 
 public:
 	Service();
@@ -59,6 +64,7 @@ public:
 	string getType();
 	string getId();
 	string getVersion();
+	static string getUniqueId(string address);
 	static Service getLocal(void);
 	static void getByURI(string, Result_Base*);
 	static void getByURI(string, long, Result_Base *result);
