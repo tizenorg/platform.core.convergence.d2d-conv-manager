@@ -282,7 +282,6 @@ void Service::getByURI(string uri, long timeout,  Result_Base *result)
 
 int Service::curl_service_calling(string uri, long timeout, void *dev_result_ptr)
 {
-	dlog_print(DLOG_INFO, "MSF", "curl_service_calling() 1");
 	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
 	CURL *curl;
 	CURLcode res;
@@ -317,10 +316,7 @@ int Service::curl_service_calling(string uri, long timeout, void *dev_result_ptr
 		}
 
 		curl_easy_cleanup(curl);
-		dlog_print(DLOG_INFO, "MSF", "curl_service_calling() 4");
 	}
-
-	dlog_print(DLOG_INFO, "MSF", "curl_service_calling() 5");
 
 	return 0;
 }

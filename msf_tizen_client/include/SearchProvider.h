@@ -21,6 +21,7 @@ private:
 public:
 	SearchProvider();
 	SearchProvider(Search *);
+	virtual ~SearchProvider(){}
 	virtual void start() {}
 	virtual bool stop() { return true; }
 	static list<Service> getServices();

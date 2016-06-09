@@ -43,9 +43,9 @@ namespace conv {
 			int start();
 			int stop();
 
-			int notice_discovered(Service *service);
+			int notice_discovered(Service *service, bool bDiscovered);
 		private:
-			Service service;
+			//Service service;
 			Search*	search;
 
 			map <string, conv::service*> cache; // for double check
@@ -53,6 +53,7 @@ namespace conv {
 			conv::service* convert_into_conv_service(Service* smartview_service);
 			conv::device* convert_into_conv_device(Service* smartview_service);
 			int checkExistence(conv::service* conv_service);
+			int removeFromCache(conv::service* conv_service);
 	};
 }
 

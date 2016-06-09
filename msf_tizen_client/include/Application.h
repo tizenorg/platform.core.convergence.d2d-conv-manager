@@ -6,6 +6,24 @@
 #include"Channel.h"
 #include"Service.h"
 
+class OnStartAppListener {
+public:
+	virtual void onStart(bool result) {}
+	virtual void onError(Error e) {}
+};
+
+class OnStopAppListener {
+public:
+	virtual void onStop(bool result) {}
+	virtual void onError(Error e) {}
+};
+
+
+class OnInstallListener {
+public:
+	virtual void onInstall(bool result) {}
+	virtual void onError(Error e) {}
+};
 
 class Application:public Channel
 {
@@ -15,7 +33,9 @@ public:
 	static string ROUTE_WEBAPPLICATION;
 	static string curl_data;
 	bool install_result = false;
-	Result_Base *install_result_listener = NULL;
+	OnInstallListener *install_listener = NULL;
+	OnStartAppListener *start_app_listener = NULL;
+	OnStopAppListener *stop_app_listener = NULL;
 
 	string createdata_data;
 	string curl_install_data;
@@ -42,19 +62,24 @@ public:
 	void connect(Result_Base *r);
 	void connect(map<string, string> attributes, Result_Base *r);
 	void disconnect();
-	void disconnect(Result_Base *r);
-	void disconnect(bool stopOnDisconnect);
+	//void disconnect(Result_Base *r);
+	//void disconnect(bool stopOnDisconnect);
 	void install();
 	static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream);
 	static size_t createdata(char *buf, size_t size, size_t nmemb, void *up);
 	static Application create(Service *service, string uri);
 	static Application create(Service *service, string uri, string id, map<string, string>);
-	void start(Result_Base *result);
-	void stop(Result_Base *result);
+	void start();
+	void stop();
+	void stop(Result_Base*);
 	void json_parse(const char *in);
 	static void foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data);
-	void setonInstallListener(Result_Base *listener);
+	void setonInstallListener(OnInstallListener *);
 	void unsetonInstallListener();
+	void setonStartAppListener(OnStartAppListener *);
+	void unsetonStartAppListener();
+	void setonStopAppListener(OnStopAppListener *);
+	void unsetonStopAppListener();
 };
 
 #endif

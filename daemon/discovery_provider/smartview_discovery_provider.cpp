@@ -39,20 +39,27 @@ class SearchListenerImpl : public SearchListener {
 			this->disc_provider = discovery_provider;
 		}
 
-		void onStart() {
+		void onStart()
+		{
 			_I("onStart on SearchListener");
 		}
-		void onStop() {
+		void onStop()
+		{
 			_I("onStop on SearchListener");
 		}
-		void onFound(Service service) {
+		void onFound(Service service)
+		{
 			_I("onFound on SearchListener.. towards disc_manager:%x", disc_manager);
 			if (disc_provider != NULL) {
-				disc_provider->notice_discovered(&service);
+				disc_provider->notice_discovered(&service, true);
 			}
 		}
-		void onLost(Service service) {
+		void onLost(Service service)
+		{
 			_I("onLost on SearchListener");
+			if (disc_provider != NULL) {
+				disc_provider->notice_discovered(&service, false);
+			}
 		}
 };
 
@@ -176,6 +183,13 @@ conv::service* conv::smartview_discovery_provider::convert_into_conv_service(Ser
 	return conv_service;
 }
 
+int conv::smartview_discovery_provider::removeFromCache(conv::service* conv_service)
+{
+	string cache_key = conv_service->getUri();
+	cache.erase(cache_key);
+	return CONV_ERROR_NONE;
+}
+
 int conv::smartview_discovery_provider::checkExistence(conv::service* conv_service)
 {
 	_D("Check Existence : ");
@@ -193,7 +207,7 @@ int conv::smartview_discovery_provider::checkExistence(conv::service* conv_servi
 	}
 }
 
-int conv::smartview_discovery_provider::notice_discovered(Service* service)
+int conv::smartview_discovery_provider::notice_discovered(Service* service, bool bDiscovered)
 {
 	_D("Notice Discovered called with service[%x]", service);
 
@@ -207,32 +221,30 @@ int conv::smartview_discovery_provider::notice_discovered(Service* service)
 
 	_D("Success in converting into flow.service[%x] .device[%x]", conv_service, conv_device);
 
-#ifdef _TV_
-	if ( conv::util::get_bt_mac_address().compare(conv_service->getId()) == 0 )	{
+	if ( conv::util::get_device_id().compare(conv_service->getId()) == 0 )	{
 		_D("the device has found itself..[device_id:%s].. out!", conv_service->getId().c_str());
 		if(conv_device != NULL)		delete conv_device;
 		if(conv_service != NULL)	delete conv_service;
 
 		return CONV_ERROR_NONE;
 	}
-#else
-	if ( conv::util::get_p2p_mac_address().compare(conv_service->getId()) == 0 )	{
-		_D("the device has found itself..[device_id:%s].. out!", conv_service->getId().c_str());
-		if(conv_device != NULL)		delete conv_device;
-		if(conv_service != NULL)	delete conv_service;
+
+	if (bDiscovered == false) {
+		//1. delete it from the cache..
+		removeFromCache(conv_service);
+		//2. notify
+		_discovery_manager->notify_lost_device(conv_device);
 
 		return CONV_ERROR_NONE;
-	}
-#endif
+	} else {
+		// Double check if the noticed one already got delivered
+		int alreadyExisted = checkExistence(conv_service);
+		_D("double check .. existence[%s]", (alreadyExisted == 0)? "No" : "Yes");
 
-
-	// Double check if the noticed one already got delivered
-	int alreadyExisted = checkExistence(conv_service);
-	_D("double check .. existence[%s]", (alreadyExisted == 0)? "No" : "Yes");
-
-	if (!alreadyExisted) {
-		//the discovered one is NEW!!
-		_discovery_manager->append_discovered_result(conv_device);
+		if (!alreadyExisted) {
+			//the discovered one is NEW!!
+			_discovery_manager->append_discovered_result(conv_device);
+		}
 	}
 
 	return CONV_ERROR_NONE;

@@ -235,11 +235,7 @@ static iotcon_representation_h _get_d2d_service_representation(conv::service_man
 		return NULL;
 	}
 
-#ifdef _TV_
-	char* device_id = (char*) conv::util::get_bt_mac_address().c_str();
-#else
-	char* device_id = (char*) conv::util::get_p2p_mac_address().c_str();
-#endif
+	char* device_id = (char*) conv::util::get_device_id().c_str();
 	char* device_name = (char*) conv::util::get_device_name().c_str();
 
 	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_ID, device_id);

@@ -39,6 +39,14 @@ MSFDSearchProvider::MSFDSearchProvider(Search *sListener):SearchProvider(sListen
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
+MSFDSearchProvider::~MSFDSearchProvider()
+{
+	if (fd != 0) {
+		close (fd);
+		fd = 0;
+	}
+}
+
 SearchProvider MSFDSearchProvider::create()
 {
 	return (SearchProvider)MSFDSearchProvider();
@@ -79,7 +87,6 @@ void MSFDSearchProvider::createMSFD()
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("socket");
 		dlog_print(DLOG_ERROR, "MSF", "MSFD socket faile");
-		return;
 	}
 
 	/**** MODIFICATION TO ORIGINAL */
@@ -96,13 +103,13 @@ void MSFDSearchProvider::createMSFD()
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); /* N.B.: differs from sender */
 	addr.sin_port = htons(MULTICAST_PORT);
 
-	dlog_print(DLOG_INFO, "MSF", "MSFD try bind socket");
+	//dlog_print(DLOG_INFO, "MSF", "MSFD try bind socket");
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		perror("bind");
 		dlog_print(DLOG_ERROR, "MSF", "MSFD bind failed");
 	}
-	dlog_print(DLOG_INFO, "MSF", "MSFD try bind socket success");
+	//dlog_print(DLOG_INFO, "MSF", "MSFD try bind socket success");
 
 	/* use setsockopt() to request that the kernel join a multicast group */
 	mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_GROUP);
@@ -112,25 +119,27 @@ void MSFDSearchProvider::createMSFD()
 		dlog_print(DLOG_ERROR, "MSF", "MSFD setsockopt failed");
 	}
 
-	struct timeval tv = {2, 0};
-
-	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-		perror("setsockopt");
-		dlog_print(DLOG_ERROR, "MSF", "MSFD setsockopt(SOL_SOCKET) failed");
-	}
-
 	while (1) {
 		addrlen = sizeof(msf_server_addr);
+		struct timeval tv;
+		tv.tv_sec = 0;
+		tv.tv_usec = 900000;
 
-			dlog_print(DLOG_INFO, "MSF", "MSFD waiting packet");
+		if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+			perror("setsockopt");
+			dlog_print(DLOG_ERROR, "MSF", "MSFD setsockopt(SOL_SOCKET) failed");
+		}
+
+			//dlog_print(DLOG_INFO, "MSF", "MSFD waiting packet");
 		if ((nbytes = recvfrom(fd, msgbuf, MSGBUFSIZE, 0, (struct sockaddr *) &msf_server_addr, &addrlen)) < 0) {
 			//dlog_print(DLOG_INFO, "MSF", "MSFD packet < 0");
 			receive = false;
-			dlog_print(DLOG_INFO, "MSF", "MSFD packet not received");
+			//dlog_print(DLOG_INFO, "MSF", "MSFD packet < 0 1");
 			reapServices();
+			//dlog_print(DLOG_INFO, "MSF", "MSFD packet < 0 2");
 		} else {
 			msgbuf[nbytes] = '\0';
-			dlog_print(DLOG_INFO, "MSF", "MSFD packet = %s", msgbuf);
+			//dlog_print(DLOG_INFO, "MSF", "MSFD waiting packet = %s", msgbuf);
 			receive = true;
 			processReceivedMsg(msgbuf, nbytes);
 		}
@@ -139,13 +148,13 @@ void MSFDSearchProvider::createMSFD()
 
 void MSFDSearchProvider::reapServices()
 {
-	dlog_print(DLOG_ERROR, "MSF", "MSFD reapServices");
+	//dlog_print(DLOG_ERROR, "MSF", "MSFD reapServices");
 	long now = time(0);
 	map<string, long>::iterator it;
 	for(it = aliveMap.begin(); it != aliveMap.end(); ++it) {
 		long expires = it->second;
 		if (expires < now) {
-			dlog_print(DLOG_ERROR, "MSF", "MSFD reapServices remove service");
+			//dlog_print(DLOG_ERROR, "MSF", "MSFD reapServices remove service");
 			Service service = getServiceById(it->first);
 			aliveMap.erase(it->first);
 			removeServiceAndNotify(service);
@@ -163,27 +172,27 @@ void MSFDSearchProvider::updateAlive(string id, long ttl)
 
 void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 {
-	dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg start");
+	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg start");
 	if (buf != NULL) {
 	}
 
 	while(receive) {
-	dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg 1");
+	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg 1");
 		reapServices();
-	dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg 2");
+	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg 2");
 		string data;
 		data.append(buf, buflen);
 		json_parse(data.c_str());
 
-		dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg after parse");
+		//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg after parse");
 
 		if (state == TYPE_DISCOVER) {
-			dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg state = discover");
+			//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg state = discover");
 			continue;
 		}
 
 		if (id.length() > 0) {
-			dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg id length > 0");
+			//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg id length > 0");
 			Service serv =	getServiceById(id);
 			Service *serv1 = &serv;
 
@@ -237,7 +246,7 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 			receive = false;
 		}
 	}
-	dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg end");
+	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg end");
 }
 
 void MSFDSearchProvider::foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data)
@@ -247,17 +256,17 @@ void MSFDSearchProvider::foreach_json_object(JsonObject *object, const gchar *ke
 	if (json_node_get_node_type(node) == JSON_NODE_VALUE) {
 		if (!strncmp(key , MSFDSearchProvider::KEY_TTL.c_str(), 2)) {
 			p->ttl = json_node_get_int(node);
-			dlog_print(DLOG_INFO, "MSF", "MSFD ttl = %d", p->ttl);
+			//dlog_print(DLOG_INFO, "MSF", "MSFD ttl = %d", p->ttl);
 		} else if (!strncmp(key , MSFDSearchProvider::KEY_TYPE_STATE.c_str(), 2)) {
 			p->state = json_node_get_string(node);
-			dlog_print(DLOG_INFO, "MSF", "MSFD state = %s", p->state.c_str());
+			//dlog_print(DLOG_INFO, "MSF", "MSFD state = %s", p->state.c_str());
 		} else if (!strncmp(key, MSFDSearchProvider::KEY_SID.c_str(), 4)) {
 			p->id = json_node_get_string(node);
-			dlog_print(DLOG_INFO, "MSF", "MSFD id = %s", p->id.c_str());
+			//dlog_print(DLOG_INFO, "MSF", "MSFD id = %s", p->id.c_str());
 		} else if (!strncmp(key, MSFDSearchProvider::KEY_URI.c_str(), 7)) {
 			if (flag == 1) {
 				p->url = json_node_get_string(node);
-				dlog_print(DLOG_INFO, "MSF", "MSFD url = %s", p->url.c_str());
+				//dlog_print(DLOG_INFO, "MSF", "MSFD url = %s", p->url.c_str());
 				flag = 0;
 			}
 		}
@@ -295,6 +304,7 @@ bool MSFDSearchProvider::stop()
 	//}
 	receive = false;
 	close(fd);
+	fd = 0;
 	return true;
 }
 

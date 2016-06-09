@@ -28,38 +28,104 @@
 #include "Result.h"
 
 namespace conv {
-	class app_comm_service_listener : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
-									public OnMessageListener, public OnErrorListener {
+	class app_comm_service_handler : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
+									public OnMessageListener, public OnErrorListener, public OnStartAppListener, public OnStopAppListener {
 		public:
 			conv::request** request_obj;
+			Channel* application;
 			string uri;
 			string channel_id;
+			bool is_local;
 
-			void onConnect(Client client){
-				_D("onConnect Called");
-				publish_response(CONV_ERROR_NONE, "onConnect", &client);
+			void onStart(bool start_result)
+			{
+				_D("onStart Called");
+
+				if ((*request_obj) != NULL) {
+					_D(RED("publishing_response"));
+					json result;
+					json payload;
+					json description;
+
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onStart");
+
+					description = (*request_obj)->get_description();
+
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+
+					result.set(NULL, CONV_JSON_DESCRIPTION, description);
+					result.set(NULL, CONV_JSON_PAYLOAD, payload);
+					if (start_result)
+						(*request_obj)->publish(CONV_ERROR_NONE, result);
+					else
+						(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+				}
 			}
 
-			void onDisconnect(Client client){
+			void onStop(bool start_result)
+			{
+				_D("onStop Called");
+
+				if (!is_local && application != NULL)
+					application->disconnect();
+
+				if ((*request_obj) != NULL) {
+					_D(RED("publishing_response"));
+					json result;
+					json payload;
+					json description;
+
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onStop");
+
+					description = (*request_obj)->get_description();
+
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+
+					result.set(NULL, CONV_JSON_DESCRIPTION, description);
+					result.set(NULL, CONV_JSON_PAYLOAD, payload);
+					if (start_result)
+						(*request_obj)->publish(CONV_ERROR_NONE, result);
+					else
+						(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+				}
+			}
+
+			void onConnect(Client client)
+			{
+				_D("onConnect Called");
+				publish_response(CONV_ERROR_NONE, "onConnect", &client);
+
+				if (!is_local && application != NULL) {
+					((Application*)application)->start();
+					_D("Application start requested");
+				}
+			}
+
+			void onDisconnect(Client client)
+			{
 				_D("onDisconnect Called");
 				publish_response(CONV_ERROR_NONE, "onDisconnect", &client);
 			}
 
-			void onClientConnect(Client client){
+			void onClientConnect(Client client)
+			{
 				_D("onClientConnect Called");
 				publish_response(CONV_ERROR_NONE, "onClientConnect", &client);
 			}
 
-			void onClientDisconnect(Client client){
+			void onClientDisconnect(Client client)
+			{
 				_D("onClientDisconnect Called");
 				publish_response(CONV_ERROR_NONE, "onClientDisconnect", &client);
 			}
 
-			void onMessage(Message message){
+			void onMessage(Message message)
+			{
 				_D("onMessage Called");
 
-				if ((*request_obj) != NULL)
-				{
+				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
 					json result;
 					json message_json;
@@ -90,17 +156,36 @@ namespace conv {
 				}
 			}
 
-			void onError(Client client){
+			void onError(Error error)
+			{
 				_D("onError Called");
-				publish_response(CONV_ERROR_NONE, "onError", &client);
+
+				if ((*request_obj) != NULL) {
+					_D(RED("publishing_response"));
+					json result;
+					json payload;
+					json description;
+
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onError");
+					payload.set(NULL, CONV_JSON_ERROR_MESSAGE, error.get_error_message());
+
+					description = (*request_obj)->get_description();
+
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+
+					result.set(NULL, CONV_JSON_DESCRIPTION, description);
+					result.set(NULL, CONV_JSON_PAYLOAD, payload);
+					(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+				}
 			}
 
-			void publish_response(int error, string result_type, Client *client) {
+			void publish_response(int error, string result_type, Client *client)
+			{
 				bool isHost = client->isHost();
 				int connecttime = client->getConnectTime();
 
-				if ((*request_obj) != NULL)
-				{
+				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
 					json result;
 					json payload;
@@ -129,8 +214,7 @@ namespace conv {
 	// application information to handle app-to-app service with specific 'channel'
 	class application_info {
 		public:
-			Channel* application;
-			app_comm_service_listener service_listener;
+			app_comm_service_handler service_handler;
 			Service local_service;
 	};
 
@@ -139,19 +223,17 @@ namespace conv {
 	// service information to handle app-to-app service with specific device 'id'
 	class app_comm_service_info : public service_info_base {
 		public:
-			~app_comm_service_info() {
-				if ( service_obj != NULL )
-				{
+			~app_comm_service_info()
+			{
+				if (service_obj != NULL) {
 					delete service_obj;
 				}
 
-				if ( registered_request != NULL )
-				{
+				if (registered_request != NULL) {
 					delete registered_request;
 				}
 
-				for (application_info_list_t::iterator iter = application_info_list.begin(); iter != application_info_list.end(); ++iter)
-				{
+				for (application_info_list_t::iterator iter = application_info_list.begin(); iter != application_info_list.end(); ++iter) {
 					application_info *app_info = *iter;
 					delete app_info;
 					application_info_list.erase(iter);

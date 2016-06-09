@@ -22,6 +22,7 @@
 
 #include <glib.h>
 #include <pthread.h>
+#include "Service.h"
 
 using namespace std;
 
@@ -141,4 +142,22 @@ void conv::util::misc_stop_timer(void *timer)
             _E("g_source_remove is fail (timer)");
         }
     }
+}
+
+std::string conv::util::get_device_id()
+{
+	static std::string g_device_id;
+	if(g_device_id.empty()) {
+		g_device_id = Service::getUniqueId("127.0.0.1:8001");
+
+		if(g_device_id.empty())
+#ifdef _TV_
+			g_device_id = get_bt_mac_address();
+#else
+			g_device_id = get_p2p_mac_address();
+#endif
+	}
+	_D("device id : %s", g_device_id.c_str());
+
+	return g_device_id;
 }

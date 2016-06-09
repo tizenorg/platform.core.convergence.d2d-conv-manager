@@ -20,42 +20,6 @@
 
 using namespace std;
 
-class ResultClient : public Result_Base
-{
-	public:
-	void onSuccess(Client abc)
-	{
-		_D("Client Success");
- 	}
-	void onError(Error)
-	{
-		_D("Client Error");
-  	}
-};
-
-class ResultDisconnect : public Result_Base
-{
-	public:
-	conv::application_info* app_info;
-	void onSuccess(Client abc)
-	{
-		_D("Client Success");
-		release();
- 	}
-	void onError(Error)
-	{
-		_D("Client Success");
-		release();
-  	}
-	private:
-	void release()
-	{
-	}
-};
-
-static ResultClient result_connect;
-static ResultDisconnect result_disconnect;
-
 conv::app_comm_service_provider::app_comm_service_provider()
 {
 	_type = CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION;
@@ -173,8 +137,8 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("iteration");
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
-			if ( (*iter)->application != NULL  ) {
+		if ( (*iter) != NULL && !(*iter)->service_handler.uri.compare(uri) && !(*iter)->service_handler.channel_id.compare(channel_id) ) {
+			if ( (*iter)->service_handler.application != NULL  ) {
 				_D("already started");
 				// check if it's connected and re-try if it's not
 				return CONV_ERROR_INVALID_OPERATION;
@@ -190,8 +154,8 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		app_info = new(std::nothrow) application_info();
 		ASSERT_ALLOC(app_info);
 
-		app_info->service_listener.uri = uri;
-		app_info->service_listener.channel_id = channel_id;
+		app_info->service_handler.uri = uri;
+		app_info->service_handler.channel_id = channel_id;
 	}
 
 	// if it's local -> server application
@@ -203,16 +167,16 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		Channel* application = app_info->local_service.createChannel(channel_id);
 
 		// add listeners
-		app_info->service_listener.request_obj = &(svc_info->registered_request);
-		application->setonConnectListener(&app_info->service_listener);
-		application->setonClientConnectListener(&app_info->service_listener);
-		application->setonClientDisconnectListener(&app_info->service_listener);
-		application->setonErrorListener(&app_info->service_listener);
-		application->setonDisconnectListener(&app_info->service_listener);
-		application->addOnAllMessageListener(&app_info->service_listener);
+		app_info->service_handler.request_obj = &(svc_info->registered_request);
+		application->setonConnectListener(&app_info->service_handler);
+		application->setonClientConnectListener(&app_info->service_handler);
+		application->setonClientDisconnectListener(&app_info->service_handler);
+		application->setonErrorListener(&app_info->service_handler);
+		application->setonDisconnectListener(&app_info->service_handler);
+		application->addOnAllMessageListener(&app_info->service_handler);
 
-		app_info->application = application;
-		application->set_connect_result(NULL);
+		app_info->service_handler.is_local = true;
+		app_info->service_handler.application = application;
 		application->connect();
 		_D("connect called");
 		svc_info->application_info_list.push_back(app_info);
@@ -222,17 +186,18 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		ASSERT_ALLOC(application);
 
 		// add listeners
-		app_info->service_listener.request_obj = &(svc_info->registered_request);
-		application->setonConnectListener(&app_info->service_listener);
-		application->setonClientConnectListener(&app_info->service_listener);
-		application->setonClientDisconnectListener(&app_info->service_listener);
-		application->setonErrorListener(&app_info->service_listener);
-		application->setonDisconnectListener(&app_info->service_listener);
-		application->addOnAllMessageListener(&app_info->service_listener);
+		app_info->service_handler.request_obj = &(svc_info->registered_request);
+		application->setonConnectListener(&app_info->service_handler);
+		application->setonClientConnectListener(&app_info->service_handler);
+		application->setonClientDisconnectListener(&app_info->service_handler);
+		application->setonErrorListener(&app_info->service_handler);
+		application->setonDisconnectListener(&app_info->service_handler);
+		((Application*)application)->setonStartAppListener(&app_info->service_handler);
+		((Application*)application)->setonStopAppListener(&app_info->service_handler);
+		application->addOnAllMessageListener(&app_info->service_handler);
 
-		app_info->application = application;
-
-		application->set_connect_result(NULL);
+		app_info->service_handler.is_local = false;
+		app_info->service_handler.application = application;
 		application->connect();
 
 		svc_info->application_info_list.push_back(app_info);
@@ -256,8 +221,8 @@ int conv::app_comm_service_provider::stop_request(request* request_obj)
 	channel.get(NULL, CONV_JSON_CHANNEL_ID, &channel_id);
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
-		_D("%s, %s", (*iter)->service_listener.uri.c_str(), (*iter)->service_listener.channel_id.c_str());
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
+		_D("%s, %s", (*iter)->service_handler.uri.c_str(), (*iter)->service_handler.channel_id.c_str());
+		if ( (*iter) != NULL && !(*iter)->service_handler.uri.compare(uri) && !(*iter)->service_handler.channel_id.compare(channel_id) ) {
 			application_info *app_info = *iter;
 
 			_D("COMMUNCATION_STOP : uri : %s, channel_id : %s", uri.c_str(), channel_id.c_str());
@@ -267,20 +232,16 @@ int conv::app_comm_service_provider::stop_request(request* request_obj)
 			}
 
 			if ( svc_info->is_local ) {
-				result_disconnect.app_info = app_info;
-				app_info->application->set_disconnect_result(NULL);
-				app_info->application->disconnect();
+				app_info->service_handler.application->disconnect();
 
-				app_info->application = NULL;
+				app_info->service_handler.application = NULL;
 				delete app_info;
 				svc_info->application_info_list.erase(iter);
 			} else {
-				result_disconnect.app_info = app_info;
-				((Application*)app_info->application)->set_disconnect_result(NULL);
-				((Application*)app_info->application)->disconnect();
+				((Application*)app_info->service_handler.application)->stop();
 
-				delete (Application*)app_info->application;
-				app_info->application = NULL;
+				delete (Application*)app_info->service_handler.application;
+				app_info->service_handler.application = NULL;
 				delete app_info;
 				svc_info->application_info_list.erase(iter);
 			}
@@ -310,12 +271,12 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("iteration");
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
-			if ( (*iter)->application != NULL ) {
+		if ( (*iter) != NULL && !(*iter)->service_handler.uri.compare(uri) && !(*iter)->service_handler.channel_id.compare(channel_id) ) {
+			if ( (*iter)->service_handler.application != NULL ) {
 				_D("app_info exists and application instance exists");
 				app_info = (*iter);
 
-				Clients* client_list = app_info->application->getclients();
+				Clients* client_list = app_info->service_handler.application->getclients();
 
 				if ( svc_info->registered_request == NULL) {
 					_D("No callback is registered");
@@ -400,8 +361,8 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 
 	for (application_info_list_t::iterator iter = svc_info->application_info_list.begin(); iter != svc_info->application_info_list.end(); ++iter) {
 		_D("iteration");
-		if ( (*iter) != NULL && !(*iter)->service_listener.uri.compare(uri) && !(*iter)->service_listener.channel_id.compare(channel_id) ) {
-			if ( (*iter)->application != NULL ) {
+		if ( (*iter) != NULL && !(*iter)->service_handler.uri.compare(uri) && !(*iter)->service_handler.channel_id.compare(channel_id) ) {
+			if ( (*iter)->service_handler.application != NULL ) {
 				_D("publishing payload");
 
 				json payload;
@@ -415,7 +376,7 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 
 				string payload_str = payload.str();
 
-				(*iter)->application->publish("d2d_service_message", NULL, reinterpret_cast<unsigned char*>(message), strlen(message));
+				(*iter)->service_handler.application->publish("d2d_service_message", NULL, reinterpret_cast<unsigned char*>(message), strlen(message));
 
 				_D("publishing done");
 

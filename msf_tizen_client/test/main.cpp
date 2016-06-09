@@ -1,25 +1,16 @@
-//#include <msf-api/Search.h>
-//#include <msf-api/Service.h>
-//#include <msf-api/Clients.h>
-//#include <msf-api/Client.h>
-//#include <msf-api/Application.h>
-//#include <msf-api/ApplicationInfo.h>
-//#include <msf-api/Device.h>
-//#include <msf-api/Result.h>
-//#include <msf-api/Error.h>
-//#include <msf-api/Debug.h>
 #include "Search.h"
 #include "Service.h"
 #include "Clients.h"
 #include "Client.h"
 #include "Application.h"
 #include "ApplicationInfo.h"
+#include "Channel.h"
 #include "Device.h"
 #include "Result.h"
 #include "Error.h"
 #include "Debug.h"
-#include <map>
 
+#include <map>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -167,7 +158,7 @@ class ResultClient : public Result_Base
 {
 public:
 	std::string subject;
-	void onSuccess(Client abc)
+	void onSuccess()
 	{
 		printf("\nsubject = %s", subject.c_str());
 		fflush(stdout);
@@ -277,92 +268,46 @@ public:
 	}
 };
 
-#if C_API
-int gl_connection_success = TIZEN_MSF_ERROR_NOT_ARRIVE;
-int gl_install_success = TIZEN_MSF_ERROR_NOT_ARRIVE;
+class startListener : public OnStartAppListener {
+public:
+	std::string subject;
+	void onStart(bool result) {
+		printf("\nsubject = %s", subject.c_str());
+		printf("\nresult = %s", result ? "true" : "false");
+		fflush(stdout);
+	}
+};
 
-void device_info_cb(device_handle handle, int result)
-{
-	printf("device_info_cb\n");
-}
+class stopListener : public OnStopAppListener {
+public:
+	std::string subject;
+	void onStop(bool result) {
+		printf("\nsubject = %s", subject.c_str());
+		printf("\nresult = %s", result ? "true" : "false");
+		fflush(stdout);
+	}
+};
 
-void service_found_cb(service_handle handle)
-{
-	printf("service founded\n");
-	get_device_info(handle, device_info_cb);
-}
+class installListener : public OnInstallListener {
+public:
+	std::string subject;
+	void onInstall(bool result) {
+		printf("\nsubject = %s", subject.c_str());
+		printf("\nresult = %s", result ? "true" : "false");
+	}
+};
 
-void service_lost_cb(service_handle handle)
-{
-	printf("service lost\n");
-}
 
-void search_start_cb()
-{
-	printf("search started\n");
-}
-
-void search_stop_cb()
-{
-	printf("search stopped\n");
-}
-
-void app_connect_cb(client_handle handle)
-{
-}
-
-void app_disconnect_cb(client_handle handle)
-{
-}
-
-void app_client_connect_cb(client_handle handle)
-{
-}
-
-void app_client_disconnect_cb(client_handle handle)
-{
-}
-
-void app_message_cb(char* event, char* message, char* from, char* payld)
-{
-	printf("message cb\n");
-
-	if (event)
-		printf("event = %s\n", event);
-
-	if (message)
-		printf("message = %s\n", message);
-
-	if (from)
-		printf("from = %s\n", from);
-}
-
-void app_error_cb()
-{
-}
-
-void connection_cb(int result, client_handle c_handle, error_handle e_handle)
-{
-	printf("connection cb\n");
-	gl_connection_success = result;
-}
-
-void install_cb(int result, error_handle e_handle)
-{
-	gl_install_success = result;
-}
-
-#endif
 
 //Service service;
 Search search1;
 ResultDevice get_device_result;
-OnConnectListenerinherit connection_listener;
+OnConnectListenerinherit connect_listener;
+OnDisconnectListenerinherit disconnect_listener;
 ResultApplicationInfo result_applicationInfo;
 OnClientConnectListenerinherit client_connect_listener;
 OnClientDisconnectListenerinherit client_disconnect_listener;
 OnErrorListenerinherit error_listener;
-OnDisconnectListenerinherit disconnect_listener;
 ResultClient result_client_disconnect;
 ResultClient result_client_connect;
 ResultBool result_bool_install;
@@ -371,21 +316,16 @@ OnMessageListenerinherit msg_listener2;
 ResultApplicationInfo appinfo;
 SearchListenerinherit search_listener1;
 SearchListenerinherit search_listener2;
+startListener startListener1;
+stopListener stopListener1;
+installListener installListener1;
 
-void Menu()
-{
-	printf("\n===============================\n");
-	printf("Start search            ==> s\n");
-	printf("Display service list    ==> d\n");
-	printf("Exit                    ==> Q\n");
-	printf("===============================\n");
-}
+
 
 void display_service_list()
 {
 	list<Service> services = search1.getServices();
 
-	search1.stop();
 	cout << "Length of services list is : ";
 	cout << "" << services.size() << "\n";
 
@@ -395,13 +335,17 @@ void display_service_list()
 	for (std::list<Service>::iterator service = services.begin(); service != services.end(); service++) {
 		printf("idx : %d, id : %s, name : %s, uri : %s\n", n++, (*service).getId().c_str(), (*service).getName().c_str(), (*service).getUri().c_str());
 	}
+}
 
+void rrrr()
+{
 
+	/*
 	char c;
 	cout << "\nEnter number to connect : \n";
 	cin >> c;
 
-	n = c - 48;
+	int n = c - 48;
 	int n2 = 1;
 
 	for (std::list<Service>::iterator service = services.begin(); service != services.end(); service++) {
@@ -410,14 +354,14 @@ void display_service_list()
 			continue;
 		}
 
-		string appID = "http://www.google.com";
+		//string appID = "http://www.google.com";
 		//string appID = "org.tizen.netflix-app";
 		//string appID = "http://multiscreen.samsung.com/app-sample-photos/tv/index.html";
 		//string appID="111477001268";
 		//string appID="11147700";
 		//string appID = "youtube";
 		//string channelId = "com.samsung.multiscreen.youtube";
-		string channelId = "com.samsung.multiscreen.weblauncher";
+		//string channelId = "com.samsung.multiscreen.weblauncher";
 
 		(*service).getDeviceInfo(&get_device_result);
 		printf("wait deviceinfo arrive..");
@@ -430,9 +374,7 @@ void display_service_list()
 		}
 		result_arrive = 0;
 
-		application = new Application(&(*service), appID, channelId);
 
-		application->setonConnectListener(&connection_listener);
 		client_connect_listener.app = application;
 		application->setonClientConnectListener(&client_connect_listener);
 		application->setonClientDisconnectListener(&client_disconnect_listener);
@@ -441,8 +383,7 @@ void display_service_list()
 		application->addOnMessageListener("test_say", &msg_listener1);
 		application->addOnAllMessageListener(&msg_listener2);
 
-		application->set_connect_result(&result_client_connect);
-		application->connect();
+		//application->set_connect_result(&result_client_connect);
 		printf("wait connect..\n");
 		fflush(stdout);
 
@@ -469,7 +410,7 @@ void display_service_list()
 		//char* target = "host";
 
 		//Application installApplication=(*service).createApplication(appID, channelId);
-		application->setonInstallListener(&result_bool_install);
+		application->setonInstallListener(&installListener1);
 		application->install();
 		printf("wait install..\n");
 		fflush(stdout);
@@ -581,17 +522,77 @@ void display_service_list()
 
 		exit(0);
 	}
+	*/
 }
 
-int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
+void connect()
+{
+	char c;
+
+	cout << "\nEnter number : ";
+	cin >> c;
+
+	unsigned int n = c - 48;
+
+	list<Service> services = search1.getServices();
+
+	if (n > services.size() || n < 1) {
+		cout << "\n wrong number. : ";
+		return;
+	}
+
+	std::list<Service>::iterator service = services.begin();
+	for (int i = 0; i < n-1; i++) {
+		service++;
+	}
+
+	application = new Application(&(*service), "http://www.google.com", "test");
+
+	application->setonConnectListener(&connect_listener);
+	application->connect();
+}
+
+void disconnect()
+{
+	application->setonDisconnectListener(&disconnect_listener);
+	application->disconnect();
+}
+
+void start_app()
+{
+	application->setonStartAppListener(&startListener1);
+	application->start();
+}
+
+void stop_app()
+{
+	application->setonStopAppListener(&stopListener1);
+	application->stop();
+}
+
+void Menu()
+{
+	printf("\n===============================\n");
+	printf("Start search            ==> s\n");
+	printf("Stop  search            ==> t\n");
+	printf("Display service list    ==> d\n");
+	printf("connect				    ==> c\n");
+	printf("start app			    ==> a\n");
+	printf("stop app			    ==> A\n");
+	printf("disconnect			    ==> C\n");
+	printf("Exit                    ==> Q\n");
+	printf("===============================\n");
+}
+
+void init()
 {
 	get_device_result.subject = "getDeviceInfo";
-	connection_listener.subject = "connect_listen";
+	connect_listener.subject = "connect_listen";
+	disconnect_listener.subject = "disconnect_listen";
 	result_applicationInfo.subject = "appinfo";
 	client_connect_listener.subject = "client_connect_listen";
 	client_disconnect_listener.subject = "client_disconnect_listen";
 	error_listener.subject = "error_listen";
-	disconnect_listener.subject = "disconnect_listen";
 	result_client_connect.subject = "connect_result";
 	result_client_disconnect.subject = "disconnect_result";
 	result_bool_install.subject = "install_result";
@@ -600,10 +601,15 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 	appinfo.subject = "app info";
 	search_listener1.subject = "search_listener1";
 	search_listener2.subject = "search_listener2";
-
-
+	startListener1.subject = "startListener";
+	stopListener1.subject = "stopListener";
+	installListener1.subject = "installListener";
+	
 	search1.setSearchListener(&search_listener1);
+}
 
+int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
+{
 	int rv;
 	char a[10];
 	GMainLoop *mainloop = reinterpret_cast<GMainLoop*>(data);
@@ -616,8 +622,8 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		rv = 1;
 	}
 
-	if (a[0] == '\n' || a[0] == '\r') {
-		printf("Press ENTER to show options menu.......\n");
+	printf("Press m to show options menu.......\n");
+	if (a[0] == 'm') {
 		Menu();
 	}
 
@@ -625,8 +631,23 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 	case 's':
 		search1.start();
 		break;
+	case 't':
+		search1.stop();
+		break;
 	case 'd':
 		display_service_list();
+		break;
+	case 'c':
+		connect();
+		break;
+	case 'C':
+		disconnect();
+		break;
+	case 'a':
+		start_app();
+		break;
+	case 'A':
+		stop_app();
 		break;
 	case 'Q':
 		g_main_loop_quit(mainloop);
@@ -647,6 +668,8 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 int main(int argc, char** argv) {
 	GMainLoop *mainloop;
 	mainloop = g_main_loop_new(NULL, FALSE);
+
+	init();
 
 	GIOChannel *channel = g_io_channel_unix_new(0);
 	g_io_add_watch(channel, static_cast<GIOCondition>(G_IO_IN|G_IO_ERR|G_IO_HUP|G_IO_NVAL),

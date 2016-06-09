@@ -37,6 +37,7 @@ public:
 	map<string, long> aliveMap;
 	MSFDSearchProvider();
 	MSFDSearchProvider(Search *);
+	~MSFDSearchProvider();
 	void start() ;
 	bool stop();
 	void createMSFD();

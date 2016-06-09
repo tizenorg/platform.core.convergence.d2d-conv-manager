@@ -57,7 +57,8 @@ typedef struct _conv_handle_s*						conv_h;
  * 			The following results can be delivered. \n
  * 			#CONV_DISCOVERY_RESULT_ERROR, \n
  * 			#CONV_DISCOVERY_RESULT_SUCCESS, \n
- * 			#CONV_DISCOVERY_RESULT_FINISHED
+ * 			#CONV_DISCOVERY_RESULT_FINISHED, \n
+ *			#CONV_DISCOVERY_RESULT_LOST
  *
  * @since_tizen 3.0
  *

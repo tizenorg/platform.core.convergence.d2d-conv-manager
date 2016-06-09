@@ -131,33 +131,6 @@ void SearchListener :: onLost(Service service)
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
-/*void Search::setOnStartListener(OnStartListener *obj){
-  cout<<obj;
-  onstartlistener=obj;
-  }
-
-  void Search::setOnStopListener(OnStopListener obj){
-  onstoplistener=obj;
-  }
-
-  void Search::setOnServiceFoundListener(OnServiceFoundListener obj){
-  onservicefoundlistener=obj;
-  }
-
-  void Search::setOnServiceLostListener(OnServiceLostListener obj){
-  onservicelostlistener=obj;
-  }*/
-
-/*
-Search *Search::getInstance()
-{
-	if (instance == NULL)
-		instance = new Search();
-
-	return instance;
-}
-*/
-
 Search::Search()
 {
 	searching_now = false;
@@ -197,19 +170,6 @@ void Search::releaseSearchListener()
 		searchListener = NULL;
 	}
 }
-
-/*
-bool Search::isSearching()
-{
-	std::list<SearchProvider>::iterator iterator;
-	for (iterator = providers.begin(); iterator != providers.end(); ++iterator) {
-		if (iterator->isSearching()) {
-			return true;
-		}
-	}
-	return starting||stopping;
-}
-*/
 
 Service Search::getServiceById(string id)
 {
@@ -281,17 +241,6 @@ void Search::addProvider(SearchProvider provider)
 	provider.setSearchListener(this);
 }
 
-/*
-bool Search::removeProvider(SearchProvider provider)
-{
-	if (!provider.isSearching())
-		return remove(&providers,provider);
-	else
-		removedProviders.push_back(provider);
-	return false;
-}
-*/
-
 bool Search::isEqualto(SearchProvider s1, SearchProvider s2)
 {
 	list<Service> services1 = s1.getServices();
@@ -335,30 +284,6 @@ bool Search::remove(list<SearchProvider> *providers, SearchProvider provider)
 	return false;
 }
 
-/*
-void Search::processRemovedProviders()
-{
-	if (removedProviders.size()) {
-		std::list<SearchProvider>::iterator iter;
-		for(iter = removedProviders.begin(); iter != removedProviders.end(); ++iter) {
-			if ((!((*iter).isSearching())) &&(remove(&providers,*iter)))
-				remove(&removedProviders,*iter);
-		}
-	}
-}
-
-void Search::removeAllProviders()
-{
-	clearProviders = false;
-	if (!isSearching()) {
-		providers.clear();
-	}
-	else {
-		clearProviders = true;
-	}
-}
-*/
-
 void *Search::pt_startMDNS(void *arg)
 {
 	//provider1.start();
@@ -387,20 +312,14 @@ void Search::startDiscovery()
 
 	int ret = -1;
 
-	dlog_print(DLOG_INFO, "MSF", "try MDNS thread creat");
 	provider1.start();
-//	ret = pthread_create(&threads[MDNS_THREAD_NUMBER],NULL,pt_startMDNS,NULL);
-	dlog_print(DLOG_INFO, "MSF", "MDNS thread created");
+	dlog_print(DLOG_INFO, "MSF", "try MDNS started");
 
-	if (ret == -1)
-		cout << "Fail to create MDNS search provider\n";
-
-	dlog_print(DLOG_INFO, "MSF", "try MSFD thread creat");
 	ret = pthread_create(&threads[MSFD_THREAD_NUMBER], NULL, pt_startMSFD, NULL);
 	dlog_print(DLOG_INFO, "MSF", "MSFD thread created");
 
 	if (ret == -1)
-		cout << "Fail to create MDNS search provider\n";
+		cout << "Fail to create MSFD search provider\n";
 
 	onStart();
 }

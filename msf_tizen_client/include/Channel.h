@@ -100,10 +100,6 @@ public:
 	bool isWebSocketOpen();
 	bool connect();
 	void disconnect();
-	void set_connect_result(Result_Base *);
-	void unset_connect_result();
-	void set_disconnect_result(Result_Base *);
-	void unset_disconnect_result();
 	string getChannelUri(map<string, string> *);
 	void addOnMessageListener(string, OnMessageListener *);
 	void addOnAllMessageListener(OnMessageListener *);
@@ -115,10 +111,10 @@ public:
 	void register_message_receive_cb(_message_receive_cb cb);
 	void setonConnectListener(OnConnectListener *);
 	void unsetonConnectListener();
-	void setonDisconnectListener(OnDisconnectListener *);
-	void unsetonDisconnectListener();
 	void setonClientConnectListener(OnClientConnectListener *);
 	void unsetonClientConnectListener();
+	void setonDisconnectListener(OnDisconnectListener *);
+	void unsetonDisconnectListener();
 	void setonClientDisconnectListener(OnClientDisconnectListener *);
 	void unsetonClientDisconnectListener();
 	void setonReadyListener(OnReadyListener *);
@@ -186,8 +182,8 @@ protected:
 	OnClientDisconnectListener *onClientDisconnectListener = NULL;
 	OnReadyListener *onReadyListener = NULL;
 	map<string, list<OnMessageListener *> > messageListeners;
-	Result_Base *connect_cb = NULL;
-	Result_Base *disconnect_cb = NULL;
+	//Result_Base *connect_cb = NULL;
+	//Result_Base *disconnect_cb = NULL;
 	static map<Channel *, int> channel_alive_map;
 
 private:

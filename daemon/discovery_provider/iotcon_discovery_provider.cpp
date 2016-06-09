@@ -154,17 +154,10 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
 	cur_resource_h.set_device_id(string(device_id));
 
-#ifdef _TV_
-	if ( conv::util::get_bt_mac_address().compare(device_id) == 0 ) {
+	if ( conv::util::get_device_id().compare(device_id) == 0 ) {
 		_D("the device has found itself..[device_id:%s].. out!", device_id);
 		return;
 	}
-#else
-	if( conv::util::get_p2p_mac_address().compare(device_id) == 0 ) {
-		_D("the device has found itself..[device_id:%s].. out!", device_id);
-		return;
-	}
-#endif
 
 	ret = iotcon_attributes_get_str(recv_attributes, "device_name", &device_name);
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);

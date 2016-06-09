@@ -13,21 +13,22 @@ using namespace uri_parser;
 string Application::ROUTE_APPLICATION = "applications/";
 string Application::curl_data = "";
 
-class ResultConnectboolCallback : public Result_Base
+class start_result_callback : public Result_Base
 {
 public:
 	Client client;
-	Result_Base** in_connect_cb  = NULL;
+	OnStartAppListener** in_result_cb  = NULL;
 
-	void onSuccess(bool abc)
+	void onSuccess(bool result)
 	{
-		dlog_print(DLOG_INFO, "MSF", "ResultConnectboolCallback success result");
+		dlog_print(DLOG_INFO, "MSF", "start_result_callback");
 		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 
-		if (in_connect_cb != NULL) {
-			if (((*in_connect_cb) != NULL) && (!strncmp(client.getId(), "", 1) == 0)) {
+		if (in_result_cb != NULL) {
+//			if (((*in_result_cb) != NULL) && (!strncmp(client.getId(), "", 1) == 0)) {
+			if (((*in_result_cb) != NULL)) {
 				dlog_print(DLOG_INFO, "MSF", "start success result");
-				(*in_connect_cb)->onSuccess(client);
+				(*in_result_cb)->onStart(result);
 			} else {
 			}
 		}
@@ -39,113 +40,62 @@ public:
 	{
 		dlog_print(DLOG_ERROR, "MSF", "start error result");
 		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-
+		if (in_result_cb != NULL) {
+			if (((*in_result_cb) != NULL)) {
+				(*in_result_cb)->onStart(false);
+			} else {
+			}
+		}
 		dlog_print(DLOG_ERROR, "MSF", "start result.");
 		//app_pointer->handleSocketClosed();
 		delete this;
 	}
 };
 
-class connectCallback : public Result_Base
+class stop_result_callback : public Result_Base
 {
 public:
-	ResultConnectboolCallback* start_cb;
-	Application* app_pointer = NULL;
-	Result_Base** in_connect_cb = NULL;
+	Client client;
+	OnStopAppListener** in_result_cb  = NULL;
 
-public:
-	void onSuccess(Client abc)
+	void onSuccess(bool result)
 	{
-		static Client client12 = abc;
+		dlog_print(DLOG_INFO, "MSF", "stop_result_callback");
 		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 
-		if (app_pointer != NULL) {
-			start_cb = new ResultConnectboolCallback();
-			start_cb->in_connect_cb = in_connect_cb;
-			start_cb->client = abc;
-			app_pointer->start(start_cb);
-		}
-
-		if (in_connect_cb != NULL) {
-			if ((*in_connect_cb) != NULL) {
-				(*in_connect_cb)->onSuccess(true);
-			}
-		}
-		delete this;
-	}
-
-	void onError(Error error)
-	{
-		// On error
-		if (in_connect_cb != NULL) {
-			if ((*in_connect_cb) != NULL) {
-				(*in_connect_cb)->onError(error);
-			}
-		}
-		delete this;
-	}
-};
-
-class DisconnectboolCallback : public Result_Base
-{
-public:
-	Application* app_p = NULL;
-	Result_Base** in_disconnect_cb = NULL;
-
-	// server application stop success
-	void onSuccess(bool abc)
-	{
-		dlog_print(DLOG_INFO, "MSF", "application disconnect(bool, result) 3");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		if (abc) {
-			dlog_print(DLOG_INFO, "MSF", "application disconnect(bool, result) 4");
-
-			if (in_disconnect_cb != NULL) {
-				if ((*in_disconnect_cb) != NULL) {
-					app_p->realDisconnect(*in_disconnect_cb);
-					//temp->onSuccess(me);
-				} else {
-				}
-			}
-		} else {
-			dlog_print(DLOG_INFO, "MSF", "application disconnect(bool, result) 5");
-			if (in_disconnect_cb != NULL) {
-				if ((*in_disconnect_cb) != NULL) {
-					Error err(-1, "error", "stop failed");
-					DisconnectboolCallback *r = new DisconnectboolCallback();
-					r->app_p = this->app_p;
-					r->in_disconnect_cb = this->in_disconnect_cb;
-					r->onError(err);
-				}
+		if (in_result_cb != NULL) {
+//			if (((*in_result_cb) != NULL) && (!strncmp(client.getId(), "", 1) == 0)) {
+			if (((*in_result_cb) != NULL)) {
+				dlog_print(DLOG_INFO, "MSF", "stop success result");
+				(*in_result_cb)->onStop(result);
 			} else {
 			}
-
-			//temp->onSuccess(me);
 		}
 
-		delete (this);
+		delete this;
 	}
 
-	void onError(Error error)
+	void onError(Error)
 	{
-		dlog_print(DLOG_ERROR, "MSF", "application disconnect(bool, result) 6");
+		dlog_print(DLOG_ERROR, "MSF", "stop error result");
 		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		if (in_disconnect_cb != NULL) {
-			if ((*in_disconnect_cb) != NULL) {
-				dlog_print(DLOG_ERROR, "MSF", "application disconnect(bool, result) 7");
-				(*in_disconnect_cb)->onError(error);
+		if (in_result_cb != NULL) {
+			if (((*in_result_cb) != NULL)) {
+				(*in_result_cb)->onStop(false);
+			} else {
 			}
 		}
-
-		delete (this);
+		//app_pointer->handleSocketClosed();
+		delete this;
 	}
 };
+
 Application::Application()
 {
 	dlog_print(DLOG_INFO, "MSF", "Application()");
 	waitForOnReady = false;
 	webapp = false;
-	install_result_listener = NULL;
+	install_listener = NULL;
 	install_result = false;
 }
 
@@ -167,7 +117,7 @@ Application::Application(Service *se, string Uri, string Id)
 	this->webapp = webApp;
 	this->startArgs = &startargs;
 	waitForOnReady = false;
-	install_result_listener = NULL;
+	install_listener = NULL;
 	install_result = false;
 }
 
@@ -188,7 +138,7 @@ Application::Application(Service *se, string Uri, string Id, map<string, string>
 	this->webapp = webApp;
 	this->startArgs = &startargs;
 	waitForOnReady = false;
-	install_result_listener = NULL;
+	install_listener = NULL;
 	install_result = false;
 }
 
@@ -228,7 +178,7 @@ void Application::getinfo(Result_Base *result1)
 	}
 }
 
-void Application::start(Result_Base *result)
+void Application::start()
 {
 	Clients *clientstemp = Channel::getclients();
 
@@ -237,13 +187,17 @@ void Application::start(Result_Base *result)
 
 	map<string, string> params = getparams();
 
-	invokeMethod(webapp?Message::METHOD_WEB_APPLICATION_START : Message::METHOD_APPLICATION_START, params, result);
+	start_result_callback* start_app_result_listener = new start_result_callback();
+	start_app_result_listener->in_result_cb = &start_app_listener;
+	invokeMethod(webapp?Message::METHOD_WEB_APPLICATION_START : Message::METHOD_APPLICATION_START, params, start_app_result_listener);
 }
 
-void Application::stop(Result_Base *result)
+void Application::stop()
 {
 	map<string, string> params = getparams();
-	invokeMethod(webapp?Message::METHOD_WEB_APPLICATION_STOP : Message::METHOD_APPLICATION_STOP, params, result);
+	stop_result_callback* stop_app_result_listener = new stop_result_callback();
+	stop_app_result_listener->in_result_cb = &stop_app_listener;
+	invokeMethod(webapp?Message::METHOD_WEB_APPLICATION_STOP : Message::METHOD_APPLICATION_STOP, params, stop_app_result_listener);
 }
 
 void Application::install()
@@ -252,8 +206,8 @@ void Application::install()
 	if (webapp) {
 		string randID = Channel::getUID();
 		dlog_print(DLOG_INFO, "MSF", "install call registercallback");
-		if (install_result_listener) {
-			install_result_listener->onError(Error::create("Unsupported Method"));
+		if (install_listener) {
+			install_listener->onError(Error::create("Unsupported Method"));
 		}
 		/* Channel::registerCallback(randID,(void*)result,Result_bool); *
 		 *  handleError(randID,Error::create("Unsupported Method"));   */
@@ -262,8 +216,9 @@ void Application::install()
 		dlog_print(DLOG_INFO, "MSF", "install uri = %s", Uri.c_str());
 		ret = Application::curl_install(Uri);
 		if (ret == -1) {
-			if (install_result_listener)
-				install_result_listener->onError(Error::create("Failed to Install"));
+			if (install_listener)
+				install_listener->onInstall(false);
+				install_listener->onError(Error::create("Failed to Install"));
 		}
 	}
 }
@@ -296,20 +251,21 @@ void Application::connect(map<string, string> attributes, Result_Base *res)
 {
 	dlog_print(DLOG_INFO, "MSF", "Application::connect(at, res)");
 
-	connectCallback* r = new connectCallback();
-	r->in_connect_cb = &connect_cb;
-	r->app_pointer = this;
+	//connectCallback* r = new connectCallback();
+	//r->in_connect_cb = &onDisconnectListener;
+	//r->app_pointer = this;
 
-	Channel::connect(attributes, r);
+	Channel::connect(attributes, res);
 }
 
 void Application::disconnect()
 {
 	dlog_print(DLOG_INFO, "MSF", "application disconnect()");
 
-	disconnect(true);
+	realDisconnect(NULL);
 }
 
+/*
 void Application::disconnect(Result_Base *r)
 {
 	dlog_print(DLOG_INFO, "MSF", "application disconnect(result)");
@@ -340,19 +296,21 @@ void Application::disconnect(bool stopOnDisconnect)
 
 			//Result_Base *rbool = NULL;;
 
-			DisconnectboolCallback *r = new DisconnectboolCallback();
-			r->in_disconnect_cb = &disconnect_cb;
-			r->app_p = this;
+			//DisconnectboolCallback *r = new DisconnectboolCallback();
+			//r->in_disconnect_cb = &disconnect_cb;
+			//r->app_p = this;
 
 			//rbool= r1bool;
-			MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-			stop(r);
+			//MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+			//stop();
+			realDisconnect();
 			return;
 		}
 	}
 
 	realDisconnect(disconnect_cb);
 }
+	*/
 
 void Application:: realDisconnect(Result_Base *result)
 {
@@ -372,7 +330,7 @@ void Application::invokeMethod(string method, map<string, string> params, string
 	int l = 0;
 	string id = webapp?"url":"id";
 	char buffer[2000];
-	l += snprintf((char *)&buffer, sizeof(buffer), " {\n \"method\": \"%s\",\n \"id\": %s, \n \"params\" : { \n \"%s\": \"%s\" \n } \n }", method.c_str(), messageID.c_str(), id.c_str(), params[id].c_str());
+	l += sprintf((char *)&buffer, " {\n \"method\": \"%s\",\n \"id\": %s, \n \"params\" : { \n \"%s\": \"%s\" \n } \n }", method.c_str(), messageID.c_str(), id.c_str(), params[id].c_str());
 	buffer[l] ='\0';
 	dlog_print(DLOG_INFO, "MSF", "invokeMethod() 3");
 	dlog_print(DLOG_INFO, "MSF", "invokeMethod() buf = %s", buffer);
@@ -549,9 +507,9 @@ int Application::curl_install(string uri)
 			dlog_print(DLOG_ERROR, "MSF", "####Application curl success ####");
 			json_parse(curl_install_data.c_str());
 
-			if (install_result_listener != NULL) {
+			if (install_listener != NULL) {
 				if (install_result) {
-					install_result_listener->onSuccess(install_result);
+					install_listener->onInstall(install_result);
 				} else {
 					string err = "";
 					err.append("status:");
@@ -560,13 +518,10 @@ int Application::curl_install(string uri)
 					err.append(errMsg);
 					err.append(" code:");
 					err.append(to_string(errcode));
-					install_result_listener->onError(Error::create(err));
+					install_listener->onError(Error::create(err));
 				}
 			}
 		}
-
-
-
 		curl_install_data.clear();
 
 		curl_easy_cleanup(curl);
@@ -579,12 +534,34 @@ int Application::curl_install(string uri)
 		return 0;
 }
 
-void Application::setonInstallListener(Result_Base* listener)
+void Application::setonInstallListener(OnInstallListener * listener)
 {
-	install_result_listener = listener;
+	install_listener = listener;
 }
 
 void Application::unsetonInstallListener()
 {
-	install_result_listener = NULL;
+	 install_listener = NULL;
 }
+
+void Application::setonStartAppListener(OnStartAppListener *listener)
+{
+	start_app_listener = listener;
+}
+
+void Application::unsetonStartAppListener()
+{
+	start_app_listener = NULL;
+}
+
+void Application::setonStopAppListener(OnStopAppListener *listener)
+{
+	stop_app_listener = listener;
+}
+
+void Application::unsetonStopAppListener()
+{
+	stop_app_listener = NULL;
+}
+
+

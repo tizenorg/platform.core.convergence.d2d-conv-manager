@@ -123,6 +123,7 @@ enum request_type {
 #define CONV_DISCOVERY_ERROR				-1
 #define CONV_DISCOVERY_SUCCESS				0
 #define CONV_DISCOVERY_FINISHED				1
+#define CONV_DISCOVERY_DEVICE_LOST			2
 
 #define CONV_JSON_DEVICE_ID				CONV_DEVICE_ID
 #define CONV_JSON_DEVICE_NAME			CONV_DEVICE_NAME
@@ -143,6 +144,7 @@ enum request_type {
 #define CONV_JSON_CLIENT_ID				"clientId"
 #define CONV_JSON_CHANNEL_URI			"channelUri"
 #define CONV_JSON_CLIENT_LIST			"client_list"
+#define CONV_JSON_ERROR_MESSAGE			"error_message"
 
 // remote app control service
 #define CONV_JSON_APP_CONTROL			"app_control"

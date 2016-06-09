@@ -247,6 +247,35 @@ static bool serviceComparision(conv::service_iface* obj, int serviceType)
 		return false;
 }
 
+int conv::discovery_manager_impl::exclude_services(conv::device_iface* org_device, conv::device_iface* removed_device)
+{
+	int remained_serv_count = 0;
+	std::list<service_iface*> org_serv_list;
+	std::list<service_iface*> removed_serv_list;
+
+	org_device->get_services_list(&org_serv_list);
+	_D("[%d] Services in the origin device info[%s]", org_serv_list.size(), org_device->getName().c_str());
+	remained_serv_count = org_serv_list.size();
+
+	removed_device->get_services_list(&removed_serv_list);
+	_D("[%d] Services in the removed device info[%s]", removed_serv_list.size(), removed_device->getName().c_str());
+
+	std::list<service_iface*>::iterator removed_itr = removed_serv_list.begin();
+	for (; removed_itr != removed_serv_list.end(); ++removed_itr) {
+		service_iface* cur_removed_serv = *removed_itr;
+		std::list<service_iface*>::iterator org_iter = std::find_if(org_serv_list.begin(), org_serv_list.end(), std::bind(serviceComparision, std::placeholders::_1, cur_removed_serv->getServiceType()));
+		if (org_iter != org_serv_list.end()) {
+			service_iface* cur_serv = *org_iter;
+			_D("Service[%d],notified as removed one, found in device[%s]", cur_serv->getServiceType(), cur_serv->getName().c_str());
+			org_device->remove_service(cur_serv);
+			remained_serv_count--;
+		}
+	}
+
+	return remained_serv_count;
+}
+
+
 // return value : the number of new services
 int conv::discovery_manager_impl::merge_exclude_services(conv::device_iface* org_device, conv::device_iface* new_device)
 {
@@ -267,19 +296,54 @@ int conv::discovery_manager_impl::merge_exclude_services(conv::device_iface* org
 		if (org_iter != org_serv_list.end()) {
 			// already exists in org_device.. means it's not new!.. so remove the service from new!!
 			new_device->remove_service(cur_serv);
-			// add the service into the original device
-			org_device->add_service(cur_serv);
 			_D("Service[%d] has been already found in Device[%s]", cur_serv->getServiceType(), org_device->getName().c_str() );
 		} else {
 			_D("New Service[%d] found in Device[%s]", cur_serv->getServiceType(), org_device->getName().c_str() );
+			// add the service into the original device
+			org_device->add_service(cur_serv);
 			new_serv_count++;
 		}
 	}
 	return new_serv_count;
 }
 
+int conv::discovery_manager_impl::notify_lost_device(device_iface* disc_device)
+{
+	int num_remained_service = 0;
+	// 1. find the device and remove the services included in disc_device from cache (discovered_results)
+	discovered_ones_map_t::iterator itor_disc;
+	itor_disc = discovered_results.find(disc_device->getId());
+	if (itor_disc != discovered_results.end()) {
+		device_iface* cur_device = itor_disc->second;
+		num_remained_service = exclude_services(cur_device, disc_device);
+	} else {
+		_D("Lost Notify dismissed - No discovered results corresponding to id[%s]", disc_device->getId().c_str());
+		return CONV_ERROR_NO_DATA;
+	}
+
+	// 2. if no services is left included in disc_device, then remove the device from the cache and notify to a client
+	if (num_remained_service == 0) {
+		// remove from the cache
+		discovered_results.erase(disc_device->getId());
+
+		// iterate through request_map for service
+		_D("Iterate through request_map to publish..");
+		request_map_t::iterator IterPos;
+		json device_json;
+		convert_device_into_json(disc_device, &device_json);
+		for (IterPos = request_map.begin(); IterPos != request_map.end(); ++IterPos) {
+			request* cur_Req = IterPos->second;
+			cur_Req->publish(CONV_DISCOVERY_DEVICE_LOST, device_json);
+		}
+	}
+
+	return CONV_ERROR_NONE;
+}
+
 int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* disc_device)
 {
+	conv::device_iface* publish_device_info = NULL;
+
 	_D("Append Discovered Result.. Device:%x, Service:%x");
 	IF_FAIL_RETURN_TAG((disc_device != NULL), CONV_ERROR_INVALID_PARAMETER, _E, "device_iface not initialized..");
 	// discovery_manager deals with the cache for discovered ones
@@ -297,24 +361,22 @@ int conv::discovery_manager_impl::append_discovered_result(conv::device_iface* d
 		_D("newbie!! discovered device's info [%s]", disc_device->getId().c_str());
 		discovered_results.insert(discovered_ones_map_t::value_type(disc_device->getId(), disc_device));
 	}
+	publish_device_info = disc_device;
 
 	_D("Convert device_info into json type..");
 	json device_json;
-	convert_device_into_json(disc_device, &device_json);
+	convert_device_into_json(publish_device_info, &device_json);
 
 	_D("Convert service info into json type..");
 	typedef std::list<service_iface*> serv_list_t;
 	serv_list_t serv_list;
-	disc_device->get_services_list(&serv_list);
+	publish_device_info->get_services_list(&serv_list);
 
 	for (serv_list_t::iterator iterPos = serv_list.begin(); iterPos != serv_list.end(); ++iterPos) {
 		service_iface* cur_serv = *iterPos;
 		convert_service_into_json(cur_serv, &device_json);
 	}
 
-	// 1.set data info about device
-
-	// 2.set data info about services included in 'device'
 	// iterate through request_map for service
 	_D("Iterate through request_map to publish..");
 	int index = 0;

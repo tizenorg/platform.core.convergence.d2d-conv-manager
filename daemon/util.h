@@ -27,6 +27,7 @@ namespace conv {
 		std::string get_bt_mac_address();
 		std::string get_device_name();
 		std::string get_p2p_mac_address();
+		std::string get_device_id();
 
 		typedef void (*timer_function)(void *data);
 		void* misc_start_timer(timer_function function, unsigned int interval, void *data);
