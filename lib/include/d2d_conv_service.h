@@ -49,7 +49,8 @@ extern "C" {
 typedef enum {
 	CONV_SERVICE_NONE = -1,		/**< Undefined service */
 	CONV_SERVICE_APP_TO_APP_COMMUNICATION = 0,	/**< App-to-app communication service */
-	CONV_SERVICE_REMOTE_APP_CONTROL	/**< Remote app-control service */
+	CONV_SERVICE_REMOTE_APP_CONTROL,	/**< Remote app-control service */
+	CONV_SERVICE_REMOTE_INTERACTION /**< Remote Interaction service */
 } conv_service_e;
 
 /**

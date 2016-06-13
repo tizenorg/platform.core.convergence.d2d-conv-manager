@@ -39,7 +39,8 @@ extern "C" {
 typedef enum {
 	CONV_DISCOVERY_RESULT_ERROR = -1,	/**< Discovery Error */
 	CONV_DISCOVERY_RESULT_SUCCESS = 0,	/**< Discovery Success */
-	CONV_DISCOVERY_RESULT_FINISHED	/**< Discovery finished */
+	CONV_DISCOVERY_RESULT_FINISHED,	/**< Discovery finished */
+	CONV_DISCOVERY_RESULT_LOST /**< Discovery lost */
 } conv_discovery_result_e;
 
 /**
