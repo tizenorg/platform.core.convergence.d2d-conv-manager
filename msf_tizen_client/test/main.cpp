@@ -300,7 +300,7 @@ public:
 
 
 //Service service;
-Search search1;
+Search* search1;
 ResultDevice get_device_result;
 OnConnectListenerinherit connect_listener;
 OnDisconnectListenerinherit disconnect_listener;
@@ -324,7 +324,7 @@ installListener installListener1;
 
 void display_service_list()
 {
-	list<Service> services = search1.getServices();
+	list<Service> services = search1->getServices();
 
 	cout << "Length of services list is : ";
 	cout << "" << services.size() << "\n";
@@ -534,7 +534,7 @@ void connect()
 
 	unsigned int n = c - 48;
 
-	list<Service> services = search1.getServices();
+	list<Service> services = search1->getServices();
 
 	if (n > services.size() || n < 1) {
 		cout << "\n wrong number. : ";
@@ -570,6 +570,18 @@ void stop_app()
 	application->stop();
 }
 
+void publish()
+{
+	static bool done = false;
+
+	if (!done) {
+		application->addOnMessageListener("hello", &msg_listener1);
+		done = true;
+	}
+
+	application->publish("hello", "hello");
+}
+
 void Menu()
 {
 	printf("\n===============================\n");
@@ -580,12 +592,15 @@ void Menu()
 	printf("start app			    ==> a\n");
 	printf("stop app			    ==> A\n");
 	printf("disconnect			    ==> C\n");
+	printf("publish					==> p\n");
 	printf("Exit                    ==> Q\n");
 	printf("===============================\n");
 }
 
 void init()
 {
+	search1 = new Search();
+
 	get_device_result.subject = "getDeviceInfo";
 	connect_listener.subject = "connect_listen";
 	disconnect_listener.subject = "disconnect_listen";
@@ -604,8 +619,6 @@ void init()
 	startListener1.subject = "startListener";
 	stopListener1.subject = "stopListener";
 	installListener1.subject = "installListener";
-
-	search1.setSearchListener(&search_listener1);
 }
 
 int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
@@ -628,10 +641,11 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 
 	switch (a[0]) {
 	case 's':
-		search1.start();
+		search1->setSearchListener(&search_listener1);
+		search1->start();
 		break;
 	case 't':
-		search1.stop();
+		search1->stop();
 		break;
 	case 'd':
 		display_service_list();
@@ -650,6 +664,9 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		break;
 	case 'Q':
 		g_main_loop_quit(mainloop);
+		break;
+	case 'p':
+		publish();
 		break;
 	default :
 		return true;

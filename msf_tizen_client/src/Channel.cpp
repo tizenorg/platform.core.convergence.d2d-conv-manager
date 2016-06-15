@@ -656,14 +656,16 @@ void Channel::disconnect(Result_Base *result1) {
     dlog_print(DLOG_INFO, "MSF", "disconnect call registercallback");
     registerCallback(randID, (void *)result1, Result_Client);
     string message = "";
+
     if (!isWebSocketOpen())
         message = "Already Disconnected";
+
     if (disconnecting)
         message = "Already Disconnecting";
-    if (message != "")
+
+    if (message != "") {
         handleError(UID, Error::create(message));
-    else
-	{
+	} else {
         dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 2");
         MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in "
                 "file [%s] \n",
@@ -684,24 +686,13 @@ void Channel::disconnect(Result_Base *result1) {
             }
         }
 
-        was_closed = 1;
-
-        if (result1) {
-            dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 5");
-
-            if (Channel::onDisconnectListener != NULL) {
-                dlog_print(DLOG_INFO, "MSF", "disconnect()");
-                // Channel::onDisconnectListener->onDisconnect(client);
-            }
-
-            result1->onSuccess(clients->me());
-        }
-
-        if (disconnecting) {
-            disconnecting = false;
-        }
-
         connectionHandler->stopPing();
+
+		was_closed = 1;
+
+		dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 5");
+
+        disconnecting = false;
     }
 }
 
@@ -849,21 +840,11 @@ int Channel::callback_lws_mirror(struct lws *wsi,
         break;
 
     case LWS_CALLBACK_CLOSED:
-        if (this_ptr->disconnecting) {
-            dlog_print(DLOG_INFO, "MSF_SOCKET", "socket closed diconnecting");
-            MSF_DBG("mirror: LWS_CALLBACK_CLOSED\n");
-            this_ptr->wsi_mirror = NULL;
-            this_ptr->mirror_lifetime = 0;
-            this_ptr->disconnecting = false;
 
-        } else {
-            dlog_print(DLOG_INFO, "MSF_SOCKET",
-                       "socket closed not diconnecting");
             dlog_print(DLOG_INFO, "MSF_SOCKET",
                        "call handleSocketClosedAndNotify");
             this_ptr->handleSocketClosedAndNotify();
-        }
-        break;
+
 
     case LWS_CALLBACK_CLIENT_ESTABLISHED:
         MSF_DBG("[MSF LOG]: LWS_CALLBACK_CLIENT_ESTABLISHED [%s]\n",
