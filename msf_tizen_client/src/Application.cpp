@@ -216,9 +216,10 @@ void Application::install()
 		dlog_print(DLOG_INFO, "MSF", "install uri = %s", Uri.c_str());
 		ret = Application::curl_install(Uri);
 		if (ret == -1) {
-			if (install_listener)
+			if (install_listener) {
 				install_listener->onInstall(false);
 				install_listener->onError(Error::create("Failed to Install"));
+			}
 		}
 	}
 }
@@ -330,7 +331,7 @@ void Application::invokeMethod(string method, map<string, string> params, string
 	int l = 0;
 	string id = webapp?"url":"id";
 	char buffer[2000];
-	l += sprintf((char *)&buffer, " {\n \"method\": \"%s\",\n \"id\": %s, \n \"params\" : { \n \"%s\": \"%s\" \n } \n }", method.c_str(), messageID.c_str(), id.c_str(), params[id].c_str());
+	l += snprintf((char *)&buffer, sizeof(buffer), " {\n \"method\": \"%s\",\n \"id\": %s, \n \"params\" : { \n \"%s\": \"%s\" \n } \n }", method.c_str(), messageID.c_str(), id.c_str(), params[id].c_str());
 	buffer[l] ='\0';
 	dlog_print(DLOG_INFO, "MSF", "invokeMethod() 3");
 	dlog_print(DLOG_INFO, "MSF", "invokeMethod() buf = %s", buffer);

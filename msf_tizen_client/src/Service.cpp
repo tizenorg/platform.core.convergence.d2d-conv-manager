@@ -68,7 +68,7 @@ void Service:: getById(string id, Result_Base *result)
 		service = search.getServiceById(id);
 	} else {
 		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		usleep(50000000);
+		sleep(3);
 		service = search.getServiceById(id);
 		search.stop();
 	}

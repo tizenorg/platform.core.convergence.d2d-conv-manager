@@ -604,7 +604,7 @@ void init()
 	startListener1.subject = "startListener";
 	stopListener1.subject = "stopListener";
 	installListener1.subject = "installListener";
-	
+
 	search1.setSearchListener(&search_listener1);
 }
 
@@ -619,7 +619,6 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 	rv = read(0, a, 10);
 	if (rv <= 0) {
 		printf("read result error : %d\n", rv);
-		rv = 1;
 	}
 
 	printf("Press m to show options menu.......\n");
@@ -658,8 +657,6 @@ int test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 
 	if (rv >= 1)
 		printf("\nOperation Succeeded!\n");
-	else
-		printf("\nOperation Failed!\n");
 
 	return TRUE;
 }

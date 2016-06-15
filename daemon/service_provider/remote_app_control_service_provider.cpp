@@ -244,16 +244,12 @@ void conv::remote_app_control_service_provider::iotcon_request_cb(iotcon_resourc
 		ret = iotcon_request_get_representation(request, &req_repr);
 		if (IOTCON_ERROR_NONE != ret) {
 			_E("iotcon_request_get_representation() Fail(%d)", ret);
+			_send_response(request, NULL, IOTCON_RESPONSE_ERROR);
 			return;
 		}
 
 		handle_request(req_repr, request);
 		iotcon_representation_destroy(req_repr);
-	}
-
-	if (IOTCON_ERROR_NONE != ret) {
-		_send_response(request, NULL, IOTCON_RESPONSE_ERROR);
-		return;
 	}
 }
 
