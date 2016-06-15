@@ -38,6 +38,9 @@ BuildRequires: pkgconfig(cynara-client)
 BuildRequires: pkgconfig(cynara-session)
 BuildRequires: pkgconfig(capi-appfw-package-manager)
 BuildRequires: pkgconfig(nsd-dns-sd)
+BuildRequires: pkgconfig(aul)
+BuildRequires: pkgconfig(libtzplatform-config)
+BuildRequires: pkgconfig(libcurl)
 BuildRequires: openssl
 BuildRequires: openssl-devel
 BuildRequires: curl

@@ -434,6 +434,85 @@ void simple_test_remote_app_control_service_start_stop(char* address)
 
 }
 
+void service_remote_interaction_foreach_cb(conv_service_h handle, void* user_data)
+{
+	printf("\n============================================\n");
+	printf("service_foreach_cb called. \n");
+
+	if (handle != NULL) {
+
+		char *version = NULL, *type = NULL, *uri = NULL;
+		conv_service_e serv_type;
+
+		conv_service_get_type(handle, &serv_type);
+
+		printf("service type[%d] : ", serv_type);
+
+		if (serv_type == CONV_SERVICE_REMOTE_INTERACTION)
+		{
+			printf("REMOTE_INTERACTION_SERVICE\n");
+
+			conv_service_get_property_string(handle, CONV_JSON_SERVICE_DATA_VERSION, &version);
+			if (version != NULL) printf("service version[%s]", version);
+
+			conv_service_get_property_string(handle, CONV_JSON_SERVICE_DATA_TYPE, &type);
+			if (type != NULL) printf(" type[%s]", type);
+
+			conv_service_get_property_string(handle, CONV_JSON_SERVICE_DATA_URI, &uri);
+			if (uri != NULL) printf(" uri[%s]\n", uri);
+
+			conv_channel_h channel_handle;
+			conv_channel_create(&channel_handle);
+			conv_service_start(handle, channel_handle, NULL);
+			sleep(15);
+			conv_service_stop(handle, channel_handle, NULL);
+			conv_channel_destroy(channel_handle);
+		}
+	}
+}
+
+void device_conv_remote_interaction_discovery_cb(conv_device_h device_h, int result, void* user_data)
+{
+	printf("Discovered!!!\n");
+	char* device_id = NULL, *device_name = NULL, *device_address;
+
+	int ret;
+	ret = conv_device_get_property_string(device_h, CONV_JSON_DEVICE_ID, &device_id);
+	if (ret != CONV_ERROR_NONE || device_id == NULL)
+	{
+		printf("device id is null %s\n", device_id);
+	}
+
+	ret = conv_device_get_property_string(device_h, CONV_JSON_DEVICE_NAME, &device_name);
+	if (ret != CONV_ERROR_NONE || device_name == NULL)
+	{
+		printf("device name is null %s\n", device_name);
+	}
+
+	ret = conv_device_get_property_string(device_h, CONV_JSON_DEVICE_ADDRESS, &device_address);
+	if (ret != CONV_ERROR_NONE || device_name == NULL)
+	{
+		printf("device name is null %s\n", device_name);
+	}
+
+	ret = conv_device_foreach_service(device_h, service_remote_interaction_foreach_cb, user_data);
+	if (ret != CONV_ERROR_NONE)
+	{
+		printf("Error in conv_device_foreach_service\n");
+	}
+}
+
+void simple_test_conv_remote_interaction_start_stop_discovery()
+{
+	conv_h handle;
+	
+	printf("conv_service_create called..\n");
+	conv_create(&handle);
+	
+	printf("conv_service_start called..\n");
+	conv_discovery_start(handle, 10, device_conv_remote_interaction_discovery_cb, NULL);
+}
+
 int main(int argc, char** argv)
 {
 	loop = g_main_loop_new(NULL, FALSE);
@@ -452,6 +531,9 @@ int main(int argc, char** argv)
 			break;
 		case 2:
 			simple_test_conv_remote_app_control_start_stop_discovery();
+			break;
+		case 3:
+			simple_test_conv_remote_interaction_start_stop_discovery();
 			break;
 		default:
 			break;
