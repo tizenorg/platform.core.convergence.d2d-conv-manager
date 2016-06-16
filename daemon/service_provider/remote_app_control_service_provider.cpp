@@ -136,7 +136,7 @@ static void _app_control_cb(app_control_h request, app_control_h reply, app_cont
 	app_control_cb_map.erase(find_iter);
 }
 
-static void handle_request(iotcon_representation_h rep, iotcon_request_h request)
+static int handle_request(iotcon_representation_h rep, iotcon_request_h request)
 {
 	iotcon_attributes_h attributes;
 	char* appctl_char;
@@ -146,13 +146,13 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 	int ret = iotcon_representation_get_attributes(rep, &attributes);
 	if (IOTCON_ERROR_NONE != ret) {
 		_E("iotcon_representation_get_attributes() Fail(%d)", ret);
-		return;
+		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
 	ret = iotcon_attributes_get_str(attributes, CONV_JSON_APP_CONTROL, &appctl_char);
 	if (IOTCON_ERROR_NONE != ret) {
 		_E("iotcon_attributes_get_str() Fail(%d)", ret);
-		return;
+		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
 	bundle_raw* encoded = reinterpret_cast<unsigned char*>(appctl_char);
@@ -208,6 +208,8 @@ static void handle_request(iotcon_representation_h rep, iotcon_request_h request
 
 		_send_response(request, NULL, result);
 	}
+
+	return CONV_ERROR_NONE;
 }
 
 void conv::remote_app_control_service_provider::iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h request, void *user_data)
@@ -248,7 +250,11 @@ void conv::remote_app_control_service_provider::iotcon_request_cb(iotcon_resourc
 			return;
 		}
 
-		handle_request(req_repr, request);
+		if (handle_request(req_repr, request) != CONV_ERROR_NONE) {
+			_E("handle_request() Fail");
+			_send_response(request, NULL, IOTCON_RESPONSE_ERROR);
+		}
+
 		iotcon_representation_destroy(req_repr);
 	}
 }

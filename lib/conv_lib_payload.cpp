@@ -117,6 +117,7 @@ EXTAPI int conv_payload_get_app_control(conv_payload_h handle, const char* key, 
 	ASSERT_NOT_NULL(handle);
 	ASSERT_NOT_NULL(key);
 	ASSERT_NOT_NULL(app_control);
+	int ret;
 
 	std::list<std::string> key_list;
 	handle->jpayload.get_keys(&key_list);
@@ -135,9 +136,11 @@ EXTAPI int conv_payload_get_app_control(conv_payload_h handle, const char* key, 
 	bundle* appctl_bundle = bundle_decode(encoded, appctl_str.length());
 
 	app_control_create(app_control);
-	app_control_import_from_bundle(*app_control, appctl_bundle);
+	ret = app_control_import_from_bundle(*app_control, appctl_bundle);
 
 	bundle_free(appctl_bundle);
+
+	IF_FAIL_RETURN_TAG(ret == APP_CONTROL_ERROR_NONE, CONV_ERROR_INVALID_PARAMETER, _E, "app_control load failed");
 
 	return CONV_ERROR_NONE;
 }
