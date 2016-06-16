@@ -54,7 +54,7 @@ Service::Service(string id1, string version1, string name1, string type1, string
 /*
 Search *Service::search()
 {
-    return Search::getInstance();
+	return Search::getInstance();
 }
 */
 

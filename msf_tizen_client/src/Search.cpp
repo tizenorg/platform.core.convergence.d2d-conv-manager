@@ -397,8 +397,8 @@ void Search::validateService(Service service)
 	rService = r1Service = NULL;
 	*/
 	/*
-	   @Override
-	   public void onSuccess(Service result) {
+	@Override
+	public void onSuccess(Service result) {
 	// We can contact the service, so keep it in the master
 	// list.
 	}
