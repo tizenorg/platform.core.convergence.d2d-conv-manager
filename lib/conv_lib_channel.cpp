@@ -85,6 +85,7 @@ EXTAPI int conv_channel_get_string(conv_channel_h handle, const char* key, char*
 	return CONV_ERROR_NONE;
 }
 
+//LCOV_EXCL_START
 // internal API
 EXTAPI int conv_channel_internal_export_to_string(conv_channel_h handle, char** value)
 {
@@ -97,3 +98,5 @@ EXTAPI int conv_channel_internal_export_to_string(conv_channel_h handle, char** 
 
 	return CONV_ERROR_NONE;
 }
+//LCOV_EXCL_STOP
+

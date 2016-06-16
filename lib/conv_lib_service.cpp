@@ -36,7 +36,9 @@ static std::map<std::string, _conv_service_connect_callback_info*> connect_callb
 std::string convert_type_to_string(conv_service_e service_type);
 conv_service_e convert_string_to_type(std::string type_name);
 
-static void conv_subject_cb(const char* subject, int req_id, int error, json data){
+//LCOV_EXCL_START
+static void conv_subject_cb(const char* subject, int req_id, int error, json data)
+{
 	_D("Callback response %d", req_id);
 
 	json description;
@@ -96,7 +98,8 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 	delete service_handle;
 }
 
-static void conv_connect_subject_cb(const char* subject, int req_id, int error, json data){
+static void conv_connect_subject_cb(const char* subject, int req_id, int error, json data)
+{
 	_D("Callback response %d", req_id);
 
 	json description;
@@ -154,6 +157,7 @@ static void register_subject_callbacks()
 	}
 	_I("Done with registering subject callback");
 }
+//LCOV_EXCL_STOP
 
 EXTAPI int conv_service_create(conv_service_h* handle)
 {
@@ -194,7 +198,7 @@ EXTAPI int conv_service_destroy(conv_service_h handle)
 	ASSERT_NOT_NULL(handle);
 
 	if ( handle->callback )
-		delete handle->callback;
+		delete handle->callback; //LCOV_EXCL_LINE
 
 	delete handle;
 
@@ -262,7 +266,7 @@ EXTAPI int conv_service_unset_listener_cb(conv_service_h handle)
 
 	std::map<std::string, _conv_service_callback_info*>::iterator it = callback_map.find(description.str());
 	if (it == callback_map.end()) {
-		_D("No callback found for response.");
+		_D("No callback found for response."); //LCOV_EXCL_LINE
 		return CONV_ERROR_INVALID_OPERATION;
 	}
 
@@ -279,6 +283,7 @@ EXTAPI int conv_service_start(conv_service_h handle, conv_channel_h channel_hand
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
 
+	//LCOV_EXCL_START
 	int req_id;
 
 	json description;
@@ -303,6 +308,7 @@ EXTAPI int conv_service_start(conv_service_h handle, conv_channel_h channel_hand
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_service_read(conv_service_h handle, conv_channel_h channel_handle, conv_payload_h payload_handle)
@@ -310,6 +316,7 @@ EXTAPI int conv_service_read(conv_service_h handle, conv_channel_h channel_handl
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
 
+	//LCOV_EXCL_START
 	int req_id;
 
 	json description;
@@ -338,6 +345,7 @@ EXTAPI int conv_service_read(conv_service_h handle, conv_channel_h channel_handl
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_service_stop(conv_service_h handle, conv_channel_h channel_handle, conv_payload_h payload)
@@ -345,6 +353,7 @@ EXTAPI int conv_service_stop(conv_service_h handle, conv_channel_h channel_handl
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
 
+	//LCOV_EXCL_START
 	int req_id;
 
 	json description;
@@ -369,6 +378,7 @@ EXTAPI int conv_service_stop(conv_service_h handle, conv_channel_h channel_handl
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_service_publish(conv_service_h handle, conv_channel_h channel_handle, conv_payload_h payload_handle)
@@ -376,6 +386,7 @@ EXTAPI int conv_service_publish(conv_service_h handle, conv_channel_h channel_ha
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
 
+	//LCOV_EXCL_START
 	int req_id;
 
 	json description;
@@ -406,8 +417,10 @@ EXTAPI int conv_service_publish(conv_service_h handle, conv_channel_h channel_ha
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
+//LCOV_EXCL_START
 static int conv_service_set_connected_cb(conv_service_h handle, json description, conv_service_connected_cb callback, void* user_data)
 {
 	ASSERT_NOT_NULL(handle);
@@ -465,6 +478,7 @@ static int conv_service_unset_connected_cb(conv_service_h handle)
 
 	return CONV_ERROR_NONE;
 }
+//LCOV_EXCL_STOP
 
 EXTAPI int conv_service_get_connection_state(conv_service_h handle, conv_service_connection_state_e* state)
 {
@@ -483,6 +497,7 @@ EXTAPI int conv_service_connect(conv_service_h handle, conv_service_connected_cb
 	ASSERT_NOT_NULL(handle);
 	ASSERT_NOT_NULL(callback);
 
+	//LCOV_EXCL_START
 	int req_id;
 
 	json description;
@@ -504,6 +519,7 @@ EXTAPI int conv_service_connect(conv_service_h handle, conv_service_connected_cb
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_service_disconnect(conv_service_h handle)
@@ -511,6 +527,7 @@ EXTAPI int conv_service_disconnect(conv_service_h handle)
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
 
+	//LCOV_EXCL_START
 	conv_service_unset_connected_cb(handle);
 
 	int req_id;
@@ -531,6 +548,7 @@ EXTAPI int conv_service_disconnect(conv_service_h handle)
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_service_get_type(conv_service_h handle, conv_service_e* value)
@@ -585,6 +603,7 @@ EXTAPI int conv_service_set_property_string(conv_service_h handle, const char* k
 	return CONV_ERROR_NONE;
 }
 
+//LCOV_EXCL_START
 std::string convert_type_to_string(conv_service_e service_type)
 {
 	std::string str;
@@ -612,3 +631,5 @@ conv_service_e convert_string_to_type(std::string type_name)
 	}
 	return service_type;
 }
+//LCOV_EXCL_STOP
+

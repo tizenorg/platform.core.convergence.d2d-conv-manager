@@ -179,6 +179,7 @@ EXTAPI int conv_payload_get_byte(conv_payload_h handle, const char* key, int* le
 	return CONV_ERROR_NONE;
 }
 
+//LCOV_EXCL_START
 // internal API
 EXTAPI int conv_payload_internal_export_to_string(conv_payload_h handle, char** value)
 {
@@ -191,3 +192,5 @@ EXTAPI int conv_payload_internal_export_to_string(conv_payload_h handle, char** 
 
 	return CONV_ERROR_NONE;
 }
+//LCOV_EXCL_STOP
+

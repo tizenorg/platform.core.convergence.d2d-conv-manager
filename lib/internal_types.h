@@ -32,12 +32,14 @@ typedef struct service_callback_info_s {
 	json description;
 } _conv_service_callback_info;
 
+//LCOV_EXCL_START
 typedef struct service_connect_callback_info_s {
 	conv_service_connected_cb cb;
 	void* user_data;
 	conv_service_h handle;
 	json description;
 } _conv_service_connect_callback_info;
+//LCOV_EXCL_STOP
 
 typedef struct _conv_channel_handle_s {
 	json jchannel;
@@ -56,8 +58,10 @@ typedef struct _conv_service_handle_s {
 	_conv_service_callback_info* callback;
 } _conv_service_handle;
 
+//LCOV_EXCL_START
 typedef struct _conv_device_handle_s {
 	json jbody;
 } _conv_device_handle;
+//LCOV_EXCL_STOP
 
 #endif

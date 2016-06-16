@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+//LCOV_EXCL_START
 #include <string>
 #include <sstream>
 #include <locale>
@@ -948,3 +949,5 @@ bool json::array_equals(json_node_t* lhs, json_node_t* rhs)
 
 	return true;
 }
+//LCOV_EXCL_STOP
+
