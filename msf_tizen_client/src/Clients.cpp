@@ -55,14 +55,14 @@ bool Clients::isMe(Client client)
 
 list<Client> Clients::lists()
 {
-   list<Client> client_list;
-   std::map<string, Client>::iterator clients_itr;
+	list<Client> client_list;
+	std::map<string, Client>::iterator clients_itr;
 
-   for (clients_itr = clients.begin(); clients_itr != clients.end(); clients_itr++) {
-	   client_list.push_back(clients_itr->second);
-   }
+	for (clients_itr = clients.begin(); clients_itr != clients.end(); clients_itr++) {
+		client_list.push_back(clients_itr->second);
+	}
 
-   return client_list;
+	return client_list;
 }
 
 void Clients::setMyClientId(string clientId)
