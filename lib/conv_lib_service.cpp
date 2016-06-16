@@ -595,6 +595,9 @@ std::string convert_type_to_string(conv_service_e service_type)
 	case CONV_SERVICE_REMOTE_APP_CONTROL:
 		str = CONV_SERVICE_TYPE_REMOTE_APP_CONTROL;
 		break;
+	case CONV_SERVICE_REMOTE_INTERACTION:
+		str = CONV_SERVICE_TYPE_REMOTE_INTERACTION;
+		break;
 	default:
 		break;
 	}
@@ -609,6 +612,8 @@ conv_service_e convert_string_to_type(std::string type_name)
 		service_type = CONV_SERVICE_APP_TO_APP_COMMUNICATION;
 	} else if ( !type_name.compare(CONV_SERVICE_TYPE_REMOTE_APP_CONTROL)) {
 		service_type = CONV_SERVICE_REMOTE_APP_CONTROL;
+	} else if (!type_name.compare(CONV_SERVICE_TYPE_REMOTE_INTERACTION)) {
+		service_type = CONV_SERVICE_REMOTE_INTERACTION;
 	}
 	return service_type;
 }
