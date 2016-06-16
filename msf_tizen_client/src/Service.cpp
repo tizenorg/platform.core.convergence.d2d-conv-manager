@@ -270,7 +270,7 @@ void Service::getByURI(string uri, Result_Base *result)
 	getByURI(uri, 5000, result);
 }
 
-void Service::getByURI(string uri, long timeout,  Result_Base *result)
+void Service::getByURI(string uri, long timeout, Result_Base *result)
 {
 	dlog_print(DLOG_INFO, "MSF", "getByURI() uri = %s", uri.c_str());
 

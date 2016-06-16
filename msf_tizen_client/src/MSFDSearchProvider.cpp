@@ -144,13 +144,17 @@ void MSFDSearchProvider::reapServices()
 {
 	long now = time(0);
 	map<string, long>::iterator it;
-	for(it = aliveMap.begin(); it != aliveMap.end(); ++it) {
+	map<string, long>::iterator next_it;
+
+	for(it = aliveMap.begin(); it != aliveMap.end();) {
 		long expires = it->second;
 		if (expires < now) {
 			//dlog_print(DLOG_ERROR, "MSF", "MSFD reapServices remove service");
 			Service service = getServiceById(it->first);
-			aliveMap.erase(it->first);
+			aliveMap.erase(it++);
 			removeServiceAndNotify(service);
+		} else {
+			it++;
 		}
 	}
 }

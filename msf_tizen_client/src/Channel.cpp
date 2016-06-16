@@ -814,10 +814,58 @@ void Channel::handleSocketClosed() {
     clients->reset();
 }
 
+int Channel::write_socket(Channel* ch_p)
+{
+	int n;
+	if (ch_p->isWrite) {
+		ch_p->isWrite = false;
+
+		if (&(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]) == NULL ||
+				ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING] == 0 ||
+				ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING] == '\0') {
+			printf("\ntry write NULL data");
+			fflush(stdout);
+		} else {
+			// printf("\ntry write data = %s",
+			// &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]));
+			// printf("\ndata size = %d", this_ptr->buflen);
+			fflush(stdout);
+		}
+
+		if (ch_p->buflen <= 0) {
+			printf("\ntry write 0 size data");
+			fflush(stdout);
+		}
+
+		// printf("\nwrite socket");
+		// fflush(stdout);
+		if (ch_p->binary_message) {
+			n = lws_write(ch_p->wsi_mirror,
+					&(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]),
+					ch_p->buflen, LWS_WRITE_BINARY);
+			dlog_print(DLOG_INFO, "MSF", "write binary message\n%s", &(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING+2]));
+		} else {
+			n = lws_write(ch_p->wsi_mirror,
+					&(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]),
+					ch_p->buflen, LWS_WRITE_TEXT);
+			dlog_print(DLOG_INFO, "MSF", "write text message\n%s", &(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]));
+		}
+
+		if (n < 0) {
+			MSF_DBG("Writing failed\n");
+			dlog_print(DLOG_ERROR, "MSF", "socket write failed");
+			printf("\nwrite socket failed");
+			printf("\ncallback isWrite=false");
+			fflush(stdout);
+			return -1;
+		}
+	}
+
+}
+
 int Channel::callback_lws_mirror(struct lws *wsi,
                                  enum lws_callback_reasons reason, void *user,
                                  void *in, size_t len) {
-    int n;
     void *user_data;
     Channel *this_ptr = NULL;
     struct lws_context *context = lws_get_context(wsi);
@@ -930,50 +978,7 @@ int Channel::callback_lws_mirror(struct lws *wsi,
         break;
 
     case LWS_CALLBACK_CLIENT_WRITEABLE:
-        if (this_ptr->isWrite) {
-            this_ptr->isWrite = false;
-
-            if (&(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]) == NULL ||
-                this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING] == 0 ||
-                this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING] == '\0') {
-                printf("\ntry write NULL data");
-                fflush(stdout);
-            } else {
-                // printf("\ntry write data = %s",
-                // &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]));
-                // printf("\ndata size = %d", this_ptr->buflen);
-                fflush(stdout);
-            }
-
-            if (this_ptr->buflen <= 0) {
-                printf("\ntry write 0 size data");
-                fflush(stdout);
-            }
-
-            // printf("\nwrite socket");
-            // fflush(stdout);
-            if (this_ptr->binary_message) {
-                n = lws_write(wsi,
-                              &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]),
-                              this_ptr->buflen, LWS_WRITE_BINARY);
-				dlog_print(DLOG_INFO, "MSF", "write binary message\n%s", &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING+2]));
-            } else {
-                n = lws_write(wsi,
-                              &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]),
-                              this_ptr->buflen, LWS_WRITE_TEXT);
-				dlog_print(DLOG_INFO, "MSF", "write text message\n%s", &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]));
-            }
-
-            if (n < 0) {
-                MSF_DBG("Writing failed\n");
-                dlog_print(DLOG_ERROR, "MSF", "socket write failed");
-                printf("\nwrite socket failed");
-                printf("\ncallback isWrite=false");
-                fflush(stdout);
-                return -1;
-            }
-        }
-        //lws_callback_on_writable(wsi);
+		write_socket(this_ptr);
         break;
 
     case LWS_CALLBACK_RECEIVE:
@@ -1180,6 +1185,7 @@ void Channel::publishMessage(string method, string event, const char *data,
         //	free(bufer);
 
         isWrite = true;
+        lws_callback_on_writable(wsi_mirror);
         // printf("\npublish isWrite=true\n");
     }
 }
@@ -1256,6 +1262,7 @@ void Channel::start_app(char *data, int buflength, string msgID) {
     binary_message = false;
 
     isWrite = true;
+	lws_callback_on_writable(wsi_mirror);
     printf("start_app isWrite=true");
 
     MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "

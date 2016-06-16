@@ -146,16 +146,6 @@ Search::~Search()
 	search_list.remove(this);
 	printf("Search::~Search()\n");
 	fflush(stdout);
-
-	if (instance) {
-		//delete instance;
-		//instance = NULL;
-	}
-
-	if (searchListener) {
-		//delete searchListener;
-		//searchListener = NULL;
-	}
 }
 
 void Search::setSearchListener(SearchListener *obj)
