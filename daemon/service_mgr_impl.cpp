@@ -17,6 +17,7 @@
 #include "service_mgr_impl.h"
 #include "service_provider/app_comm_service_provider.h"
 #include "service_provider/remote_app_control_service_provider.h"
+#include "service_provider/remote_interaction_service_provider.h"
 #include "connection_mgr_impl.h"
 #include "access_control/privilege.h"
 #include "util.h"
@@ -39,6 +40,7 @@ int conv::service_manager_impl::init()
 {
 	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::app_comm_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "app_comm_service_provider register failed");
 	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::remote_app_control_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "remote_app_control_service_provider register failed");
+	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::remote_interaction_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "remote_interaction_service_provider register failed");
 
 	register_discovery_info();
 	return CONV_ERROR_NONE;

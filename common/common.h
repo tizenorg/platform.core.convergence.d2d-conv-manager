@@ -66,6 +66,7 @@
 
 #define CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION "smartview"
 #define CONV_SERVICE_TYPE_REMOTE_APP_CONTROL "remote_appcontrol"
+#define CONV_SERVICE_TYPE_REMOTE_INTERACTION "remote_interaction"
 
 #define CONV_COMM_TYPE_SMARTVIEW "comm/smartview"
 #define CONV_COMM_TYPE_IOTCON "comm/iotcon"
