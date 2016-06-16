@@ -21,6 +21,7 @@
 
 bool conv::util::is_feature_supported()
 {
+	//LCOV_EXCL_START
 #if 0
 	if (_feature_supported < 0) {
 		bool feature_supported = false;
@@ -31,4 +32,5 @@ bool conv::util::is_feature_supported()
 #else
 	return true;
 #endif
+	//LCOV_EXCL_STOP
 }

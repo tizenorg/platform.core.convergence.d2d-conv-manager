@@ -39,6 +39,7 @@ static const gchar introspection_xml[] =
 	"	</interface>"
 	"</node>";
 
+//LCOV_EXCL_START
 static int get_req_id()
 {
 	static int req_id = 0;
@@ -84,6 +85,7 @@ static void handle_method_call(GDBusConnection *conn, const gchar *sender,
 		_W("Invalid method: %s", method_name);
 	}
 }
+//LCOV_EXCL_STOP
 
 bool conv::dbus_client::init()
 {
@@ -150,7 +152,7 @@ int conv::dbus_client::request(
 	IF_FAIL_RETURN_TAG(req_id != NULL, CONV_ERROR_INVALID_PARAMETER, _E, "Invalid parameter");
 
 	if (subject == NULL) {
-		subject = EMPTY_STRING;
+		subject = EMPTY_STRING; //LCOV_EXCL_LINE
 	}
 
 	if (input == NULL) {
@@ -175,10 +177,10 @@ int conv::dbus_client::request(
 
 	g_variant_get(response, "(i&s&s)", &_error, &_req_result, &_data_read);
 	if (req_result) {
-		*req_result = _req_result;
+		*req_result = _req_result; //LCOV_EXCL_LINE
 	}
 	if (data_read) {
-		*data_read = _data_read;
+		*data_read = _data_read; //LCOV_EXCL_LINE
 	}
 
 	g_variant_unref(response);
@@ -186,6 +188,7 @@ int conv::dbus_client::request(
 	return _error;
 }
 
+//LCOV_EXCL_START
 int conv::dbus_client::request_with_no_reply(
 		int type, int* req_id, const char* subject, const char* input)
 {
@@ -218,6 +221,7 @@ int conv::dbus_client::request_with_no_reply(
 
 	return CONV_ERROR_NONE;
 }
+//LCOV_EXCL_STOP
 
 int conv::dbus_client::register_callback(const char* subject, subject_response_cb callback)
 {

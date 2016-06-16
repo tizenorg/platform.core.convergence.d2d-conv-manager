@@ -39,9 +39,10 @@ struct device_callback_info_s {
 typedef std::map<int, device_callback_info_s*> callback_map_t;
 static callback_map_t callback_map;
 
-static void conv_subject_cb(const char* subject, int req_id, int error, json data){
+//LCOV_EXCL_START
+static void conv_subject_cb(const char* subject, int req_id, int error, json data)
+{
 	_D("Callback response %d : subject[%s] json_data[%s]", req_id, subject, data.str().c_str());
-
 
 	conv_device_h device = new(std::nothrow) _conv_device_handle_s();
 	IF_FAIL_VOID_TAG(device, _E, "Memory Allocation Failed");
@@ -67,6 +68,7 @@ static void register_subject_callbacks()
 	}
 	_I("Done with registering subject callback");
 }
+//LCOV_EXCL_STOP
 
 EXTAPI int conv_create(conv_h* handle)
 {
@@ -156,20 +158,26 @@ EXTAPI int conv_device_clone(conv_device_h original_handle, conv_device_h* targe
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(original_handle);
 	ASSERT_NOT_NULL(target_handle);
+
+	//LCOV_EXCL_START
 	_conv_device_handle* device = new(std::nothrow) _conv_device_handle();
 	device->jbody = original_handle->jbody;
 
 	*target_handle = device;
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_device_destroy(conv_device_h handle)
 {
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
 	ASSERT_NOT_NULL(handle);
+
+	//LCOV_EXCL_START
 	delete handle;
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_device_get_property_string(conv_device_h handle, const char* key, char** value)
@@ -178,6 +186,7 @@ EXTAPI int conv_device_get_property_string(conv_device_h handle, const char* key
 	ASSERT_NOT_NULL(handle);
 	ASSERT_NOT_NULL(key && value);
 
+	//LCOV_EXCL_START
 	std::string strval;
 	bool ret = handle->jbody.get(NULL, key, &strval);	// path is NULL..
 	if (ret == false || strval.empty())
@@ -185,6 +194,7 @@ EXTAPI int conv_device_get_property_string(conv_device_h handle, const char* key
 	*value = strdup(strval.c_str());
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
 
 EXTAPI int conv_device_foreach_service(conv_device_h handle, conv_service_foreach_cb cb, void* user_data)
@@ -193,6 +203,7 @@ EXTAPI int conv_device_foreach_service(conv_device_h handle, conv_service_foreac
 	ASSERT_NOT_NULL(handle);
 	ASSERT_NOT_NULL(cb);
 
+	//LCOV_EXCL_START
 	json json_data = handle->jbody;
 	std::string strval;
 
@@ -222,6 +233,6 @@ EXTAPI int conv_device_foreach_service(conv_device_h handle, conv_service_foreac
 	}
 
 	return CONV_ERROR_NONE;
+	//LCOV_EXCL_STOP
 }
-
 
