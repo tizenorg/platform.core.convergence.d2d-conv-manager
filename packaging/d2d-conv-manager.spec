@@ -47,11 +47,6 @@ BuildRequires: libcurl-devel
 
 %endif
 
-BuildRequires: boost-devel
-BuildRequires: boost-thread
-BuildRequires: boost-system
-BuildRequires: boost-filesystem
-
 %description
 D2D Convergence Manager Service
 

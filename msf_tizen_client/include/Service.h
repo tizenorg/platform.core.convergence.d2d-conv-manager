@@ -47,7 +47,6 @@ class Service
 	static bool success_get_id;
 	static string remote_device_id;
 	static std::map<std::string, std::string> dev_id_map;
-	static string make_new_id(string address);
 
 public:
 	Service();

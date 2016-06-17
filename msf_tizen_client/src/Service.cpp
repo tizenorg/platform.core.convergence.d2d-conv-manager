@@ -6,7 +6,6 @@
 #include "Device.h"
 #include "Application.h"
 
-#include <boost/uuid/uuid_generators.hpp>
 #include <curl/curl.h>
 
 string Service::ID_PROPERTY         = "id";
@@ -179,31 +178,6 @@ void Service::getDeviceInfo(Result_Base *dev_result)
 	curl_service_calling(uri, 5000, dev_result);
 }
 
-string Service::make_new_id(string address)
-{
-	std::map<std::string, std::string>::iterator dev_id_map_itr = dev_id_map.find(address);
-	if (dev_id_map_itr != dev_id_map.end()) {
-		string dev_id = dev_id_map_itr->second;
-		MSF_DBG("dev_id[%s] is aleady exist", dev_id.c_str());
-		return dev_id;
-	}
-
-	boost::uuids::uuid u1 = boost::uuids::random_generator()();
-	int offset = 0;
-
-	char unique_id[40] = {0,};
-
-	snprintf(unique_id, sizeof(unique_id), "%x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x", u1.data[0], u1.data[1], u1.data[2], u1.data[3]
-																					, u1.data[4], u1.data[5], u1.data[6], u1.data[7]
-																					, u1.data[8], u1.data[9], u1.data[10], u1.data[11]
-																					, u1.data[12], u1.data[13], u1.data[14], u1.data[15]);
-	MSF_DBG("unique_id[%s] for address[%s] was newly generated", unique_id, address.c_str());
-
-	dev_id_map[address] = string(unique_id);
-
-	return string(unique_id);
-}
-
 string Service::getUniqueId(string address)
 {
 	string ret_id;
@@ -235,7 +209,7 @@ string Service::getUniqueId(string address)
 		ret_id = remote_device_id;
 	}
 	else {
-		ret_id = "";//Service::make_new_id(address);
+		ret_id = "";
 	}
 
 	return ret_id;
