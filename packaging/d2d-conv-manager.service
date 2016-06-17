@@ -1,5 +1,6 @@
 [Unit]
 Description=D2D Convergence Manager Daemon
+After=dbus.service
 
 [Service]
 Type=dbus
