@@ -33,7 +33,7 @@ namespace conv {
 	class iotcon_discovery_provider : public discovery_provider_base  {
 		private:
 
-			static void _found_resource(iotcon_remote_resource_h resource, iotcon_error_e result,
+			static bool _found_resource(iotcon_remote_resource_h resource, iotcon_error_e result,
 									void *user_data);
 			static void _get_detail_info(iotcon_remote_resource_h resource);
 
