@@ -313,21 +313,19 @@ int conv::iotcon_discovery_provider::add_iot_resource(iotcon_remote_resource_h r
 	return CONV_ERROR_NONE;
 }
 
-bool conv::iotcon_discovery_provider::_found_resource(iotcon_remote_resource_h resource, iotcon_error_e result, void *user_data)
+void conv::iotcon_discovery_provider::_found_resource(iotcon_remote_resource_h resource, iotcon_error_e result, void *user_data)
 {
 	_D("_found_resource called..");
 
-	IF_FAIL_RETURN_TAG((resource != NULL), IOTCON_FUNC_STOP, _E, "resource is NULL..");
+	IF_FAIL_VOID_TAG((resource != NULL), _E, "resource is NULL..");
 
 	int ret;
 	// add the found resource into Temp cache
 	ret = add_iot_resource(resource);
-	IF_FAIL_RETURN_TAG((ret == CONV_ERROR_NONE), IOTCON_FUNC_CONTINUE, _E, "Failed to add iot resource");
+	IF_FAIL_VOID_TAG((ret == CONV_ERROR_NONE), _E, "Failed to add iot resource");
 
 	// Get additional info from resource
 	_get_detail_info(resource);
-
-	return IOTCON_FUNC_CONTINUE;
 }
 
 int conv::iotcon_discovery_provider::start()
