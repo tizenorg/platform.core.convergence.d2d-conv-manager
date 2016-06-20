@@ -75,7 +75,7 @@ int conv::discovery_manager_impl::notify_time_up(std::string client)
 {
 	// 1. When no client is using discovery, it should be stopped
 	_D("notify_time_up.. with current discovery count :%d", count_discovery_request);
-	if (--count_discovery_request == 0) {
+	if (--count_discovery_request <= 0) {
 		stop_discovery();
 	}
 
@@ -133,7 +133,6 @@ int conv::discovery_manager_impl::handle_request(request* request_obj)
 			}
 
 			discovered_results.clear();
-			count_discovery_request++;
 
 			for (discovery_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it)
 				// Discovery Provider Starts!!!!
@@ -157,9 +156,17 @@ int conv::discovery_manager_impl::handle_request(request* request_obj)
 				// current request inserted into request_map..
 				request_map.insert(request_map_t::value_type(string(client), request_obj));
 				_D("client[%s] inserted into request_map", client);
+				count_discovery_request++;
 			} else {
 				_D("client[%s] already in request_map.. Replace!!!", client);
 				map_itr->second = request_obj;
+				// stop the timer if there's one already running
+				timer_map_t::iterator timer_itr = request_timer_map.find(client);
+				if (timer_itr != request_timer_map.end()) {
+					int timer_id = timer_itr->second;
+					_D("timer_id[%d]", timer_id);
+					conv::util::misc_stop_timer(reinterpret_cast<void*> (timer_id));
+				}
 			}
 
 			// request timer
