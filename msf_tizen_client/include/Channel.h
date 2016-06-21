@@ -149,7 +149,7 @@ public:
 				JsonNode *node, gpointer user_data);
 
 	void set_isWrite(bool flag);
-	static int write_socket(Channel*);
+	static void write_socket(Channel*);
 	static int callback_lws_mirror(struct lws *wsi,
 				enum lws_callback_reasons reason, void *user,
 				void *in, size_t len);

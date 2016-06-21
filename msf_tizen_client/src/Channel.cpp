@@ -814,7 +814,7 @@ void Channel::handleSocketClosed() {
 	clients->reset();
 }
 
-int Channel::write_socket(Channel* ch_p)
+void Channel::write_socket(Channel* ch_p)
 {
 	int n;
 	if (ch_p->isWrite) {
@@ -857,10 +857,8 @@ int Channel::write_socket(Channel* ch_p)
 			printf("\nwrite socket failed");
 			printf("\ncallback isWrite=false");
 			fflush(stdout);
-			return -1;
 		}
 	}
-
 }
 
 int Channel::callback_lws_mirror(struct lws *wsi,
@@ -888,11 +886,9 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 		break;
 
 	case LWS_CALLBACK_CLOSED:
-
-			dlog_print(DLOG_INFO, "MSF_SOCKET",
-						"call handleSocketClosedAndNotify");
-			this_ptr->handleSocketClosedAndNotify();
-
+		dlog_print(DLOG_INFO, "MSF_SOCKET", "call handleSocketClosedAndNotify");
+		this_ptr->handleSocketClosedAndNotify();
+		break;
 
 	case LWS_CALLBACK_CLIENT_ESTABLISHED:
 		MSF_DBG("[MSF LOG]: LWS_CALLBACK_CLIENT_ESTABLISHED [%s]\n",
