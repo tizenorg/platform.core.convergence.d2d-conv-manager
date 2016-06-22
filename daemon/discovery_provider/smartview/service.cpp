@@ -54,7 +54,7 @@ string conv::service::getUri()
 
 int conv::service::getServiceType()
 {
-	return 0;
+	return service_type;
 }
 
 string conv::service::getServiceInfo()

@@ -357,7 +357,7 @@ int conv::service_manager_impl::register_discovery_info()
 
 	iotcon_resource_interfaces_add(resource_ifaces, IOTCON_INTERFACE_DEFAULT);
 
-	error = iotcon_resource_create("/tizen/d2d-service", resource_types, resource_ifaces, properties, iotcon_request_cb, this, &iotcon_resource);
+	error = iotcon_resource_create(CONV_URI_SMARTVIEW_TIZEN_D2D_SERVICE, resource_types, resource_ifaces, properties, iotcon_request_cb, this, &iotcon_resource);
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource creation failed");
 
 	_D("device info registered as resource");

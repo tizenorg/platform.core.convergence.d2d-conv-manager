@@ -48,7 +48,7 @@ conv::iotcon_discovery_provider::~iotcon_discovery_provider()
 
 int conv::iotcon_discovery_provider::init()
 {
-	int ret = iotcon_initialize();
+	int ret = iotcon_initialize(CONV_IOTCON_FILEPATH);
 	if (ret != IOTCON_ERROR_NONE) {
 		_E("Failed iotcon_connect... Error:%d", ret);
 	}

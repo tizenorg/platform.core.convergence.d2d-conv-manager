@@ -25,6 +25,8 @@
 #define CONV_OPTION "ConvOption"
 #define CONV_RESPONSE "ConvResponse"
 
+#define CONV_IOTCON_FILEPATH "/opt/usr/data/d2d-conv-manager/d2d-conv-manager-iotcon-server.dat"
+
 /* DBus */
 #define DBUS_DEST		"org.tizen.d2dconv"
 #define DBUS_PATH		"/org/tizen/d2dconv"
