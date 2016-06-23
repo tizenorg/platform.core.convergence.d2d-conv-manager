@@ -47,6 +47,8 @@ BuildRequires: libcurl-devel
 
 %endif
 
+%define _userdatadir /opt/usr/data/d2d-conv-manager
+
 %description
 D2D Convergence Manager Service
 
@@ -93,10 +95,17 @@ install -m 0644 %{SOURCE1} %{buildroot}%{_unitdir_user}
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/session.d
 install -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/dbus-1/session.d/
 
+mkdir -p %{buildroot}%{_userdatadir}
+cp daemon/d2d-conv-manager-iotcon-server.dat %{buildroot}%{_userdatadir}
+
 %post
 mkdir -p %{_unitdir_user}/default.target.wants
 ln -s ../%{name}.service %{_unitdir_user}/default.target.wants/
 /sbin/ldconfig
+
+chown owner:users %{_userdatadir} -R
+chsmack -a "User" %{_userdatadir}
+chsmack -a "User" %{_userdatadir}/%{name}-iotcon-server.dat
 
 #systemctl daemon-reload
 #if [ $1 == 1 ]; then
@@ -124,6 +133,7 @@ rm -f %{_unitdir_user}/default.target.wants/%{name}.service
 %{_bindir}/%{name}-test
 %{_bindir}/msf-api-test*
 %{_datadir}/license/%{name}
+%{_userdatadir}/%{name}-iotcon-server.dat
 
 %files lib
 %manifest lib%{name}.manifest
