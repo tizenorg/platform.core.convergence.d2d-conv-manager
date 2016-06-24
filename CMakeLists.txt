@@ -15,6 +15,9 @@ SET(CLIENT "d2d-conv-manager")
 SET(DAEMON "d2d-conv-managerd")
 SET(DBUS_INTERFACE "org.tizen.d2dconv")
 
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/99_d2d-conv-manager.post DESTINATION
+       ${SYSCONF_INSTALL_DIR}/gumd/useradd.d/)
+
 ADD_SUBDIRECTORY(lib)
 ADD_SUBDIRECTORY(daemon)
 ADD_SUBDIRECTORY(test)

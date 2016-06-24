@@ -38,6 +38,7 @@ BuildRequires: pkgconfig(cynara-client)
 BuildRequires: pkgconfig(cynara-session)
 BuildRequires: pkgconfig(capi-appfw-package-manager)
 BuildRequires: pkgconfig(nsd-dns-sd)
+BuildRequires: pkgconfig(libtzplatform-config)
 BuildRequires: openssl
 BuildRequires: openssl-devel
 BuildRequires: curl
@@ -95,17 +96,13 @@ install -m 0644 %{SOURCE1} %{buildroot}%{_unitdir_user}
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/session.d
 install -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/dbus-1/session.d/
 
-mkdir -p %{buildroot}%{_userdatadir}
-cp daemon/d2d-conv-manager-iotcon-server.dat %{buildroot}%{_userdatadir}
+#mkdir -p %{buildroot}%{_userdatadir}
+#cp daemon/d2d-conv-manager-iotcon-server.dat %{buildroot}%{_userdatadir}
 
 %post
 mkdir -p %{_unitdir_user}/default.target.wants
 ln -s ../%{name}.service %{_unitdir_user}/default.target.wants/
 /sbin/ldconfig
-
-chown owner:users %{_userdatadir} -R
-chsmack -a "User" %{_userdatadir}
-chsmack -a "User" %{_userdatadir}/%{name}-iotcon-server.dat
 
 #systemctl daemon-reload
 #if [ $1 == 1 ]; then
@@ -133,7 +130,8 @@ rm -f %{_unitdir_user}/default.target.wants/%{name}.service
 %{_bindir}/%{name}-test
 %{_bindir}/msf-api-test*
 %{_datadir}/license/%{name}
-%{_userdatadir}/%{name}-iotcon-server.dat
+%attr(755,root,root) %{_sysconfdir}/gumd/useradd.d/99_d2d-conv-manager.post
+/usr/share/d2d-conv-manager/*.dat
 
 %files lib
 %manifest lib%{name}.manifest

@@ -18,6 +18,7 @@
 #define __CONV_COMMON_H__
 
 #include <stdlib.h>
+#include <tzplatform_config.h>
 #include "log.h"
 #include "d2d_conv_manager.h"
 
@@ -25,7 +26,7 @@
 #define CONV_OPTION "ConvOption"
 #define CONV_RESPONSE "ConvResponse"
 
-#define CONV_IOTCON_FILEPATH "/opt/usr/data/d2d-conv-manager/d2d-conv-manager-iotcon-server.dat"
+#define CONV_IOTCON_FILEPATH tzplatform_mkpath(TZ_USER_SHARE, "d2d-conv-manager/d2d-conv-manager-iotcon-server.dat")
 
 /* DBus */
 #define DBUS_DEST		"org.tizen.d2dconv"

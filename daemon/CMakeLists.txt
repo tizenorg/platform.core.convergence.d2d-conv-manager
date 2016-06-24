@@ -40,3 +40,7 @@ ADD_EXECUTABLE(${DAEMON} ${DAEMON_SRCS})
 TARGET_LINK_LIBRARIES(${DAEMON} ${daemon_pkgs_LIBRARIES} -lpthread -pie)
 
 INSTALL(TARGETS ${DAEMON} DESTINATION ${BIN_INSTALL_DIR})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/d2d-conv-manager-iotcon-server.dat DESTINATION
+       /usr/share/d2d-conv-manager)
+#INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/d2d-conv-manager-iotcon-server.dat DESTINATION
+#       ${SHARE_INSTALL_PREFIX}/d2d-conv-manager)

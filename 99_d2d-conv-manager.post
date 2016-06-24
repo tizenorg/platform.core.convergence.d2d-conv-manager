@@ -1,0 +1,4 @@
+mkdir -p $TZ_USER_SHARE/d2d-conv-manager
+cp /usr/share/d2d-conv-manager/*.dat $TZ_USER_SHARE/d2d-conv-manager/
+
+chown -R $2:users $TZ_USER_SHARE/d2d-conv-manager/*.dat
