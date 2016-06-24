@@ -1,3 +1,6 @@
+NEW_USER=$1
+export `tzplatform-get --user $NEW_USER TZ_USER_SHARE`
+
 mkdir -p $TZ_USER_SHARE/d2d-conv-manager
 cp /usr/share/d2d-conv-manager/*.dat $TZ_USER_SHARE/d2d-conv-manager/
 
