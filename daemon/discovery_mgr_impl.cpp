@@ -45,7 +45,7 @@ int conv::discovery_manager_impl::init()
 	_D("Discovery_Manager Init!!..");
 	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::smartview_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "smartview_discover_provider register failed");
 	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::ble_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "ble_discovery_provider register failed");
-	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::iotcon_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "iotcon_discovery_provider register failed");
+//	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::iotcon_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "iotcon_discovery_provider register failed");
 
 	request_map.clear();
 	request_timer_map.clear();
