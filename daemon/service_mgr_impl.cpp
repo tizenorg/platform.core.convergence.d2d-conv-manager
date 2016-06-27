@@ -38,9 +38,9 @@ conv::service_manager_impl::~service_manager_impl()
 int conv::service_manager_impl::init()
 {
 	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::app_comm_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "app_comm_service_provider register failed");
-	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::remote_app_control_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "remote_app_control_service_provider register failed");
+//	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::remote_app_control_service_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "remote_app_control_service_provider register failed");
 
-	register_discovery_info();
+//	register_discovery_info();
 	return CONV_ERROR_NONE;
 }
 
@@ -348,21 +348,27 @@ int conv::service_manager_impl::register_discovery_info()
 
 	error = iotcon_resource_types_create(&resource_types);
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "rt creation failed");
+	GVariant *param = g_variant_new("(is)", 1000, "test_string");
 
 	iotcon_resource_types_add(resource_types, CONV_RESOURCE_TYPE_TIZEN_D2D_SERVICE);
+	GVariant *param1 = g_variant_new("(is)", 1000, "test_string");
 
 	error = iotcon_resource_interfaces_create(&resource_ifaces);
-
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "ri creation failed");
+	GVariant *param2 = g_variant_new("(is)", 1000, "test_string");
 
 	iotcon_resource_interfaces_add(resource_ifaces, IOTCON_INTERFACE_DEFAULT);
+	GVariant *param3 = g_variant_new("(is)", 1000, "test_string");
 
 	error = iotcon_resource_create(CONV_URI_SMARTVIEW_TIZEN_D2D_SERVICE, resource_types, resource_ifaces, properties, iotcon_request_cb, this, &iotcon_resource);
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource creation failed");
+	GVariant *param4 = g_variant_new("(is)", 1000, "test_string");
 
 	_D("device info registered as resource");
 	iotcon_resource_types_destroy(resource_types);
+	GVariant *param5 = g_variant_new("(is)", 1000, "test_string");
 	iotcon_resource_interfaces_destroy(resource_ifaces);
+	GVariant *param6 = g_variant_new("(is)", 1000, "test_string");
 
 	return CONV_ERROR_NONE;
 }
