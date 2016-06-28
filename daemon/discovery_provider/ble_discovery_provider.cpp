@@ -306,6 +306,7 @@ int start_wfd_discovery(void)
 int conv::ble_discovery_provider::init()
 {
 	//init_wfd_client((void*)this);
+	_D("ble_discovery_provider init done");
 
 	return CONV_ERROR_NONE;
 }

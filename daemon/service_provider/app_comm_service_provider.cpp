@@ -33,6 +33,7 @@ conv::app_comm_service_provider::~app_comm_service_provider()
 
 int conv::app_comm_service_provider::init()
 {
+	_D("app_comm_service_provider init done");
 	return CONV_ERROR_NONE;
 }
 

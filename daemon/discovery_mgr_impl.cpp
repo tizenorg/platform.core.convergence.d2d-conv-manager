@@ -43,9 +43,9 @@ conv::discovery_manager_impl::~discovery_manager_impl()
 int conv::discovery_manager_impl::init()
 {
 	_D("Discovery_Manager Init!!..");
-	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::smartview_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "smartview_discover_provider register failed");
-	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::ble_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "ble_discovery_provider register failed");
-	IF_FAIL_RETURN_TAG(register_provider(new(std::nothrow) conv::iotcon_discovery_provider()) == CONV_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "iotcon_discovery_provider register failed");
+	register_provider(new(std::nothrow) conv::smartview_discovery_provider());
+	register_provider(new(std::nothrow) conv::ble_discovery_provider());
+	register_provider(new(std::nothrow) conv::iotcon_discovery_provider());
 
 	request_map.clear();
 	request_timer_map.clear();
@@ -212,17 +212,19 @@ int conv::discovery_manager_impl::register_provider(discovery_provider_base *pro
 		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
-	provider_list.push_back(provider);
-
 	if (provider->set_manager(this) != CONV_ERROR_NONE) {
 		_E("Provider set_manager failed");
+		delete provider;
 		return CONV_ERROR_INVALID_OPERATION;
 	}
 
 	if (provider->init() != CONV_ERROR_NONE) {
 		_E("Provider initialization failed");
+		delete provider;
 		return CONV_ERROR_INVALID_OPERATION;
 	}
+
+	provider_list.push_back(provider);
 
 	return CONV_ERROR_NONE;
 }

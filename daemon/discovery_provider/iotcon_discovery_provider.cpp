@@ -51,11 +51,14 @@ int conv::iotcon_discovery_provider::init()
 	int ret = iotcon_initialize(CONV_IOTCON_FILEPATH);
 	if (ret != IOTCON_ERROR_NONE) {
 		_E("Failed iotcon_connect... Error:%d", ret);
+		return CONV_ERROR_INVALID_OPERATION;
 	}
 
 	if (resource_h_map != NULL)
 		delete resource_h_map;
 	resource_h_map = new(std::nothrow) resource_h_map_t;
+
+	_D("iotcon_discovery_provider init done");
 
 	return CONV_ERROR_NONE;
 }

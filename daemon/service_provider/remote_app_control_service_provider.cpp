@@ -284,9 +284,10 @@ int conv::remote_app_control_service_provider::init()
 	error = iotcon_resource_create(CONV_URI_SMARTVIEW_REMOTE_APP_CONTROL, resource_types, resource_ifaces, properties, iotcon_request_cb, NULL, &iotcon_resource);
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource creation failed");
 
-
 	iotcon_resource_types_destroy(resource_types);
 	iotcon_resource_interfaces_destroy(resource_ifaces);
+
+	_D("remote_app_control_service_provider init done");
 
 	return CONV_ERROR_NONE;
 }
