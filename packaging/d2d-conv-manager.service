@@ -1,6 +1,6 @@
 [Unit]
 Description=D2D Convergence Manager Daemon
-After=dbus.service tizenid.service
+After=dbus.service
 
 [Service]
 Type=dbus
