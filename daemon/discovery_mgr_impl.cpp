@@ -16,7 +16,7 @@
 
 #include "discovery_mgr_impl.h"
 #include "discovery_provider/smartview_discovery_provider.h"
-#include "discovery_provider/ble_discovery_provider.h"
+#include "discovery_provider/wifi_direct_discovery_provider.h"
 #include "discovery_provider/iotcon_discovery_provider.h"
 #include "access_control/privilege.h"
 
@@ -44,7 +44,7 @@ int conv::discovery_manager_impl::init()
 {
 	_D("Discovery_Manager Init!!..");
 	register_provider(new(std::nothrow) conv::smartview_discovery_provider());
-	register_provider(new(std::nothrow) conv::ble_discovery_provider());
+	register_provider(new(std::nothrow) conv::wifi_direct_discovery_provider());
 	register_provider(new(std::nothrow) conv::iotcon_discovery_provider());
 
 	request_map.clear();

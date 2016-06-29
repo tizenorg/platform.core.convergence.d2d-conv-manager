@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __BLE_DISCOVERY_PROVIDER_H__
-#define __BLE_DISCOVERY_PROVIDER_H__
+#ifndef __WIFI_DIRECT_DISCOVERY_PROVIDER_H__
+#define __WIFI_DIRECT_DISCOVERY_PROVIDER_H__
 
 #include <iotcon.h>
 #include <glib.h>
@@ -27,10 +27,10 @@
 #include "smartview/service.h"
 
 namespace conv {
-	class ble_discovery_provider : public discovery_provider_base  {
+	class wifi_direct_discovery_provider : public discovery_provider_base  {
 		public:
-			ble_discovery_provider();
-			~ble_discovery_provider();
+			wifi_direct_discovery_provider();
+			~wifi_direct_discovery_provider();
 
 			int init();
 			int release();

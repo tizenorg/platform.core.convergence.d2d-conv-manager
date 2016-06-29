@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "ble_discovery_provider.h"
+#include "wifi_direct_discovery_provider.h"
 #include "../discovery_mgr_impl.h"
 
 #include <net_connection.h>
@@ -27,11 +27,11 @@
 
 using namespace std;
 
-conv::ble_discovery_provider::ble_discovery_provider()
+conv::wifi_direct_discovery_provider::wifi_direct_discovery_provider()
 {
 }
 
-conv::ble_discovery_provider::~ble_discovery_provider()
+conv::wifi_direct_discovery_provider::~wifi_direct_discovery_provider()
 {
 }
 
@@ -63,7 +63,7 @@ bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* u
 #endif
 
 #if 0 // TODO: make and notice if it's device support d2d
-	conv::ble_discovery_provider* disc_provider = (conv::ble_discovery_provider*)user_data;
+	conv::wifi_direct_discovery_provider* disc_provider = (conv::wifi_direct_discovery_provider*)user_data;
 	conv::service *conv_service = new(std::nothrow) conv::service;
 
 	conv_service->setName(peer->device_name);
@@ -303,31 +303,31 @@ int start_wfd_discovery(void)
 
 	return result;
 }
-int conv::ble_discovery_provider::init()
+int conv::wifi_direct_discovery_provider::init()
 {
 	//init_wfd_client((void*)this);
-	_D("ble_discovery_provider init done");
+	_D("wifi_direct_discovery_provider init done");
 
 	return CONV_ERROR_NONE;
 }
 
-int conv::ble_discovery_provider::release()
+int conv::wifi_direct_discovery_provider::release()
 {
 	return CONV_ERROR_NONE;
 }
 
-int conv::ble_discovery_provider::start()
+int conv::wifi_direct_discovery_provider::start()
 {
 	//return start_wfd_discovery();
 	return CONV_ERROR_NONE;
 }
 
-int conv::ble_discovery_provider::stop()
+int conv::wifi_direct_discovery_provider::stop()
 {
 	return CONV_ERROR_NONE;
 }
 
-int conv::ble_discovery_provider::checkExistence(conv::service* conv_service)
+int conv::wifi_direct_discovery_provider::checkExistence(conv::service* conv_service)
 {
 	// print conv_service Info..
 	_D("Check Existence : %s", conv_service->getName().c_str());
@@ -345,7 +345,7 @@ int conv::ble_discovery_provider::checkExistence(conv::service* conv_service)
 	}
 }
 
-int conv::ble_discovery_provider::notice_discovered(conv::service* conv_service)
+int conv::wifi_direct_discovery_provider::notice_discovered(conv::service* conv_service)
 {
 	_D("Notice Discovered called with service[%x]", conv_service);
 
