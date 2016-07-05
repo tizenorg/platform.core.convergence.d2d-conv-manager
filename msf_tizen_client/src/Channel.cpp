@@ -1332,7 +1332,7 @@ void *Channel::pt_startConnect(void *att) {
 
 void Channel::create_websocket(void *att) {
 	struct lws_protocols protocols[] = {
-		{"lws-mirror-protocol", Channel::callback_lws_mirror, sizeof(int), 0, 0,
+		{NULL, Channel::callback_lws_mirror, sizeof(int), 0, 0,
 		 NULL},
 
 		// libwebsockets 1.7 has a bug.
