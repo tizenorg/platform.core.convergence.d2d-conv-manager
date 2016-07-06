@@ -31,7 +31,7 @@ class MSFDSearchProvider: public SearchProvider
 	bool receive;
 	string state;
 	string id;
-	long ttl;
+	static long ttl;
 	string url;
 
 public:
@@ -50,7 +50,6 @@ public:
 	static int SERVICE_CHECK_TIMEOUT;
 	static int flag;
 	int fd;
-	map<string, long> aliveMap;
 	MSFDSearchProvider();
 	MSFDSearchProvider(Search *);
 	~MSFDSearchProvider();
@@ -61,8 +60,6 @@ public:
 	static SearchProvider create();
 	static SearchProvider create(Search *);
 	void json_parse(const char *in);
-	void reapServices();
-	void updateAlive(string id , long ttl);
 	static void foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data);
 };
 

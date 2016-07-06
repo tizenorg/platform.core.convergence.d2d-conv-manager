@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include "Debug.h"
 #include <list>
-#include "Service.h"
+#include "Error.h"
 
 #define SERVICE_TYPE "_samsungmsf._tcp"
 
@@ -82,6 +82,11 @@ void mDNSSearchProvider::addService(Service service)
 	this->SearchProvider::addService(service);
 }
 
+void mDNSSearchProvider::updateAlive(long ttl, string id, int service_type)
+{
+	this->SearchProvider::updateAlive(ttl, id, service_type);
+}
+
 void extract_service_info(ServiceInfo &info, string text)
 {
 	int id_pos = text.find("id=");
@@ -134,18 +139,37 @@ void extract_service_info(ServiceInfo &info, string text)
 
 static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_service_h remote_service, void *user_data)
 {
-	MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in file [%s] ", __FUNCTION__, __LINE__, __FILE__);
-	mDNSSearchProvider *provider = (mDNSSearchProvider*)user_data;
+	static map<string, string> service_id_adapter;
+
+	MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in file [%s]. State : [%d][%d]",__FUNCTION__ ,__LINE__,__FILE__, service_state, DNSSD_SERVICE_STATE_UNAVAILABLE);
+	mDNSSearchProvider* provider = (mDNSSearchProvider*)user_data;
 	int rv = 0;
 	MSF_DBG("Handler       : %u", remote_service);
+
+	char *name = NULL;
+	char *type = NULL;
+
+	rv = dnssd_service_get_name(remote_service, &name);
+	if(rv == DNSSD_ERROR_NONE && name != NULL)
+		MSF_DBG("Service Name  : %s", name);
+
+	string name_s = name;
+	string id;
+	map<string, string>::iterator iter = service_id_adapter.find(name_s);
+	if(iter != service_id_adapter.end()) {
+			id = iter->second;
+	}
 	MSF_DBG("State         : ");
 	switch (service_state) {
 		case DNSSD_SERVICE_STATE_AVAILABLE:
 			MSF_DBG("Available");
 			break;
 		case DNSSD_SERVICE_STATE_UNAVAILABLE:
-			MSF_DBG("Un-Available");
-			break;
+			MSF_DBG("Un-Available : [%d]", id.c_str());
+			provider->updateAlive(0, id, MDNS);
+			service_id_adapter.erase(iter);
+			provider->reapServices();
+			return;
 		case DNSSD_SERVICE_STATE_NAME_LOOKUP_FAILED:
 			MSF_DBG("Lookup failure for service name");
 			break;
@@ -160,18 +184,11 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 			break;
 	}
 
-	char *name = NULL;
-	char *type = NULL;
-
-	rv = dnssd_service_get_name(remote_service, &name);
-	if (rv == DNSSD_ERROR_NONE && name != NULL)
-		MSF_DBG("Service Name  : %s", name);
-
 	rv = dnssd_service_get_type(remote_service, &type);
-	if (rv == DNSSD_ERROR_NONE && type != NULL)
+	if(rv == DNSSD_ERROR_NONE && type != NULL)
 		MSF_DBG("Service Type  : %s", type);
 
-	if (service_state == DNSSD_SERVICE_STATE_AVAILABLE) {
+	if(service_state == DNSSD_SERVICE_STATE_AVAILABLE) {
 		char *ip_v4_address = NULL;
 		char *ip_v6_address = NULL;
 		char *txt_record = NULL;
@@ -179,10 +196,10 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 		int port = 0;
 
 		rv = dnssd_service_get_ip(remote_service, &ip_v4_address, &ip_v6_address);
-		if (rv  == DNSSD_ERROR_NONE) {
-			if (ip_v4_address)
+		if(rv  == DNSSD_ERROR_NONE) {
+			if(ip_v4_address)
 				MSF_DBG("IPv4 Address  : %s", ip_v4_address);
-			if (ip_v6_address)
+			if(ip_v6_address)
 				MSF_DBG("IPv6 Address  : %s", ip_v6_address);
 		}
 
@@ -191,18 +208,24 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 
 		dnssd_service_get_all_txt_record(remote_service, &txt_len,
 				(void **)&txt_record);
-		MSF_DBG("TXT Record: %s", txt_record);
 
 		string temp_str(txt_record, txt_len);
 
+		int str_len = strlen(txt_record);
+
+		MSF_DBG("TXT Record: %s, %d", temp_str.c_str(), str_len);
+
 		ServiceInfo service_info; //id, version, name, type, Uri
 		MSF_DBG("txt_len %d", txt_len);
-		if (txt_len > 100) {
+		if(txt_len > 100) {
 			extract_service_info(service_info, temp_str);
 			service_info.infotype = SERVICE_TYPE;
 			Service service = Service::create(service_info);
-			provider->addService(service);
-			MSF_DBG("service : id( %s ) registerd.", service_info.infoId.c_str());
+			provider->updateAlive(0x00ffffff, service_info.infoId, MDNS);
+
+			Service::getByURI(service_info.infoURI, 5000, provider->get_service_cb());
+
+			service_id_adapter[name_s] = service_info.infoId;
 		}
 
 		free(ip_v4_address);
@@ -215,13 +238,17 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 
 void mDNSSearchProvider::start()
 {
-	if (g_service != 0) {
+
+	if(!service_cb)
+		service_cb = new MDNSServiceCallback(this);
+
+	if(g_service != 0) {
 		dnssd_stop_browsing_service(g_service);
 		g_service = 0;
 	}
 
 	int rv = dnssd_initialize();
-	if (rv != DNSSD_ERROR_NONE) {
+	if(rv != DNSSD_ERROR_NONE) {
 		MSF_DBG("mDNS is not initialzed.");
 		return;
 	} else {
@@ -231,7 +258,7 @@ void mDNSSearchProvider::start()
 	rv = dnssd_start_browsing_service(SERVICE_TYPE, &g_service, dnssd_browse_reply, this);
 	if (rv != DNSSD_ERROR_NONE) {
 		MSF_DBG("Failed to browse for dns service, error %s", dnssd_error_to_string((dnssd_error_e)rv));
-	} else {
+	}else {
 		MSF_DBG("Succeeded to browse for dns service.");
 	}
 }
@@ -240,10 +267,15 @@ bool mDNSSearchProvider::stop()
 {
 	int rv;
 
-	if (g_service != 0) {
+	if(service_cb) {
+		delete service_cb;
+		service_cb = NULL;
+	}
+
+	if(g_service != 0) {
 		rv = dnssd_stop_browsing_service(g_service);
 		g_service = 0;
-		if (rv != DNSSD_ERROR_NONE) {
+		if(rv != DNSSD_ERROR_NONE) {
 			MSF_DBG("Failed to stop browse dns service %s", dnssd_error_to_string((dnssd_error_e)rv));
 			return false;
 		} else {
@@ -256,3 +288,25 @@ bool mDNSSearchProvider::stop()
 		return false;
 	}
 }
+
+Result_Base* mDNSSearchProvider::get_service_cb()
+{
+	return service_cb;
+}
+void mDNSSearchProvider::reapServices()
+{
+	SearchProvider::reapServices();
+}
+
+void MDNSServiceCallback::onSuccess(Service service)
+{
+	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
+	provider->addService(service);
+	MSF_DBG("service : id( %s ) registerd.", service.getId().c_str());
+}
+
+void MDNSServiceCallback::onError(Error)
+{
+	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
+}
+

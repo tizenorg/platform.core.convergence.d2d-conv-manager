@@ -20,13 +20,33 @@
 #include<iostream>
 #include<list>
 #include<string>
+#include <map>
 //#include "Service.h"
 //#include "Search.h"
+
+#define TTL 10
+#define MSFD 1
+#define MDNS 2
 
 using namespace std;
 
 class Service;
 class Search;
+
+class ttl_info
+{
+
+private:
+	long msfd_ttl;
+	long mdns_ttl;
+
+public:
+	ttl_info(long ttl, int service_type);
+	ttl_info();
+	int update_ttl(long ttl, int service_type);
+	long get_ttl(int service_type);
+	bool is_expired();
+};
 
 class SearchProvider
 {
@@ -52,6 +72,10 @@ protected:
 	void removeServiceAndNotify(Service service);
 	void clearServices();
 	Service getServiceById(string id);
+	static map<string, ttl_info> aliveMap;
+	void updateAlive(long ttl, string id , int service_type);
+	void reapServices();
+
 };
 
 #endif
