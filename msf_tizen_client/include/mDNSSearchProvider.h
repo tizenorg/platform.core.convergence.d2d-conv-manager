@@ -21,21 +21,41 @@ using namespace std;
 
 #include"SearchProvider.h"
 #include <nsd/dns-sd.h>
+#include "Service.h"
+#include "Result.h"
 
 class mDNSSearchProvider : public SearchProvider
 {
 private:
+	Result_Base *service_cb;
 
 public:
-
 	mDNSSearchProvider();
 	~mDNSSearchProvider();
 	void addService(Service service);
-	mDNSSearchProvider(Search *sListener);
+	void updateAlive(long ttl, string id, int service_type);
+	mDNSSearchProvider(Search* sListener);
 	void start();
 	bool stop();
 	static SearchProvider create();
 	static SearchProvider create(Search *);
+	Result_Base* get_service_cb();
+	void reapServices();
+};
+
+class MDNSServiceCallback : public Result_Base
+{
+
+	private:
+
+		mDNSSearchProvider* provider;
+
+	public:
+
+		MDNSServiceCallback(mDNSSearchProvider* provider) : provider(provider){ }
+
+		void onSuccess(Service service);
+		void onError(Error);
 };
 
 #endif
