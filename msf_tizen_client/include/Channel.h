@@ -273,6 +273,7 @@ private:
 	map<string, pair<void *, int> > callbacks;
 	map<void *, int> onReadyCallbacks;
 	static map<string, int> json_keys;
+	static JsonObject* root_json_object;
 };
 
 #endif
