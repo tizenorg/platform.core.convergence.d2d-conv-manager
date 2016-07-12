@@ -57,15 +57,13 @@ public:
 };
 
 bool conv::privilege_manager::is_allowed(const conv::credentials *creds, const char *privilege)
-{/*
+{
 	IF_FAIL_RETURN(creds && privilege, true);
 
 	std::string priv = "http://tizen.org/privilege/";
 	priv += privilege;
 
 	return permission_checker::get_instance().has_permission(creds, priv.c_str());
-*/
-	return true;
 }
 
 

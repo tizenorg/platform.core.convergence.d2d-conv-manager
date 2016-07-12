@@ -82,14 +82,13 @@ static void handle_request(GDBusConnection* conn, const char *sender, GVariant *
 	_SI("Input: %s", input);
 
 	conv::credentials *creds = NULL;
-	// temporaily removed - privilege checker
-/*
-	if (!peer_creds::get(conn, sender, &creds)) {
+
+	if (!conv::peer_creds::get(conn, sender, &creds)) {
 		_E("Peer credentialing failed");
 		g_dbus_method_invocation_return_value(invocation, g_variant_new("(iss)", CONV_ERROR_INVALID_OPERATION, EMPTY_JSON_OBJECT, EMPTY_JSON_OBJECT));
 		return;
 	}
-*/
+
 	conv::request *recv_request = NULL;
 	try{
 		recv_request = new conv::request(req_type, DEFAULT_APP_ID, req_id, subject, input, sender, creds, invocation);
