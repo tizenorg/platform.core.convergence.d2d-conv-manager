@@ -148,6 +148,8 @@ void MSFDSearchProvider::createMSFD()
 		if ((nbytes = recvfrom(fd, msgbuf, MSGBUFSIZE, 0, (struct sockaddr *) &msf_server_addr, &addrlen)) < 0) {
 			receive = false;
 			reapServices();
+			if (fd < 1)
+				return;
 		} else {
 			msgbuf[nbytes] = '\0';
 			receive = true;
@@ -316,6 +318,7 @@ bool MSFDSearchProvider::stop()
 	//	return false;
 	//}
 	receive = false;
+	shutdown(fd, SHUT_RDWR);
 	close(fd);
 	fd = 0;
 	return true;

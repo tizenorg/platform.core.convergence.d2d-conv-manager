@@ -28,11 +28,10 @@
 #include "Result.h"
 
 namespace conv {
-	class application_info;
-	class app_comm_service_handler : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
+	class application_instance : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
 									public OnMessageListener, public OnErrorListener, public OnStartAppListener, public OnStopAppListener {
 		public:
-			~app_comm_service_handler()
+			virtual ~application_instance()
 			{
 				if (application != NULL)
 					delete application;
@@ -42,7 +41,7 @@ namespace conv {
 			Channel* application;
 			string uri;
 			string channel_id;
-			application_info* app_info;
+			Service local_service;
 			bool is_local;
 
 			void onStart(bool start_result)
@@ -116,7 +115,6 @@ namespace conv {
 			{
 				_D("onDisconnect Called");
 				publish_response(CONV_ERROR_NONE, "onDisconnect", &client);
-				delete app_info;
 			}
 
 			void onClientConnect(Client client)
@@ -221,14 +219,7 @@ namespace conv {
 			}
 	};
 
-	// application information to handle app-to-app service with specific 'channel'
-	class application_info {
-		public:
-			app_comm_service_handler service_handler;
-			Service local_service;
-	};
-
-	typedef vector<application_info*> application_info_list_t;
+	typedef vector<application_instance*> application_instance_list_t;
 
 	// service information to handle app-to-app service with specific device 'id'
 	class app_comm_service_info : public service_info_base {
@@ -243,10 +234,10 @@ namespace conv {
 					delete registered_request;
 				}
 
-				for (application_info_list_t::iterator iter = application_info_list.begin(); iter != application_info_list.end(); ++iter) {
-					application_info *app_info = *iter;
+				for (application_instance_list_t::iterator iter = application_instance_list.begin(); iter != application_instance_list.end(); ++iter) {
+					application_instance *app_info = *iter;
 					delete app_info;
-					application_info_list.erase(iter);
+					application_instance_list.erase(iter);
 				}
 			}
 			std::string id;
@@ -254,7 +245,7 @@ namespace conv {
 			bool is_local;
 			conv::request* registered_request;
 
-			application_info_list_t application_info_list;
+			application_instance_list_t application_instance_list;
 	};
 
 }

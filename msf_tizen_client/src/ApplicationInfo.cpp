@@ -81,7 +81,6 @@ void ApplicationInfo::json_parse(const char* in)
 		if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
 			json_object_foreach_member(json_node_get_object(node), foreach_json_object, this);
 		}
-
 	}
 }
 
