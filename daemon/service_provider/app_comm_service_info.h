@@ -28,13 +28,21 @@
 #include "Result.h"
 
 namespace conv {
+	class application_info;
 	class app_comm_service_handler : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
 									public OnMessageListener, public OnErrorListener, public OnStartAppListener, public OnStopAppListener {
 		public:
+			~app_comm_service_handler()
+			{
+				if (application != NULL)
+					delete application;
+			}
+
 			conv::request** request_obj;
 			Channel* application;
 			string uri;
 			string channel_id;
+			application_info* app_info;
 			bool is_local;
 
 			void onStart(bool start_result)
@@ -67,8 +75,9 @@ namespace conv {
 			{
 				_D("onStop Called");
 
-				if (!is_local && application != NULL)
+				if (!is_local && application != NULL) {
 					application->disconnect();
+				}
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
@@ -107,6 +116,7 @@ namespace conv {
 			{
 				_D("onDisconnect Called");
 				publish_response(CONV_ERROR_NONE, "onDisconnect", &client);
+				delete app_info;
 			}
 
 			void onClientConnect(Client client)

@@ -233,17 +233,12 @@ int conv::app_comm_service_provider::stop_request(request* request_obj)
 			}
 
 			if ( svc_info->is_local ) {
+				app_info->service_handler.app_info = app_info;
 				app_info->service_handler.application->disconnect();
-
-				app_info->service_handler.application = NULL;
-				delete app_info;
 				svc_info->application_info_list.erase(iter);
 			} else {
+				app_info->service_handler.app_info = app_info;
 				((Application*)app_info->service_handler.application)->stop();
-
-				delete (Application*)app_info->service_handler.application;
-				app_info->service_handler.application = NULL;
-				delete app_info;
 				svc_info->application_info_list.erase(iter);
 			}
 			return CONV_ERROR_NONE;
