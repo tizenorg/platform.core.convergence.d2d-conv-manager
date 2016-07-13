@@ -42,7 +42,7 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 	_D("Callback response %d", req_id);
 
 	json description;
-	json service;
+	json service, device;
 	json channel;
 	std::string service_type;
 	json payload;
@@ -52,6 +52,7 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 	data.get(NULL, CONV_JSON_DESCRIPTION, &description);
 
 	_D("description:%s", description.str().c_str());
+	description.get(NULL, CONV_JSON_DEVICE, &device);
 	description.get(NULL, CONV_JSON_SERVICE, &service);
 	description.get(NULL, CONV_JSON_CHANNEL, &channel);
 	description.get(NULL, CONV_JSON_TYPE, &service_type);
@@ -62,6 +63,7 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 
 	key.set(NULL, CONV_JSON_SERVICE, service);
 	key.set(NULL, CONV_JSON_TYPE, service_type);
+	key.set(NULL, CONV_JSON_DEVICE, device);
 	key.set(NULL, CONV_JSON_IS_LOCAL, is_local);
 	_D("key:%s", key.str().c_str());
 
@@ -216,6 +218,7 @@ EXTAPI int conv_service_set_listener_cb(conv_service_h handle, conv_service_list
 	json description;
 
 	json service = handle->jservice;
+	json device = handle->jdevice;
 
 	std::string type = convert_type_to_string(handle->service_type);
 	if (type.empty())
@@ -223,6 +226,7 @@ EXTAPI int conv_service_set_listener_cb(conv_service_h handle, conv_service_list
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, type);
+	description.set(NULL, CONV_JSON_DEVICE, device);
 	description.set(NULL, CONV_JSON_IS_LOCAL, handle->is_local);
 
 	_conv_service_callback_info *cb_info = new(std::nothrow)_conv_service_callback_info();
@@ -251,6 +255,7 @@ EXTAPI int conv_service_unset_listener_cb(conv_service_h handle)
 	json description;
 
 	json service = handle->jservice;
+	json device = handle->jdevice;
 
 	std::string type = convert_type_to_string(handle->service_type);
 	if (type.empty())
@@ -258,6 +263,7 @@ EXTAPI int conv_service_unset_listener_cb(conv_service_h handle)
 
 	description.set(NULL, CONV_JSON_SERVICE, service);
 	description.set(NULL, CONV_JSON_TYPE, type);
+	description.set(NULL, CONV_JSON_DEVICE, device);
 	description.set(NULL, CONV_JSON_IS_LOCAL, handle->is_local);
 
 	int req_id;
