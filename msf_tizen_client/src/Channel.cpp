@@ -58,6 +58,7 @@ map<Channel *, int> Channel::channel_alive_map;
 map<string, int> Channel::json_keys;
 pthread_t Channel::connect_thread;
 pthread_t ChannelConnectionHandler::ping_thread = 0;
+JsonObject *Channel::root_json_object = NULL;
 
 ChannelConnectionHandler::ChannelConnectionHandler() {
 	pingTimeout = 5000000;
@@ -184,8 +185,11 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 	// key : isHost
 	case JSON_KEY_IS_HOST: {
 		p->clientisHost = json_node_get_boolean(node);
-		dlog_print(DLOG_INFO, "MSF", "isHost set as %s",
-					p->clientisHost ? "true" : "false");
+
+		if (json_object_has_member(root_json_object, Message::PROPERTY_EVENT.c_str())) {
+			p->eventType = json_object_get_string_member(root_json_object,
+										Message::PROPERTY_EVENT.c_str());
+		}
 
 		if (!strncmp(p->eventType.c_str(), CLIENT_CONNECT_EVENT.c_str(), 25) ||
 			!strncmp(p->eventType.c_str(), CONNECT_EVENT.c_str(), 25)) {
@@ -203,6 +207,8 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 					p->clientconnectTime);
 	} break;
 
+	//error json :
+	//{"id":5768,"error":{"status":404,"message":"Not Found","code":404}}
 	// key : status
 	case JSON_KEY_STATUS: {
 		if (iferror) {
@@ -269,6 +275,12 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 				p->msg_id = json_node_get_int(node);
 				dlog_print(DLOG_INFO, "MSF", "msg-id set as %d", p->msg_id);
 			} else if (json_node_get_value_type(node) == G_TYPE_STRING) {
+
+				if (json_object_has_member(root_json_object, Message::PROPERTY_EVENT.c_str())) {
+					p->eventType = json_object_get_string_member(root_json_object,
+											Message::PROPERTY_EVENT.c_str());
+				}
+
 				if ((p->eventType == CLIENT_CONNECT_EVENT) || arrayofclients) {
 					p->clientid = json_node_get_string(node);
 					dlog_print(DLOG_INFO, "MSF", "clientid set as = %s",
@@ -364,8 +376,10 @@ void Channel::json_parse(const char *in) {
 	if (json_parser_load_from_data(parser, in, -1, NULL)) {
 		JsonNode *node = json_parser_get_root(parser);
 
+		root_json_object = json_node_get_object(node);
+
 		if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
-			json_object_foreach_member(json_node_get_object(node),
+			json_object_foreach_member(root_json_object,
 										foreach_json_object, this);
 		}
 	} else {
