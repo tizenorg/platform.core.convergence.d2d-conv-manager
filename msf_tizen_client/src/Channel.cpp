@@ -1353,7 +1353,6 @@ void Channel::create_websocket(void *att) {
 		{NULL, NULL, 0, 0, 0, NULL} // this is anti-bug code
 	};
 
-	int port = 8001;
 	int use_ssl = 0;
 	int n = 0;
 	// int ret = 0;
@@ -1395,7 +1394,7 @@ void Channel::create_websocket(void *att) {
 		// return 1;
 	}
 	n = 0;
-	string address = getipaddressfromUri(uri);
+	get_ip_port_from_uri(uri);
 	string api = getapifromUri(uri);
 	api.append("channels/").append(ChannelID);
 
@@ -1405,12 +1404,12 @@ void Channel::create_websocket(void *att) {
 
 	struct lws_client_connect_info connect_info;
 	connect_info.context = context;
-	connect_info.address = address.c_str();
-	connect_info.port = port;
+	connect_info.address = server_ip_address.c_str();
+	connect_info.port = server_port;
 	connect_info.ssl_connection = use_ssl;
 	connect_info.path = api.c_str();
-	connect_info.host = address.c_str();
-	connect_info.origin = address.c_str();
+	connect_info.host = server_ip_address.c_str();
+	connect_info.origin = server_ip_address.c_str();
 	connect_info.protocol = protocols[0].name;
 	connect_info.ietf_version_or_minus_one = ietf_version;
 	connect_info.userdata = NULL;
@@ -1448,18 +1447,66 @@ void Channel::create_websocket(void *att) {
 	wsi_mirror = NULL;
 }
 
-string Channel::getipaddressfromUri(string uri) {
-	string startpt = "http://";
-	const char *src = strstr(uri.c_str(), startpt.c_str());
-	int startpoint = (src - uri.c_str()) + sizeof(startpt);
+void Channel::get_ip_port_from_uri(string uri) {
+	MSF_DBG("parsing uri : %s", uri.c_str());
+	unsigned int http_index = uri.find("http");
+	unsigned int ip_index = 0;
+	bool is_https = false;
 
-	std::string endpt = ":8001";
-	const char *dest = strstr(src, endpt.c_str());
-	int endpoint = (dest - uri.c_str());
-	std::string address =
-		uri.substr((startpoint + sizeof(startpt) - 1),
-					(endpoint - startpoint + 1 - sizeof(startpt)));
-	return address;
+	if (http_index == -1) {
+		//there is no http string
+	} else {
+	}
+
+	if (uri.at(http_index + 4) == 's') {
+		//this means https
+		//https://000.000.000.000
+		//http://000.000.000.000
+		// 12345678
+		ip_index = http_index + 8;
+		is_https = true;
+	} else {
+		ip_index = http_index + 7;
+		is_https = false;
+	}
+
+	int itr = ip_index;
+
+	server_ip_address.clear();
+
+	string port = "";
+
+	char now_c = uri.at(itr);
+
+	while ((now_c > 47 && now_c < 58) || (now_c == '.')) {
+		server_ip_address.push_back(now_c);
+		now_c = uri.at(++itr);
+	}
+
+	MSF_DBG("set server_ip_address as : %s", server_ip_address.c_str());
+
+	if (now_c == ':') {
+		now_c = uri.at(++itr);
+
+		while (now_c > 47 && now_c < 58) {
+			port.push_back(now_c);
+			now_c = uri.at(++itr);
+		}
+
+		server_port = atoi(port.c_str());
+	} else {
+		// there is no ':'.
+		// It means that server use default port.
+		if (is_https) {
+			//default https server port is 443.
+			server_port = 443;
+		} else {
+			//default http server port is 80"
+			server_port = 80;
+		}
+	}
+
+	MSF_DBG("set server_port as : %d", server_port);
 }
 
 string Channel::getapifromUri(string uri) {
