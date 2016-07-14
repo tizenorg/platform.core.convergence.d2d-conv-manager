@@ -366,9 +366,10 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 				char* message = new(std::nothrow) char[strlen(payload.str().c_str())+1];
 				ASSERT_ALLOC(message);
 
-				strncpy(message, payload.str().c_str(), strlen(payload.str().c_str()));
+				strncpy(message, payload.str().c_str(), strlen(payload.str().c_str())+1);
 
 				string payload_str = payload.str();
+				_D("payload : %s, size : %d", message, strlen(message));
 
 				(*iter)->application->publish("d2d_service_message", NULL, reinterpret_cast<unsigned char*>(message), strlen(message));
 
