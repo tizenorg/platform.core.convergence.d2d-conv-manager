@@ -43,6 +43,7 @@ string MSFDSearchProvider::STATE_ALIVE = "alive";
 int MSFDSearchProvider::SERVICE_CHECK_TIMEOUT = 5000;
 
 int MSFDSearchProvider::flag = 0;
+long MSFDSearchProvider::ttl = 0;
 
 MSFDSearchProvider::MSFDSearchProvider()
 {
@@ -83,7 +84,6 @@ void MSFDSearchProvider::start()
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	clearServices();
 
-	aliveMap.clear();
 	receive = false;
 	createMSFD();
 }
@@ -158,33 +158,6 @@ void MSFDSearchProvider::createMSFD()
 	}
 }
 
-void MSFDSearchProvider::reapServices()
-{
-	long now = time(0);
-	map<string, long>::iterator it;
-	map<string, long>::iterator next_it;
-
-	for(it = aliveMap.begin(); it != aliveMap.end();) {
-		long expires = it->second;
-		if (expires < now) {
-			//dlog_print(DLOG_ERROR, "MSF", "MSFD reapServices remove service");
-			Service service = getServiceById(it->first);
-			aliveMap.erase(it++);
-			removeServiceAndNotify(service);
-		} else {
-			it++;
-		}
-	}
-}
-
-void MSFDSearchProvider::updateAlive(string id, long ttl)
-{
-	long now = time(0);
-	ttl = ttl/1000;
-	long expires = now+ttl;
-	aliveMap[id] = expires;
-}
-
 void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 {
 	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg start");
@@ -215,13 +188,18 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 				receive = false;
 			}
 
+			string ip;
+			if (!url.empty()) {
+				ip = getIP(url);
+			}
+
 			if (state == STATE_ALIVE || state == STATE_UP) {
-				map<string, long>::iterator i = aliveMap.find(id);
+				map<string,ttl_info>::iterator i=aliveMap.find(id);
 				if (((serv.getId()).length() == 0)) {//&&(i==aliveMap.end()))
-					updateAlive(id, ttl);
-					static map<string, long>* tempaliveMap = &aliveMap;
+					static string tempid = getIP(url);
+					updateAlive(ttl, tempid, MSFD);
+					static map<string, ttl_info>* tempaliveMap=&aliveMap;
 					static MSFDSearchProvider *MSFDSearchProvider_pointer = this;
-					static string tempid = id;
 					static long tempttl = ttl;
 
 					class ResultMSFDServiceCallback : public Result_Base
@@ -230,7 +208,7 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 							void onSuccess(Service abc)
 							{
 								MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-								MSFDSearchProvider_pointer->updateAlive(tempid, tempttl);
+								MSFDSearchProvider_pointer->updateAlive(ttl, tempid, MSFD);
 								//(*tempaliveMap)[tempid]=tempttl;
 								MSFDSearchProvider_pointer->addService(abc);
 							}
@@ -251,7 +229,7 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 					//delete r1Service;
 					//r1Service = rService = NULL;
 				} else {
-					updateAlive(id, ttl);
+					updateAlive(ttl, ip, MSFD);
 				}
 			} else if ((serv1->getId() != "") && (state == STATE_DOWN)) {
 				aliveMap.erase(id);
