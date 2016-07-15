@@ -228,7 +228,10 @@ void SearchProvider::reapServices()
 
 std::string SearchProvider::getIP(std::string url)
 {
-	std::string::size_type pos1  = url.find("192");
+	if (url.empty())
+		return "";
+
+	std::string::size_type pos1  = 7;
 	std::string::size_type pos2  = url.find(":", 6);
 
 	std::string::size_type pos = pos2 - pos1;
