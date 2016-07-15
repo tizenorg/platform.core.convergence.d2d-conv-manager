@@ -211,17 +211,14 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 
 		string temp_str(txt_record, txt_len);
 
-		int str_len = strlen(txt_record);
-
-		MSF_DBG("TXT Record: %s, %d", temp_str.c_str(), str_len);
+		MSF_DBG("TXT Record: %s", temp_str.c_str());
 
 		ServiceInfo service_info; //id, version, name, type, Uri
-		MSF_DBG("txt_len %d", txt_len);
 		if (txt_len > 100) {
 			extract_service_info(service_info, temp_str);
 
 			Service::getByURI(service_info.infoURI, 5000, provider->get_service_cb());
-			service_id_adapter[name_s] = service_info.infoURI;
+			service_id_adapter[name_s] = provider->getIP(service_info.infoURI);
 		}
 
 		free(ip_v4_address);
