@@ -164,7 +164,7 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 			MSF_DBG("Un-Available");
 			dnssd_service_get_ip(remote_service, &ip_v4_address, &ip_v6_address);
 			if (ip_v4_address) {
-				MSF_DBG("-> [%d]", ip_v4_address);
+				MSF_DBG("-> [%s]", ip_v4_address);
 				provider->updateAlive(0, ip_v4_address, MDNS);
 				provider->reapServices();
 

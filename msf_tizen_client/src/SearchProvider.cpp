@@ -219,7 +219,7 @@ void SearchProvider::reapServices()
 		dlog_print(DLOG_INFO, "MSF_API", "reapService - Service id: %s", it->first.c_str());
 		if ( info.is_expired()) {
 			Service service=getServiceByIp(it->first);
-			dlog_print(DLOG_ERROR, "MSF", "reapServices - Remove service : [%s]", service.getId().c_str());
+			dlog_print(DLOG_ERROR, "MSF", "reapServices - Remove service : [%s]", getIP(service.getUri()).c_str());
 			aliveMap.erase(it->first);
 			removeServiceAndNotify(service);
 		}
