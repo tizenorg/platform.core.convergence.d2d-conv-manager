@@ -219,7 +219,7 @@ void SearchProvider::reapServices()
 		dlog_print(DLOG_INFO, "MSF_API", "reapService - Service id: %s", it->first.c_str());
 		if ( info.is_expired()) {
 			Service service=getServiceByIp(it->first);
-			dlog_print(DLOG_ERROR, "MSF", "reapServices - Remove service : [%s]", service.getId().c_str());
+			dlog_print(DLOG_ERROR, "MSF", "reapServices - Remove service : [%s]", it->first.c_str());
 			aliveMap.erase(it->first);
 			removeServiceAndNotify(service);
 		}
@@ -228,7 +228,10 @@ void SearchProvider::reapServices()
 
 std::string SearchProvider::getIP(std::string url)
 {
-	std::string::size_type pos1  = url.find("192");
+	if (url.empty())
+		return "";
+
+	std::string::size_type pos1  = 7;
 	std::string::size_type pos2  = url.find(":", 6);
 
 	std::string::size_type pos = pos2 - pos1;
