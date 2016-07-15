@@ -200,7 +200,6 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 					updateAlive(ttl, tempid, MSFD);
 					static map<string, ttl_info>* tempaliveMap=&aliveMap;
 					static MSFDSearchProvider *MSFDSearchProvider_pointer = this;
-					static long tempttl = ttl;
 
 					class ResultMSFDServiceCallback : public Result_Base
 					{
