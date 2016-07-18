@@ -1394,7 +1394,7 @@ void Channel::create_websocket(void *att) {
 		// return 1;
 	}
 	n = 0;
-	get_ip_port_from_uri(uri);
+	get_ip_port_from_uri(uri, &server_ip_address, &server_port);
 	string api = getapifromUri(uri);
 	api.append("channels/").append(ChannelID);
 
@@ -1447,7 +1447,7 @@ void Channel::create_websocket(void *att) {
 	wsi_mirror = NULL;
 }
 
-void Channel::get_ip_port_from_uri(string uri) {
+void Channel::get_ip_port_from_uri(string uri, string* dest_ip, int* dest_port) {
 	MSF_DBG("parsing uri : %s", uri.c_str());
 	unsigned int http_index = uri.find("http");
 	unsigned int ip_index = 0;
@@ -1472,18 +1472,18 @@ void Channel::get_ip_port_from_uri(string uri) {
 
 	int itr = ip_index;
 
-	server_ip_address.clear();
+	(*dest_ip).clear();
 
 	string port = "";
 
 	char now_c = uri.at(itr);
 
 	while ((now_c > 47 && now_c < 58) || (now_c == '.')) {
-		server_ip_address.push_back(now_c);
+		if (dest_ip != NULL) {
+			(*dest_ip).push_back(now_c);
+		}
 		now_c = uri.at(++itr);
 	}
-
-	MSF_DBG("set server_ip_address as : %s", server_ip_address.c_str());
 
 	if (now_c == ':') {
 		now_c = uri.at(++itr);
@@ -1493,20 +1493,20 @@ void Channel::get_ip_port_from_uri(string uri) {
 			now_c = uri.at(++itr);
 		}
 
-		server_port = atoi(port.c_str());
+		if (dest_port != NULL) {
+			*dest_port = atoi(port.c_str());
+		}
 	} else {
 		// there is no ':'.
 		// It means that server use default port.
 		if (is_https) {
 			//default https server port is 443.
-			server_port = 443;
+			*dest_port = 443;
 		} else {
 			//default http server port is 80"
-			server_port = 80;
+			*dest_port = 80;
 		}
 	}
-
-	MSF_DBG("set server_port as : %d", server_port);
 }
 
 string Channel::getapifromUri(string uri) {
