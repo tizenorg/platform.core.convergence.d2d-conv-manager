@@ -32,18 +32,14 @@ string Application::curl_data = "";
 class start_result_callback : public Result_Base
 {
 public:
-	Client client;
 	OnStartAppListener** in_result_cb  = NULL;
 
 	void onSuccess(bool result)
 	{
-		dlog_print(DLOG_INFO, "MSF", "start_result_callback");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+		MSF_DBG("start result callback onSuccess()");
 
 		if (in_result_cb != NULL) {
-//			if (((*in_result_cb) != NULL) && (!strncmp(client.getId(), "", 1) == 0)) {
 			if (((*in_result_cb) != NULL)) {
-				dlog_print(DLOG_INFO, "MSF", "start success result");
 				(*in_result_cb)->onStart(result);
 			} else {
 			}
@@ -54,16 +50,13 @@ public:
 
 	void onError(Error)
 	{
-		dlog_print(DLOG_ERROR, "MSF", "start error result");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+		MSF_DBG("start result callback onError()");
 		if (in_result_cb != NULL) {
 			if (((*in_result_cb) != NULL)) {
 				(*in_result_cb)->onStart(false);
 			} else {
 			}
 		}
-		dlog_print(DLOG_ERROR, "MSF", "start result.");
-		//app_pointer->handleSocketClosed();
 		delete this;
 	}
 };
@@ -71,18 +64,13 @@ public:
 class stop_result_callback : public Result_Base
 {
 public:
-	Client client;
 	OnStopAppListener** in_result_cb  = NULL;
 
 	void onSuccess(bool result)
 	{
-		dlog_print(DLOG_INFO, "MSF", "stop_result_callback");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-
+		MSF_DBG("stop result callback onSuccess()");
 		if (in_result_cb != NULL) {
-//			if (((*in_result_cb) != NULL) && (!strncmp(client.getId(), "", 1) == 0)) {
 			if (((*in_result_cb) != NULL)) {
-				dlog_print(DLOG_INFO, "MSF", "stop success result");
 				(*in_result_cb)->onStop(result);
 			} else {
 			}
@@ -93,22 +81,20 @@ public:
 
 	void onError(Error)
 	{
-		dlog_print(DLOG_ERROR, "MSF", "stop error result");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+		MSF_DBG("stop result callback onError()");
 		if (in_result_cb != NULL) {
 			if (((*in_result_cb) != NULL)) {
 				(*in_result_cb)->onStop(false);
 			} else {
 			}
 		}
-		//app_pointer->handleSocketClosed();
 		delete this;
 	}
 };
 
 Application::Application()
 {
-	dlog_print(DLOG_INFO, "MSF", "Application()");
+	MSF_DBG("Application()");
 	waitForOnReady = false;
 	webapp = false;
 	install_listener = NULL;
@@ -117,8 +103,7 @@ Application::Application()
 
 Application::Application(Service *se, string Uri, string Id)
 {
-	dlog_print(DLOG_INFO, "MSF", "Application(service, uri, id, startargs)");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Application()");
 	map<string, string> startargs = std::map<std::string, std::string>();
 	service = se;
 	m_uri = Uri;
@@ -126,7 +111,7 @@ Application::Application(Service *se, string Uri, string Id)
 	bool webApp = false;
 	uri_parser::URIParse uri2(m_uri);
 	if (!(uri2.getURIScheme() == "")) {
-		dlog_print(DLOG_INFO, "MSF", "webapp set as true");
+		MSF_DBG("webapp set as true");
 		webApp = true;
 	}
 
@@ -139,15 +124,14 @@ Application::Application(Service *se, string Uri, string Id)
 
 Application::Application(Service *se, string Uri, string Id, map<string, string> startargs)
 {
-	dlog_print(DLOG_INFO, "MSF", "Application(service, uri, id, startargs)");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Application()");
 	service = se;
 	m_uri = Uri;
 	ChannelID = Id;
 	bool webApp = false;
 	uri_parser::URIParse uri2(m_uri);
 	if (!(uri2.getURIScheme() == "")) {
-		dlog_print(DLOG_INFO, "MSF", "webapp set as true");
+		MSF_DBG("webapp set as true");
 		webApp = true;
 	}
 
@@ -160,14 +144,11 @@ Application::Application(Service *se, string Uri, string Id, map<string, string>
 
 Application::~Application()
 {
-	dlog_print(DLOG_INFO, "MSF", "~Application()");
+	MSF_DBG("~Application()");
 }
 
 bool Application::isConnected()
 {
-	dlog_print(DLOG_INFO, "MSF", "Channel::isConnected() = %s", Channel::isConnected() ? "true" : "false");
-	dlog_print(DLOG_INFO, "MSF", "connected = %s", connected ? "true" : "false");
-	//return (Channel::isConnected() && connected);
 	return (Channel::isConnected());
 }
 
@@ -221,7 +202,6 @@ void Application::install()
 	int ret;
 	if (webapp) {
 		string randID = Channel::getUID();
-		dlog_print(DLOG_INFO, "MSF", "install call registercallback");
 		if (install_listener) {
 			install_listener->onError(Error::create("Unsupported Method"));
 		}
@@ -229,7 +209,6 @@ void Application::install()
 		 *  handleError(randID,Error::create("Unsupported Method"));   */
 	} else {
 		string Uri = service->getUri().append(ROUTE_APPLICATION).append(m_uri);
-		dlog_print(DLOG_INFO, "MSF", "install uri = %s", Uri.c_str());
 		ret = Application::curl_install(Uri);
 		if (ret == -1) {
 			if (install_listener) {
@@ -255,7 +234,6 @@ map<string, string> Application::getparams()
 
 void Application::connect()
 {
-	//Channel::connect();
 	connect(NULL);
 }
 
@@ -266,68 +244,13 @@ void Application::connect(Result_Base *res)
 
 void Application::connect(map<string, string> attributes, Result_Base *res)
 {
-	dlog_print(DLOG_INFO, "MSF", "Application::connect(at, res)");
-
-	//connectCallback* r = new connectCallback();
-	//r->in_connect_cb = &onDisconnectListener;
-	//r->app_pointer = this;
-
 	Channel::connect(attributes, res);
 }
 
 void Application::disconnect()
 {
-	dlog_print(DLOG_INFO, "MSF", "application disconnect()");
-
 	realDisconnect(NULL);
 }
-
-/*
-void Application::disconnect(Result_Base *r)
-{
-	dlog_print(DLOG_INFO, "MSF", "application disconnect(result)");
-	disconnect(true);
-}
-
-void Application::disconnect(bool stopOnDisconnect)
-{
-	dlog_print(DLOG_INFO, "MSF", "application disconnect(bool, result) 1");
-
-	if (stopOnDisconnect) {
-	dlog_print(DLOG_INFO, "MSF", "application disconnect(bool, result) 2");
-		int numClients = 0;
-		numClients = clients->size();
-		static Client me ;
-		me =  clients->me();
-
-		fprintf(stderr, "\n MYCLIENT ID IS[%s] and Number of clients is [%d]\n", me.getId(), numClients);
-
-		dlog_print(DLOG_INFO, "MSF", "numClients = %d", numClients);
-		dlog_print(DLOG_INFO, "MSF", "clients->getHost : %s", clients->getHost() ? "true" : "false");
-		dlog_print(DLOG_INFO, "MSF", "strncmp(me.getId(),"",1) : %d", strncmp(me.getId(), "", 1));
-		if (((numClients == 2) && (clients->getHost() != NULL) && strncmp(me.getId(), "", 1)) ||
-				((numClients == 1) && (strncmp(me.getId(), "", 1))) ||
-				 (numClients == 0)) {
-			dlog_print(DLOG_INFO, "MSF", "application disconnect(bool, result) 3");
-			MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-
-			//Result_Base *rbool = NULL;;
-
-			//DisconnectboolCallback *r = new DisconnectboolCallback();
-			//r->in_disconnect_cb = &disconnect_cb;
-			//r->app_p = this;
-
-			//rbool= r1bool;
-			//MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-			//stop();
-			realDisconnect();
-			return;
-		}
-	}
-
-	realDisconnect(disconnect_cb);
-}
-	*/
 
 void Application:: realDisconnect(Result_Base *result)
 {
@@ -336,28 +259,22 @@ void Application:: realDisconnect(Result_Base *result)
 
 void Application::invokeMethod(string method, map<string, string> params, string messageID, Result_Base *callback)
 {
-	dlog_print(DLOG_INFO, "MSF", "invokeMethod ()");
 	if (!Channel::isConnected()) {
-		dlog_print(DLOG_ERROR, "MSF", "invokeMethod() 1");
 		Channel::handleError(messageID, Error::create("Not Connected"));
 		return;
 	}
 
-	dlog_print(DLOG_INFO, "MSF", "invokeMethod() 2");
 	int l = 0;
 	string id = webapp?"url":"id";
 	char buffer[2000];
 	l += snprintf((char *)&buffer, sizeof(buffer), " {\n \"method\": \"%s\",\n \"id\": %s, \n \"params\" : { \n \"%s\": \"%s\" \n } \n }", method.c_str(), messageID.c_str(), id.c_str(), params[id].c_str());
 	buffer[l] ='\0';
-	dlog_print(DLOG_INFO, "MSF", "invokeMethod() 3");
-	dlog_print(DLOG_INFO, "MSF", "invokeMethod() buf = %s", buffer);
 	Channel::start_app(buffer, l, messageID);
 }
 
 void Application::invokeMethod(string method, map<string, string> params, Result_Base *callback)
 {
 	string messageID = Channel::getUID();
-	dlog_print(DLOG_INFO, "MSF", "invokeMethod call registercallback");
 	Channel::registerCallback(messageID, (void*)callback, Result_bool);
 	invokeMethod(method, params,  messageID, callback);
 }
@@ -365,16 +282,13 @@ void Application::invokeMethod(string method, map<string, string> params, Result
 
 Application Application::create(Service *service, string uri)
 {
-	dlog_print(DLOG_INFO, "MSF", "Application::create(service, uri)");
-	fprintf(stderr, "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Application::create(service, uri)");
 	if (!((service == NULL) || (uri == ""))) {
 		string id = uri;
 		uri_parser::URIParse uri2(uri);
 		if (!(uri2.getURIScheme() == "")) {
 			id  = uri2.getURIHost();
 		}
-		//Application *application=new Application(service, uri, id , std::map<std::string, std::string>());
 		Application app(service, uri, id , std::map<std::string, std::string>());
 		return app;
 	} else {
@@ -385,11 +299,8 @@ Application Application::create(Service *service, string uri)
 
 Application Application::create(Service *service, string uri, string id, map<string, string> startargs)
 {
-	dlog_print(DLOG_INFO, "MSF", "Application::create(service, uri, id, startargs)");
-
+	MSF_DBG("Application::create(service, uri)");
 	if (!((service == NULL) || (uri == "") || (id == ""))) {
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		/*Application *application= new Application(service, uri, id , startargs);	  */
 		Application app(service, uri, id , startargs);
 		return app;
 	} else {
@@ -400,7 +311,6 @@ Application Application::create(Service *service, string uri, string id, map<str
 
 void Application::createdata_process(string data)
 {
-	printf("ApplicationInfo curl data : %s", data.c_str());
 	ApplicationInfo InfoObj;
 	InfoObj.create(data);
 	result->onSuccess(InfoObj);
@@ -408,11 +318,10 @@ void Application::createdata_process(string data)
 
 size_t Application::createdata(char* buf, size_t size, size_t nmemb, void* up)
 {
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
 	if (buf != NULL) {
 		curl_data.append(buf, size*nmemb);
 	} else {
-		dlog_print(DLOG_ERROR, "MSF", "createdata() buf is null");
+		MSF_DBG("Application::createdata() buf is null");
 	}
 
 	return size*nmemb;
@@ -420,8 +329,6 @@ size_t Application::createdata(char* buf, size_t size, size_t nmemb, void* up)
 
 size_t Application::read_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-	//((char*)ptr)[size*nmemb-1] = 0;
-	dlog_print(DLOG_ERROR, "MSF", "read_callback = %s", (char*)ptr);
 	if (ptr != NULL)
 		static_cast<Application*>(stream)->curl_install_data.append(static_cast<const char*>(ptr), size*nmemb);
 
@@ -449,7 +356,6 @@ int Application::curl_application_calling(string uri)
 		res = curl_easy_perform(curl);
 
 		if (res != CURLE_OK) {
-			dlog_print(DLOG_ERROR, "MSF", "####Application curl ERROR = %d ####", res);
 			MSF_DBG("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		} else {
 			createdata_process(curl_data);
@@ -512,14 +418,11 @@ int Application::curl_install(string uri)
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_URL, uri.c_str());
 
-		dlog_print(DLOG_ERROR, "MSF", "install curl put send");
 		res = curl_easy_perform(curl);
 
 		if (res != CURLE_OK) {
-			dlog_print(DLOG_ERROR, "MSF", "####Application curl ERROR = %d ####", res);
 			MSF_DBG("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		} else {
-			dlog_print(DLOG_ERROR, "MSF", "####Application curl success ####");
 			json_parse(curl_install_data.c_str());
 
 			if (install_listener != NULL) {

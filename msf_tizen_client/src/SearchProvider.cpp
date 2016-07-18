@@ -52,20 +52,15 @@ int ttl_info::update_ttl(long ttl, int service_type)
 {
 	if (service_type == MSFD) {
 		msfd_ttl = ttl;
-		MSF_DBG("MSFD ttl update : %d", ttl);
 	} else if (service_type == MDNS) {
 		mdns_ttl = ttl;
-		MSF_DBG("mDNS ttl update : %d", ttl);
 	}
 }
-
 
 bool ttl_info::is_expired()
 {
 	long now = time(0);
 
-	MSF_DBG("Expired => msfd : %d, mdns : %d", msfd_ttl < now, mdns_ttl < now);
-	dlog_print(DLOG_INFO, "MSF", "Expired => msfd : %d, mdns : %d", msfd_ttl < now, mdns_ttl < now);
 	if (msfd_ttl < now && mdns_ttl < now)
 		return true;
 	else
@@ -102,13 +97,10 @@ void SearchProvider::setServices(list<Service> listofservices)
 void SearchProvider::setSearchListener(Search *obj)
 {
 	searchListener = obj;
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
 void SearchProvider::addService(Service service)
 {
-	dlog_print(DLOG_INFO, "MSF", "SearchProvider::addService()");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	bool found = false;
 
 	std::list<Service>::iterator iterator;
@@ -125,7 +117,6 @@ void SearchProvider::addService(Service service)
 	if (!match) {
 		services.push_back(service);
 		found = true;
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 
 		if (found) {
 			Search::st_onFound(service);
@@ -153,7 +144,6 @@ void SearchProvider::removeService(Service service)
 void SearchProvider::removeServiceAndNotify(Service service)
 {
 	removeService(service);
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	Search::st_onLost(service);
 }
 
@@ -164,7 +154,6 @@ void SearchProvider::clearServices()
 
 Service SearchProvider::getServiceById(string id)
 {
-	//	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
 	std::list<Service>::iterator iterator;
 	for (iterator = services.begin(); iterator != services.end(); ++iterator) {
 		if (((*iterator).getId()) == id) {
@@ -176,7 +165,6 @@ Service SearchProvider::getServiceById(string id)
 
 Service SearchProvider::getServiceByIp(string ip)
 {
-	//	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
 	std::list<Service>::iterator iterator;
 	for (iterator = services.begin(); iterator != services.end(); ++iterator) {
 
@@ -199,7 +187,7 @@ bool SearchProvider::isSearching()
 
 void SearchProvider::push_in_alivemap(long ttl, string id, int service_type)
 {
-	MSF_DBG("updateAlive : ttl = %d, id = %s, service_type = %d", ttl, id.c_str(), service_type);
+	MSF_DBG("push_in_alivemap : ttl = %d, id = %s, service_type = %d", ttl, id.c_str(), service_type);
 
 	if (id.empty()) {
 		return;
@@ -228,7 +216,6 @@ void SearchProvider::updateAlive(long ttl, string id, int service_type)
 
 		ttl_info info = aliveMap[id];
 
-		MSF_DBG("mdns ttl : %d , msfd ttl : %d", info.get_ttl(MDNS), info.get_ttl(MSFD));
 		info.update_ttl(_ttl, service_type);
 		aliveMap[id]=info;
 	}
@@ -236,14 +223,12 @@ void SearchProvider::updateAlive(long ttl, string id, int service_type)
 
 void SearchProvider::reapServices()
 {
-	dlog_print(DLOG_ERROR, "MSF", "reapServices");
 	map<string,ttl_info>::iterator it;
 	for(it=aliveMap.begin();it!=aliveMap.end();++it) {
 		ttl_info info=it->second;
-		dlog_print(DLOG_INFO, "MSF_API", "reapService - Service id: %s", it->first.c_str());
 		if ( info.is_expired()) {
 			Service service=getServiceByIp(it->first);
-			dlog_print(DLOG_ERROR, "MSF", "reapServices - Remove service : [%s]", it->first.c_str());
+			MSF_DBG("reapServices - Remove service : [%s]", service.getId().c_str());
 			aliveMap.erase(it->first);
 			removeServiceAndNotify(service);
 		}

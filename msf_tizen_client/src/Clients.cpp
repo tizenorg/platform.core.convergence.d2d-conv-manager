@@ -64,11 +64,6 @@ bool Clients::isMe(Client client)
 	return (client.getId()== myClientId);
 }
 
-/*int Clients::ssize()
-  {
-  return sizeof(clients);
-  }*/
-
 list<Client> Clients::lists()
 {
 	list<Client> client_list;

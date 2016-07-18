@@ -48,15 +48,6 @@ Service::Service()
 	//devicedata = NULL;
 }
 
-/*Service::Service(string Id,string Version,string Name,string Type,string Uri)
-{
-	id=Id;
-	version=Version;
-	name=Name;
-	type=Type;
-	uri=Uri;
-}*/
-
 Service::Service(string id1, string version1, string name1, string type1, string endPoint1)
 {
 	id = id1;
@@ -65,13 +56,6 @@ Service::Service(string id1, string version1, string name1, string type1, string
 	type = type1;
 	uri = endPoint1;
 }
-
-/*
-Search *Service::search()
-{
-	return Search::getInstance();
-}
-*/
 
 void Service:: getById(string id, Result_Base *result)
 {
@@ -82,7 +66,6 @@ void Service:: getById(string id, Result_Base *result)
 	if (!status)	{
 		service = search.getServiceById(id);
 	} else {
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 		sleep(3);
 		service = search.getServiceById(id);
 		search.stop();
@@ -141,25 +124,17 @@ void Service::create(char *service_txt)
 
 	posvalues = findServiceValue(ENDPOINT_PROPERTY, service_txt);
 	uri = txt.substr((posvalues.start)-1, ((posvalues.end)-(posvalues.start)+1));
-
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH MDNS WITH URI [%s] [%s] [%d] in %s \n", uri.c_str(), __FUNCTION__, __LINE__, __FILE__);
 }
 
 Service Service::create(ServiceInfo servicevalue)
 {
 	//if (
 	string id = servicevalue.infoId;
-//	this->id=id;
 	string version = servicevalue.infoVersion;
-//	this->version=version;
 	string name = servicevalue.infoName;
-//	this->name=name;
 	string type = servicevalue.infotype;
-//	this->type=type;
 	string endPoint = servicevalue.infoURI;//TODO
-//	this->uri=endPoint;
 	Service service = Service(id, version, name, type, endPoint);
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH MSFD WITH URI [%s] [%s] [%d] in %s \n", endPoint.c_str(), __FUNCTION__, __LINE__, __FILE__);
 	return service;
 }
 
@@ -172,7 +147,6 @@ Service Service::create(map<string, string> serviceMap)
 	string endPoint = serviceMap.find("uri")->second;//TODO
 	Service service = Service(id, version, name, type, endPoint);
 	return service;
-	//return Service;*/
 }
 
 position Service::findServiceValue(string substrng, char *strng)
@@ -190,7 +164,6 @@ position Service::findServiceValue(string substrng, char *strng)
 
 void Service::getDeviceInfo(Result_Base *dev_result)
 {
-	dlog_print(DLOG_INFO, "MSF", "getDeviceInfo");
 	curl_service_calling(uri, 5000, dev_result);
 }
 
@@ -237,13 +210,13 @@ Service Service::getLocal(void)
 		public:
 			void onSuccess(Service service)
 			{
-				dlog_print(DLOG_INFO, "MSF", "service name : %s\n", service.getName().c_str() ? service.getName().c_str() : "name is NULL");
+				MSF_DBG("service name : %s\n", service.getName().c_str() ? service.getName().c_str() : "name is NULL");
 				local_service = service;
 			}
 
 			void onError(Error)
 			{
-				dlog_print(DLOG_ERROR, "MSF", "getLocal() : Fail to get local service info");
+				MSF_DBG("getLocal() : Fail to get local service info");
 			}
 	};
 
@@ -261,7 +234,7 @@ void Service::getByURI(string uri, Result_Base *result)
 
 void Service::getByURI(string uri, long timeout, Result_Base *result)
 {
-	dlog_print(DLOG_INFO, "MSF", "getByURI() uri = %s", uri.c_str());
+	MSF_DBG("getByURI() uri = %s", uri.c_str());
 
 	Resulturi = result;
 	//Resultdevice = NULL;
@@ -271,7 +244,6 @@ void Service::getByURI(string uri, long timeout, Result_Base *result)
 
 int Service::curl_service_calling(string uri, long timeout, void *dev_result_ptr)
 {
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
 	CURL *curl;
 	CURLcode res;
 	struct curl_slist *headers = NULL;
@@ -283,20 +255,14 @@ int Service::curl_service_calling(string uri, long timeout, void *dev_result_ptr
 		const char *c = uri.c_str();
 		curl_easy_setopt(curl, CURLOPT_URL, c);
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
-		//if (timeout != 0)
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
 
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Service::createdata);
-		//curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 5000);
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-		//curl_easy_setopt(curl, CURLOPT_PORT, 8001);
-		//curl_easy_setopt(curl, CURLOPT_LOCALPORT, 8888);
 
 		res = curl_easy_perform(curl);
 
 		if (res != CURLE_OK) {
-			dlog_print(DLOG_ERROR, "MSF", "####Service curl ERROR = %d ####", res);
 			MSF_DBG("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 			createdata_process("", dev_result_ptr);
 		} else {
@@ -312,18 +278,10 @@ int Service::curl_service_calling(string uri, long timeout, void *dev_result_ptr
 
 size_t Service::createdata(char *buf, size_t size, size_t nmemb, void *up)
 {
-	dlog_print(DLOG_INFO, "MSF", "createdata() 1");
-
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
 	if (buf != NULL) {
-		//string data;
-
 		curl_data.append(buf, size*nmemb);
-
-		//createdata_process(data, ptr);
 	} else {
-		dlog_print(DLOG_ERROR, "MSF", "createdata() buf is null");
-		//createdata_process(string(), ptr);
+		MSF_DBG("createdata() buf is null");
 	}
 
 	return size*nmemb;
@@ -331,16 +289,11 @@ size_t Service::createdata(char *buf, size_t size, size_t nmemb, void *up)
 
 void Service::createdata_process(string data, void *dev_result_ptr)
 {
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
 	if (data.length() != 0) {
 		json_parse_service(data.c_str(), dev_result_ptr);
 	} else {
 		if (Resulturi != NULL) {
 			Resulturi->onError(Error::create("Timeout"));
-
-			//delete (Resulturi);
-
-			//Resulturi = NULL;
 		}
 		if (dev_result_ptr != NULL) {
 			(static_cast<Result_Base*> (dev_result_ptr))->onError(Error::create("Not Found"));
@@ -350,41 +303,33 @@ void Service::createdata_process(string data, void *dev_result_ptr)
 
 int Service::json_parse_service(const char *in, void *ptr)
 {
-	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
-	dlog_print(DLOG_ERROR, "MSF", "Service::json_parse_service : %s", in);
-
 	JsonParser *parser = json_parser_new();
 
 	if (json_parser_load_from_data(parser, in, -1, NULL)) {
 	} else {
-		dlog_print(DLOG_ERROR, "MSF", "json_parsing error");
+		MSF_DBG("json_parsing error");
 	}
 
 	JsonObject *root = json_node_get_object(json_parser_get_root(parser));
 
 	if (json_object_has_member(root, "id")) {
 		serviceval.infoId = json_object_get_string_member(root, "id");
-		dlog_print(DLOG_ERROR, "MSF", "infoId set as %s", serviceval.infoId.c_str());
 	}
 
 	if (json_object_has_member(root, "version")) {
 		serviceval.infoVersion = json_object_get_string_member(root, "version");
-		dlog_print(DLOG_ERROR, "MSF", "infoVersion set as %s", serviceval.infoVersion.c_str());
 	}
 
 	if (json_object_has_member(root, "name")) {
 		serviceval.infoName = json_object_get_string_member(root, "name");
-		dlog_print(DLOG_ERROR, "MSF", "infoName set as %s", serviceval.infoName.c_str());
 	}
 
 	if (json_object_has_member(root, "type")) {
 		serviceval.infotype = json_object_get_string_member(root, "type");
-		dlog_print(DLOG_ERROR, "MSF", "infotype set as %s", serviceval.infotype.c_str());
 	}
 
 	if (json_object_has_member(root, "uri")) {
 		serviceval.infoURI = json_object_get_string_member(root, "uri");
-		dlog_print(DLOG_ERROR, "MSF", "infoURI set as %s", serviceval.infoURI.c_str());
 	}
 
 	if (json_object_has_member(root, "device")) {
@@ -395,10 +340,7 @@ int Service::json_parse_service(const char *in, void *ptr)
 	}
 
 	if ((Resulturi!= NULL)) {
-		dlog_print(DLOG_INFO, "MSF", "json_parse_service() call onSuccess()");
 		Resulturi->onSuccess(create(serviceval));
-		//delete (Resulturi);
-		//Resulturi=NULL;
 	}
 
 	return 0;
@@ -407,8 +349,6 @@ int Service::json_parse_service(const char *in, void *ptr)
 Application  Service::createApplication(string uri)
 {
 	if (!(uri == "")) {//check length and return error
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		//Application *application = Application::create(this,uri);
 		Application application = Application::create(this, uri);
 		return application;
 	} else {
@@ -420,8 +360,6 @@ Application  Service::createApplication(string uri)
 Application Service::createApplication(string uri, string channelId)
 {
 	if (!((uri == "") || (channelId == ""))) {
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		//Application *application=Application::create(this, uri, channelId, map_type());
 		Application application = Application::create(this, uri, channelId, map_type());
 		return application;
 	} else {
@@ -433,8 +371,6 @@ Application Service::createApplication(string uri, string channelId)
 Application Service::createApplication(string uri, string channelId, map<string, string> startArgs)
 {
 	if (!((uri == "") || (channelId == ""))) {
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-		//Application *application =Application::create(this, uri, channelId, startArgs);
 		Application application = Application::create(this, uri, channelId, startArgs);
 		return application;
 	} else {

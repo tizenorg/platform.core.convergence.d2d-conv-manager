@@ -56,27 +56,25 @@ class ResultMSFDServiceCallback : public Result_Base
 
 		void onSuccess(Service abc)
 		{
-			MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+			MSF_DBG("MSFD Service Callback onSucces()");
 			MSFDSearchProvider_pointer->push_in_alivemap(ttl, ip_id, provider_type);
 			MSFDSearchProvider_pointer->addService(abc);
 		}
 
 		void onError(Error)
 		{
-			MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+			MSF_DBG("MSFD Service Callback onError()");
 		}
 };
 
 
 MSFDSearchProvider::MSFDSearchProvider()
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	SearchProvider();
 }
 
 MSFDSearchProvider::MSFDSearchProvider(Search *sListener):SearchProvider(sListener)
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
 MSFDSearchProvider::~MSFDSearchProvider()
@@ -94,17 +92,15 @@ SearchProvider MSFDSearchProvider::create()
 
 SearchProvider MSFDSearchProvider::create(Search *searchListener)
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	return (SearchProvider)MSFDSearchProvider(searchListener);
 }
 
 void MSFDSearchProvider::start()
 {
-	dlog_print(DLOG_INFO, "MSF", "MSFD start()");
+	MSF_DBG("MSFD start()");
 	if (searching) {
 		stop();
 	}
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	clearServices();
 
 	createMSFD();
@@ -124,7 +120,7 @@ void MSFDSearchProvider::createMSFD()
 	/* create what looks like an ordinary UDP socket */
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("socket");
-		dlog_print(DLOG_ERROR, "MSF", "MSFD socket faile");
+		MSF_DBG("MSFD socket faile");
 		return;
 	}
 
@@ -132,7 +128,7 @@ void MSFDSearchProvider::createMSFD()
 	/* allow multiple sockets to use the same PORT number */
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("Reusing ADDR failed");
-		dlog_print(DLOG_ERROR, "MSF", "MSFD reusing ADDR failed");
+		MSF_DBG("MSFD reusing ADDR failed");
 	}
 	/*** END OF MODIFICATION TO ORIGINAL */
 
@@ -146,7 +142,7 @@ void MSFDSearchProvider::createMSFD()
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		perror("bind");
-		dlog_print(DLOG_ERROR, "MSF", "MSFD bind failed");
+		MSF_DBG("MSFD bind failed");
 	}
 	//dlog_print(DLOG_INFO, "MSF", "MSFD try bind socket success");
 
@@ -155,14 +151,14 @@ void MSFDSearchProvider::createMSFD()
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
 		perror("setsockopt");
-		dlog_print(DLOG_ERROR, "MSF", "MSFD setsockopt failed");
+		MSF_DBG("MSFD setsockopt failed");
 	}
 
 	struct timeval tv = {2, 0};
 
 	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 		perror("setsockopt");
-		dlog_print(DLOG_ERROR, "MSF", "MSFD setsockopt(SOL_SOCKET) failed");
+		MSF_DBG("MSFD setsockopt(SOL_SOCKET) failed");
 	}
 
 	while (1) {
@@ -182,8 +178,6 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 	if (buf == NULL)
 		return;
 
-	dlog_print(DLOG_INFO, "MSF", "msfd = %s", buf);
-
 	json_parse(buf);
 
 	string ip;
@@ -193,7 +187,6 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 	map<string,ttl_info>::iterator itr = aliveMap.find(ip);
 
 	if (state == TYPE_DISCOVER) {
-		dlog_print(DLOG_INFO, "MSF", "discover packet.");
 		return;
 	} else if (state == STATE_ALIVE || state == STATE_UP) {
 
@@ -203,10 +196,8 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 			rService->ttl = ttl;
 			rService->provider_type = MSFD;
 			rService->ip_id = ip;
-			dlog_print(DLOG_INFO, "MSF", "there is no ip %s in aliveMap. call getByURI", ip.c_str());
 			Service::getByURI(url, SERVICE_CHECK_TIMEOUT, rService);
 		} else {
-			dlog_print(DLOG_INFO, "MSF", "already exist. call updateAlive");
 			updateAlive(ttl, ip, MSFD);
 		}
 	} else if (state == STATE_DOWN) {
@@ -229,17 +220,13 @@ void MSFDSearchProvider::foreach_json_object(JsonObject *object, const gchar *ke
 	if (json_node_get_node_type(node) == JSON_NODE_VALUE) {
 		if (!strncmp(key , MSFDSearchProvider::KEY_TTL.c_str(), 2)) {
 			p->ttl = json_node_get_int(node);
-			//dlog_print(DLOG_INFO, "MSF", "MSFD ttl = %d", p->ttl);
 		} else if (!strncmp(key , MSFDSearchProvider::KEY_TYPE_STATE.c_str(), 2)) {
 			p->state = json_node_get_string(node);
-			//dlog_print(DLOG_INFO, "MSF", "MSFD state = %s", p->state.c_str());
 		} else if (!strncmp(key, MSFDSearchProvider::KEY_SID.c_str(), 4)) {
 			p->id = json_node_get_string(node);
-			//dlog_print(DLOG_INFO, "MSF", "MSFD id = %s", p->id.c_str());
 		} else if (!strncmp(key, MSFDSearchProvider::KEY_URI.c_str(), 7)) {
 			if (flag == 1) {
 				p->url = json_node_get_string(node);
-				//dlog_print(DLOG_INFO, "MSF", "MSFD url = %s", p->url.c_str());
 				flag = 0;
 			}
 		}
@@ -264,17 +251,13 @@ void MSFDSearchProvider::json_parse(const char *in)
 		}
 
 	} else {
-		dlog_print(DLOG_ERROR, "MSF", "json_parsing error");
+		MSF_DBG("json_parsing error");
 	}
 }
 
 bool MSFDSearchProvider::stop()
 {
-	dlog_print(DLOG_INFO, "MSF", "MSFD stop()");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-	//if (!searching) {
-	//	return false;
-	//}
+	MSF_DBG("MSFD stop()");
 	shutdown(fd, SHUT_RDWR);
 	close(fd);
 	fd = 0;

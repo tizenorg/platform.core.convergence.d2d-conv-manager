@@ -38,13 +38,6 @@ bool Search::pt_update_start = false;
 
 int Search::numRunning;
 
-/*
-   if (--onStartNotified==0)
-   {
-   if (onStartListener!=NULL)
-   onStartListener->onStart();
-   }*/
-
 void Search::onStart()
 {
 	st_onStart();
@@ -67,8 +60,7 @@ void Search::onLost(Service service)
 
 void  Search :: st_onStart()
 {
-	dlog_print(DLOG_INFO, "MSF", "Search::onStart()");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Search::st_onStart()");
 
 	// ....... ==0 ??
 	if (onStartNotified > 0) {
@@ -77,7 +69,6 @@ void  Search :: st_onStart()
 		list<Search*>::iterator itr;
 		for (itr = search_list.begin(); itr != search_list.end(); itr++) {
 			if ((*itr)->searchListener != NULL &&  (*itr)->searching_now) {
-				dlog_print(DLOG_INFO, "MSF", "call onStart");
 				(*itr)->searchListener->onStart();
 			}
 		}
@@ -86,7 +77,7 @@ void  Search :: st_onStart()
 
 void  Search::st_onStop()
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Search::st_onStop()");
 	list<Search*>::iterator itr;
 	for (itr = search_list.begin(); itr != search_list.end(); itr++) {
 		if ((*itr)->searchListener != NULL && (*itr)->searching_now) {
@@ -97,14 +88,13 @@ void  Search::st_onStop()
 
 void  Search::st_onFound(Service service)
 {
-	dlog_print(DLOG_INFO, "MSF", "Search::st_onFound()");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Search::st_onFound()");
 
 	addService(service);
 
 	list<Search*>::iterator itr;
 
-	dlog_print(DLOG_INFO, "MSF", "Search::st_onFound() list size = %d", search_list.size());
+	MSF_DBG("Search::st_onFound() list size = %d", search_list.size());
 
 	for (itr = search_list.begin(); itr != search_list.end(); itr++) {
 		if ((*itr)->searchListener != NULL && (*itr)->searching_now) {
@@ -115,8 +105,7 @@ void  Search::st_onFound(Service service)
 
 void  Search::st_onLost(Service service)
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-	//validateService(service);
+	MSF_DBG("Search::st_onLost()");
 
 	removeService(service);
 
@@ -131,23 +120,18 @@ void  Search::st_onLost(Service service)
 
 void  SearchListener :: onStart()
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
 void  SearchListener :: onStop()
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
 void  SearchListener :: onFound(Service service)
 {
-	//addService(service);
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
 void SearchListener :: onLost(Service service)
 {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 }
 
 Search::Search()
@@ -156,20 +140,15 @@ Search::Search()
 	searchListener = NULL;
 
 	search_list.push_back(this);
-	printf("Search::Search()\n");
-	fflush(stdout);
 }
 
 Search::~Search()
 {
 	search_list.remove(this);
-	printf("Search::~Search()\n");
-	fflush(stdout);
 }
 
 void Search::setSearchListener(SearchListener *obj)
 {
-	dlog_print(DLOG_INFO, "MSF", "setSearchListener");
 	searchListener = obj;
 }
 
@@ -193,17 +172,13 @@ Service Search::getServiceById(string id)
 
 bool Search::start()
 {
+	MSF_DBG("Search::start()");
 	if (searching_now == false) {
 		if (search_ref_count == 0) {
 			search_ref_count++;
 
 			searching_now = true;
 
-			dlog_print(DLOG_INFO, "MSF", "Search::start()");
-
-			//if (isSearching()) {
-			//	return false;
-			//}
 
 			startDiscovery();
 		} else {
@@ -212,7 +187,6 @@ bool Search::start()
 			searching_now = true;
 
 			if (searchListener != NULL) {
-				dlog_print(DLOG_INFO, "MSF", "call onStart");
 				searchListener->onStart();
 			}
 		}
@@ -223,12 +197,12 @@ bool Search::start()
 
 bool Search::stop()
 {
+	MSF_DBG("search stop");
 	if (searching_now == true) {
 		search_ref_count--;
 		searching_now = false;
 
 		if (search_ref_count == 0) {
-			dlog_print(DLOG_INFO, "MSF", "search stop 1");
 			stopDiscovery();
 		} else {
 			if (searchListener != NULL)
@@ -295,7 +269,6 @@ bool Search::remove(list<SearchProvider> *providers, SearchProvider provider)
 
 void *Search::pt_startMDNS(void *arg)
 {
-	//provider1.start();
 	return NULL;
 }
 
@@ -311,18 +284,16 @@ void *Search::pt_update_alivemap(void *arg)
 
 	while (pt_update_start) {
 		sleep(5);
-		dlog_print(DLOG_INFO, "MSF", "call reap");
 		SearchProvider::reapServices();
 	}
 }
 
 void Search::startDiscovery()
 {
-	dlog_print(DLOG_INFO, "MSF", "Search::startDiscovery()");
+	MSF_DBG("Search::startDiscovery()");
 	starting = true;
 	// If there are no search providers, then default to using MDNS.
 	if (providers.empty()) {
-		//providers.push_back(MDNSSearchProvider::create(this)); //CODE NEED TO REMOVE
 		providers.push_back(MSFDSearchProvider::create(this));
 	}
 
@@ -333,23 +304,21 @@ void Search::startDiscovery()
 	int ret = -1;
 
 	provider1.start();
-	dlog_print(DLOG_INFO, "MSF", "try MDNS started");
 
 	ret = pthread_create(&threads[MSFD_THREAD_NUMBER], NULL, pt_startMSFD, NULL);
-	dlog_print(DLOG_INFO, "MSF", "MSFD thread created");
 	if (ret == -1)
-		cout << "Fail to create MSFD search provider\n";
+		MSF_DBG("MSFD thread create failed");
 
 	ret = pthread_create(&threads[UPDATE_THREAD_NUMBER], NULL, pt_update_alivemap, NULL);
 	if (ret == -1)
-		cout << "Fail to create pthread_update_alivemap\n";
+		MSF_DBG("update thread create failed");
 
 	onStart();
 }
 
 void Search::stopDiscovery()
 {
-	MSF_DBG("\n[MSF API:]Function Name[%s] got called\n", __FUNCTION__);
+	MSF_DBG("Search::stopDiscovery()");
 	stopping = true;
 	bool stop = false;
 	stop = provider1.stop();
@@ -359,22 +328,19 @@ void Search::stopDiscovery()
 	if (stop)
 		onStop();
 
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-
 	pthread_cancel(threads[MSFD_THREAD_NUMBER]);
 	pthread_join(threads[MSFD_THREAD_NUMBER], NULL);
 
 	pthread_cancel(threads[UPDATE_THREAD_NUMBER]);
 	pthread_join(threads[UPDATE_THREAD_NUMBER], NULL);
 
-	dlog_print(DLOG_INFO, "MSF", "MSFD thread joined");
-	dlog_print(DLOG_INFO, "MSF", "update alivemap thread joined");
-	dlog_print(DLOG_INFO, "MSF", "Search::stop discovery end");
+	MSF_DBG("MSFD thread joined");
+	MSF_DBG("update alivemap thread joined");
 }
 
 bool Search::addService(Service service)
 {
-	dlog_print(DLOG_INFO, "MSF", "Search::addService()");
+	MSF_DBG("Search::addService()");
 	bool match = false;
 	for (std::list<Service>::iterator it = services.begin(); it != services.end(); it++) {
 		if ((*it).getId() == service.getId()) {
@@ -401,57 +367,10 @@ bool Search::removeService(Service service)
 void Search::removeAndNotify(Service service)
 {
 	if (removeService(service)) {
-		//		if (onServiceLostListener != NULL) {
-		//		searchListener->onLost(service);
-		//		}
 	}
 }
 
 void Search::validateService(Service service)
 {
-	/*
-	class ResultSearchServiceCallback : public Result_Base
-	{
-		public:
-			void onSuccess(Service abc)
-			{
-				MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-			}
-
-			void onError(Error)
-			{
-				MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-			}
-	};
-
-	Result_Base *rService;
-
-	ResultSearchServiceCallback *r1Service = new ResultSearchServiceCallback();
-
-	rService = r1Service;
-
-	Service::getByURI(service.getUri(), SERVICE_CHECK_TIMEOUT, rService);
-	delete r1Service;
-	rService = r1Service = NULL;
-	*/
-	/*
-	@Override
-	public void onSuccess(Service result) {
-	// We can contact the service, so keep it in the master
-	// list.
-	}
-
-	@Override
-	public void onError(Error error) {
-
-	// If we cannot validate the existence of the service,
-	// then we will remove it from the master list.
-	removeAndNotify(service);
-
-	for (SearchProvider provider:providers) {
-	provider.removeService(service);
-	}
-	}
-	});*/
 }
 
