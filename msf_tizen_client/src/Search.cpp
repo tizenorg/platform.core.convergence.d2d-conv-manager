@@ -34,6 +34,7 @@ int Search::search_ref_count = 0;
 list<Search*> Search::search_list;
 list<Service> Search::services;
 int Search::onStartNotified;
+bool Search::pt_update_start = false;
 
 int Search::numRunning;
 
@@ -96,14 +97,14 @@ void  Search::st_onStop()
 
 void  Search::st_onFound(Service service)
 {
-	dlog_print(DLOG_INFO, "MSF", "Search::onFound()");
+	dlog_print(DLOG_INFO, "MSF", "Search::st_onFound()");
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 
 	addService(service);
 
 	list<Search*>::iterator itr;
 
-	dlog_print(DLOG_INFO, "MSF", "Search::onFound() list size = %d", search_list.size());
+	dlog_print(DLOG_INFO, "MSF", "Search::st_onFound() list size = %d", search_list.size());
 
 	for (itr = search_list.begin(); itr != search_list.end(); itr++) {
 		if ((*itr)->searchListener != NULL && (*itr)->searching_now) {
@@ -116,6 +117,8 @@ void  Search::st_onLost(Service service)
 {
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	//validateService(service);
+
+	removeService(service);
 
 	list<Search*>::iterator itr;
 
@@ -302,6 +305,17 @@ void *Search::pt_startMSFD(void *arg)
 	return NULL;
 }
 
+void *Search::pt_update_alivemap(void *arg)
+{
+	pt_update_start = true;
+
+	while (pt_update_start) {
+		sleep(5);
+		dlog_print(DLOG_INFO, "MSF", "call reap");
+		SearchProvider::reapServices();
+	}
+}
+
 void Search::startDiscovery()
 {
 	dlog_print(DLOG_INFO, "MSF", "Search::startDiscovery()");
@@ -323,9 +337,12 @@ void Search::startDiscovery()
 
 	ret = pthread_create(&threads[MSFD_THREAD_NUMBER], NULL, pt_startMSFD, NULL);
 	dlog_print(DLOG_INFO, "MSF", "MSFD thread created");
-
 	if (ret == -1)
 		cout << "Fail to create MSFD search provider\n";
+
+	ret = pthread_create(&threads[UPDATE_THREAD_NUMBER], NULL, pt_update_alivemap, NULL);
+	if (ret == -1)
+		cout << "Fail to create pthread_update_alivemap\n";
 
 	onStart();
 }
@@ -337,16 +354,21 @@ void Search::stopDiscovery()
 	bool stop = false;
 	stop = provider1.stop();
 	stop = provider2.stop();
+	pt_update_start = false;
 
 	if (stop)
 		onStop();
 
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 
-	pthread_cancel(threads[1]);
-	pthread_join(threads[1], NULL);
+	pthread_cancel(threads[MSFD_THREAD_NUMBER]);
+	pthread_join(threads[MSFD_THREAD_NUMBER], NULL);
 
-	dlog_print(DLOG_INFO, "MSF", "MDNS MSFD thread joined");
+	pthread_cancel(threads[UPDATE_THREAD_NUMBER]);
+	pthread_join(threads[UPDATE_THREAD_NUMBER], NULL);
+
+	dlog_print(DLOG_INFO, "MSF", "MSFD thread joined");
+	dlog_print(DLOG_INFO, "MSF", "update alivemap thread joined");
 	dlog_print(DLOG_INFO, "MSF", "Search::stop discovery end");
 }
 

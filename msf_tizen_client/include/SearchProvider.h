@@ -65,19 +65,20 @@ public:
 	bool isSearching();
 	void setSearchListener(Search *obj);
 	std::string getIP(std::string url);
+	void addService(Service service);
+	void push_in_alivemap(long ttl, string id , int service_type);
+	void updateAlive(long ttl, string id , int service_type);
+	static void reapServices();
 
 protected:
 	bool searching;
 	void setServices(list<Service>);
-	void addService(Service service);
-	void removeService(Service service);
-	void removeServiceAndNotify(Service service);
+	static void removeService(Service service);
+	static void removeServiceAndNotify(Service service);
 	void clearServices();
 	Service getServiceById(string id);
-	Service getServiceByIp(string ip);
+	static Service getServiceByIp(string ip);
 	static map<string, ttl_info> aliveMap;
-	void updateAlive(long ttl, string id , int service_type);
-	void reapServices();
 
 };
 

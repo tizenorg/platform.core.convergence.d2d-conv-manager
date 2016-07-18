@@ -17,18 +17,17 @@
 #ifndef __MSF_SEARCH_H__
 #define __MSF_SEARCH_H__
 
-//#include"Service.h"
 #include <list>
 #include"SearchProvider.h"
 #include <list>
 #include <pthread.h>
 #include <string>
 #include"mDNSSearchProvider.h"
-//#include"MSFDSearchProvider.h"
 
-#define NUM_OF_THREADS 2
+#define NUM_OF_THREADS 3
 #define MDNS_THREAD_NUMBER 0
 #define MSFD_THREAD_NUMBER 1
+#define UPDATE_THREAD_NUMBER 2
 
 using namespace std;
 
@@ -88,12 +87,9 @@ private :
 	bool searching_now;
 	static mDNSSearchProvider provider1;
 	static MSFDSearchProvider provider2;
-	//OnStartListener *onStartListener;
-	//OnStopListener *onStopListener;
-	//OnServiceFoundListener *onServiceFoundListener;
-	//OnServiceLostListener *onServiceLostListener;
 
 public:
+	static bool pt_update_start;
 	static pthread_t threads[NUM_OF_THREADS];
 	static int onStartNotified;
 	//static Search* getInstance();
@@ -123,19 +119,16 @@ public:
 	void startDiscovery();
 	void stopDiscovery();
 	static bool addService(Service);
-	bool removeService(Service);
+	static bool removeService(Service);
 	void removeAndNotify(Service);
 	void validateService(Service);
-	//void setOnStartListener(OnStartListener *);
-	//void setOnStopListener(OnStopListener);
-	//void setOnServiceFoundListener(OnServiceFoundListener);
-	//void setOnServiceLostListener(OnServiceLostListener);
 	Service getServiceById(string id);
 
 	void setSearchListener(SearchListener*);
 	void releaseSearchListener();
 	static void *pt_startMDNS(void *);
 	static void *pt_startMSFD(void *);
+	static void *pt_update_alivemap(void *arg);
 };
 
 #endif
