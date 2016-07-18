@@ -168,7 +168,6 @@ static void dnssd_browse_reply(dnssd_service_state_e service_state, dnssd_servic
 			MSF_DBG("Un-Available : [%d]", id.c_str());
 			provider->updateAlive(0, id, MDNS);
 			service_id_adapter.erase(iter);
-			provider->reapServices();
 			return;
 		case DNSSD_SERVICE_STATE_NAME_LOOKUP_FAILED:
 			MSF_DBG("Lookup failure for service name");
@@ -299,7 +298,7 @@ void MDNSServiceCallback::onSuccess(Service service)
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
 	provider->addService(service);
 	string ip = provider->getIP(service.getUri());
-	provider->updateAlive(0x00ffffff, ip, MDNS);
+	provider->push_in_alivemap(0x00ffffff, ip, MDNS);
 	MSF_DBG("service : id( %s ) registerd.", ip.c_str());
 }
 
