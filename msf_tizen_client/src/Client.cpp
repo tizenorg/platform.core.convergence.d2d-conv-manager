@@ -43,7 +43,6 @@ void Client::create(Channel *channel, string Id, long long ConnectTime,  /*map<s
 	connectTime = ConnectTime;
 	attributes = attr;
 	m_channel = channel;
-	//return client;
 }
 
 bool Client::isHost()

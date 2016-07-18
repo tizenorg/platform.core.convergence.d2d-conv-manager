@@ -60,8 +60,6 @@ Message::Message(Channel *ch, string event, string data, string from, unsigned c
 	}
 
 	m_payload[payload_size] = 0;
-
-	dlog_print(DLOG_INFO, "MSF", "Message Test 1");
 }
 
 Message::Message()

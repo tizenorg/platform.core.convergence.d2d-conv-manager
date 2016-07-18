@@ -67,9 +67,7 @@ ChannelConnectionHandler::ChannelConnectionHandler() {
 }
 
 Channel::Channel() {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("Channel()");
 	clientisHost = false;
 	isWrite = false;
 	buflen = 0;
@@ -89,7 +87,7 @@ Channel::Channel() {
 }
 
 Channel::Channel(Service *service1, string uri1) {
-	dlog_print(DLOG_INFO, "MSF", "Channel()");
+	MSF_DBG("Channel()");
 	clientisHost = false;
 	isWrite = false;
 	buflen = 0;
@@ -111,11 +109,7 @@ Channel::Channel(Service *service1, string uri1) {
 }
 
 Channel *Channel::create(Service *service, string uri) {
-	dlog_print(DLOG_INFO, "MSF", "Channel()");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-	fprintf(stderr, "\n********************************\n");
+	MSF_DBG("Channel::create()");
 	if ((service == NULL) || uri.length() <= 0)
 		return NULL;
 	Channel *channel = new Channel(service, uri);
@@ -123,9 +117,7 @@ Channel *Channel::create(Service *service, string uri) {
 }
 
 Channel::~Channel() {
-	dlog_print(DLOG_INFO, "MSF", "~Channel()");
-	//connect_cb = NULL;
-	//disconnect_cb = NULL;
+	MSF_DBG("~Channel()");
 	onConnectListener = NULL;
 	onDisconnectListener = NULL;
 	onClientConnectListener = NULL;
@@ -169,10 +161,7 @@ void Channel::init_json_key_map() {
 
 void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 								JsonNode *node, gpointer user_data) {
-	dlog_print(DLOG_INFO, "MSF", "foreach_json_object name : %s", name);
 	if (json_keys.find(name) == json_keys.end()) {
-		dlog_print(DLOG_INFO, "MSF",
-					"foreach_json_object : there is no %s in map", name);
 		return;
 	}
 
@@ -195,7 +184,7 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 			!strncmp(p->eventType.c_str(), CONNECT_EVENT.c_str(), 25)) {
 			p->client.create(p, p->clientid, p->clientconnectTime,
 							 p->clientisHost, map<string, string>());
-			dlog_print(DLOG_INFO, "MSF", "add clientList");
+			MSF_DBG("add clientList");
 			p->clientList.push_back(p->client);
 		}
 	} break;
@@ -203,7 +192,7 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 	// key : connectTime
 	case JSON_KEY_CONNECT_TIME: {
 		p->clientconnectTime = json_node_get_int(node);
-		dlog_print(DLOG_INFO, "MSF", "clientconnectTime set as %lld",
+		MSF_DBG("clientconnectTime set as %lld",
 					p->clientconnectTime);
 	} break;
 
@@ -213,7 +202,7 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 	case JSON_KEY_STATUS: {
 		if (iferror) {
 			p->errstatus = json_node_get_int(node);
-			dlog_print(DLOG_INFO, "MSF", "p->errstatus set");
+			MSF_DBG("p->errstatus set");
 		}
 	} break;
 
@@ -222,10 +211,9 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 		if (iferror) {
 			p->errcode = json_node_get_int(node);
 			string eid = std::to_string(p->msg_id);
-			dlog_print(DLOG_INFO, "MSF", "p->errcode set");
+			MSF_DBG("p->errcode set");
 
 			if (p->callbacks.find(eid) != p->callbacks.end()) {
-				dlog_print(DLOG_INFO, "MSF", "test 1");
 				pair<void *, int> temp = p->getcallback(eid);
 				if (temp.first != NULL) {
 					Result_Base *temp1 = (Result_Base *)(temp.first);
@@ -236,7 +224,6 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 					err.append(p->errMsg);
 					err.append(" code:");
 					err.append(to_string(p->errcode));
-					dlog_print(DLOG_INFO, "MSF", "test 2");
 					if (temp1)
 						temp1->onError(Error::create(err));
 					if (p->onErrorListener)
@@ -255,13 +242,13 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 		if (json_node_get_node_type(node) == JSON_NODE_VALUE) {
 			p->resultresp = json_node_get_boolean(node);
 			if (p->resultresp) {
-				dlog_print(DLOG_INFO, "MSF", "set resultresp as true");
+				MSF_DBG("set resultresp as true");
 			} else {
-				dlog_print(DLOG_INFO, "MSF", "set resultresp as false");
+				MSF_DBG("set resultresp as false");
 			}
 			p->msg_subject = Message::PROPERTY_RESULT;
 		} else if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
-			dlog_print(DLOG_INFO, "MSF", "set resultobj");
+			MSF_DBG("set resultobj");
 			g_free(p->resultobj);
 			p->resultobj = json_node_dup_object(node);
 		}
@@ -273,7 +260,7 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 			if (json_node_get_value_type(node) == G_TYPE_INT ||
 				json_node_get_value_type(node) == G_TYPE_INT64) {
 				p->msg_id = json_node_get_int(node);
-				dlog_print(DLOG_INFO, "MSF", "msg-id set as %d", p->msg_id);
+				MSF_DBG("msg-id set as %d", p->msg_id);
 			} else if (json_node_get_value_type(node) == G_TYPE_STRING) {
 
 				if (json_object_has_member(root_json_object, Message::PROPERTY_EVENT.c_str())) {
@@ -283,11 +270,11 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 
 				if ((p->eventType == CLIENT_CONNECT_EVENT) || arrayofclients) {
 					p->clientid = json_node_get_string(node);
-					dlog_print(DLOG_INFO, "MSF", "clientid set as = %s",
+					MSF_DBG("clientid set as = %s",
 								p->clientid.c_str());
 				} else {
 					p->from = json_node_get_string(node);
-					dlog_print(DLOG_INFO, "MSF", "from set as = %s",
+					MSF_DBG("from set as = %s",
 								p->from.c_str());
 				}
 			}
@@ -298,10 +285,10 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 	case JSON_KEY_ERROR: {
 		if (json_node_get_node_type(node) == JSON_NODE_VALUE) {
 			iferror = 1;
-			dlog_print(DLOG_INFO, "MSF", "iferror set as 1");
+			MSF_DBG("iferror set as 1");
 		} else if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
 			iferror = 1;
-			dlog_print(DLOG_INFO, "MSF", "iferror set as 1");
+			MSF_DBG("iferror set as 1");
 			// g_free(p->errobj);
 			p->errobj = true;
 			json_object_foreach_member(json_node_get_object(node),
@@ -312,33 +299,33 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 	// key : MESSAGE::PROPERTY_EVENT
 	case JSON_KEY_EVENT: {
 		p->eventType = json_node_get_string(node);
-		dlog_print(DLOG_INFO, "MSF", "eventType set as = %s",
+		MSF_DBG("eventType set as = %s",
 					p->eventType.c_str());
 	} break;
 
 	// key : MESSAGE::PROPERTY_FROM
 	case JSON_KEY_FROM: {
 		p->from = json_node_get_string(node);
-		dlog_print(DLOG_INFO, "MSF", "from set as = %s", p->from.c_str());
+		MSF_DBG("from set as = %s", p->from.c_str());
 	} break;
 
 	// key : MESSAGE::PROPERTY_MESSAGE
 	case JSON_KEY_MESSAGE: {
 		p->errMsg = json_node_get_string(node);
-		dlog_print(DLOG_INFO, "MSF", "errMsg set as = %s", p->errMsg.c_str());
+		MSF_DBG("errMsg set as = %s", p->errMsg.c_str());
 	} break;
 
 	// key : MESSAGE::PROPERTY_METHOD
 	case JSON_KEY_METHOD: {
 		p->method = json_node_get_string(node);
-		dlog_print(DLOG_INFO, "MSF", "method set as = %s", p->method.c_str());
+		MSF_DBG("method set as = %s", p->method.c_str());
 	} break;
 	// key : MESSAGE:PROPERTY_DATA
 	case JSON_KEY_DATA: {
 		if (json_node_get_node_type(node) == JSON_NODE_VALUE) {
 			if (json_node_get_value_type(node) == G_TYPE_STRING) {
 				p->data = json_node_get_string(node);
-				dlog_print(DLOG_INFO, "MSF", "data set as = %s",
+				MSF_DBG("data set as = %s",
 							p->data.c_str());
 			}
 		} else if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
@@ -350,10 +337,10 @@ void Channel::foreach_json_object(JsonObject *object, const gchar *name,
 	// key : MESSAGE:PROPERTY_CLIENTS
 	case JSON_KEY_CLIENTS: {
 		arrayofclients = true;
-		dlog_print(DLOG_INFO, "MSF", "array start");
+		MSF_DBG("array start");
 		json_array_foreach_element(json_node_get_array(node),
 									foreach_json_array, user_data);
-		dlog_print(DLOG_INFO, "MSF", "array end");
+		MSF_DBG("array end");
 		arrayofclients = false;
 	} break;
 
@@ -369,7 +356,7 @@ void Channel::foreach_json_array(JsonArray *array, guint index, JsonNode *node,
 }
 
 void Channel::json_parse(const char *in) {
-	dlog_print(DLOG_INFO, "MSF", "Channel::json_parse : %s", in);
+	MSF_DBG("Channel::json_parse : %s", in);
 
 	JsonParser *parser = json_parser_new();
 
@@ -383,7 +370,7 @@ void Channel::json_parse(const char *in) {
 										foreach_json_object, this);
 		}
 	} else {
-		dlog_print(DLOG_ERROR, "MSF", "json_parsing error");
+		MSF_DBG("json_parsing error");
 	}
 }
 
@@ -408,18 +395,13 @@ void Channel::setConnectionTimeout(long timeout) {
 }
 
 void Channel::handleConnectMessage(string UID) {
-	dlog_print(DLOG_INFO, "MSF", "handleConnectMessage(uid)");
 
 	clients->reset();
 	clients->add(clientList);
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 
 	clients->setMyClientId(from);
 
 	handleConnect(UID);
-	dlog_print(DLOG_INFO, "MSF", "handleConnectMessage(uid) 1");
 }
 
 void Channel::handleMessage(string UID) { handleMessage(UID, NULL); }
@@ -433,65 +415,35 @@ void Channel::handleMessage(string UID, unsigned char payload[]) {
 
 		handleApplicationMessage(UID);
 	} else if (eventType == CLIENT_CONNECT_EVENT) {
-		dlog_print(DLOG_INFO, "MSF", "call handleClientConnectMessage");
 		handleClientConnectMessage();
 	} else if (eventType == CLIENT_DISCONNECT_EVENT) {
-		dlog_print(DLOG_INFO, "MSF", "call handleclientdisconnect");
 		handleClientDisconnectMessage();
 	} else if (eventType == ERROR_EVENT) {
-		dlog_print(DLOG_INFO, "MSF", "call handleErrorMessage");
 		handleErrorMessage(UID);
 	} else if (eventType == READY_EVENT) {
-		dlog_print(DLOG_INFO, "MSF", "call handleReadyMessage");
 		handleReadyMessage();
 	} else {
-		dlog_print(DLOG_INFO, "MSF", "call handleClientMessage 2");
 		handleClientMessage(data.c_str(), payload);
 	}
 }
 
 void Channel::handleApplicationMessage(string uid) {
-	dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 1");
-	MSF_DBG(
-		"[MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",
-		__FUNCTION__, __LINE__, __FILE__);
 	string messageId = uid;
 	bool errorMap = errobj;
-	dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 2");
 	pair<void *, int> temp = getcallback(messageId);
 
-	dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 3");
 
 	if (temp.first != NULL) {
-		dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 4");
 		if ((waitForOnReady) && (errorMap == false)) {
-			dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 5");
-			MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in "
-					"file [%s] \n",
-					__FUNCTION__, __LINE__, __FILE__);
 			onReadyCallbacks.insert(temp);
 			if (!isLaunched) {
-				dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 6");
-				MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] "
-						"in file [%s] \n",
-						__FUNCTION__, __LINE__, __FILE__);
 				isLaunched = true;
 			} else {
-				dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 7");
-				MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] "
-						"in file [%s] \n",
-						__FUNCTION__, __LINE__, __FILE__);
-				// handleClientDisconnectMessage();
 				isLaunched = false;
 			}
 		}
 
 		if (temp.second == Result_bool) {
-			dlog_print(DLOG_INFO, "MSF", "handleApplicationMessage 8");
-			MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in "
-					"file [%s] \n",
-					__FUNCTION__, __LINE__, __FILE__);
-			//doApplicationCallback((Result_Base *)(temp.first));
 			((Result_Base*)temp.first)->onSuccess(resultresp);
 		}
 	} else {
@@ -500,24 +452,12 @@ void Channel::handleApplicationMessage(string uid) {
 }
 
 void Channel::doApplicationCallback(Result_Base *result1) {
-	dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 1");
-	MSF_DBG(
-		"[MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",
-		__FUNCTION__, __LINE__, __FILE__);
 	if (resultobj != NULL) {
-		dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 2");
-		MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in file "
-				"[%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 	}
 
 	bool errorMap = errobj;
 
 	if (errorMap != false) {
-		dlog_print(DLOG_ERROR, "MSF", "doApplicationCallback 3");
-		MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in file "
-				"[%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 		int code = errcode;
 		stringstream ss;
 		ss << code;
@@ -525,26 +465,16 @@ void Channel::doApplicationCallback(Result_Base *result1) {
 		if (result1 != NULL)
 			result1->onError(Error::create(str));
 	} else {
-		dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 4");
-
-		MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in file "
-				"[%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
-		//	ApplicationInfo *InfoObj=new ApplicationInfo();
 		if (resultobj != NULL) {
-			dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 5");
 			//	string json=json_object_to_json_string(resultobj);
 			//	InfoObj->create(json);
 			if (result1 != NULL) {
-				dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 6");
 				result1->onSuccess(true);
 			}
 		}
 
 		if (msg_subject == Message::PROPERTY_RESULT) {
-			dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 7");
 			if (result1 != NULL) {
-				dlog_print(DLOG_INFO, "MSF", "doApplicationCallback 8");
 				result1->onSuccess(true);
 			}
 		}
@@ -559,9 +489,6 @@ void Channel::handleErrorMessage(string UID) {
 void Channel::handleError(string UID, Error err) {
 	if (UID.length() != 0) {
 		pair<void *, int> temp = Channel::getcallback(UID);
-		MSF_DBG("[MSF : API] Debug log Function : [%s] and line [%d] in file "
-				"[%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 		if (temp.first != NULL) {
 			if (temp.second == Result_Client) {
 				Result_Base *temp1 = (Result_Base *)(temp.first);
@@ -580,19 +507,13 @@ void Channel::handleError(string UID, Error err) {
 }
 
 void Channel::handleClientMessage(const char *msg, unsigned char payload[]) {
-	dlog_print(DLOG_INFO, "MSF", "handleClientMessage 0");
-
 	emit(eventType, msg, from, cl_payload, cl_payload_size);
 }
 
 void Channel::emit(string event, const char *msg, string from,
 					unsigned char *payld, int payld_size) {
-	dlog_print(DLOG_INFO, "MSF", "emit");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	if (msg == NULL) {
-		dlog_print(DLOG_INFO, "MSF", "emit msg = NULL");
+		MSF_DBG("emit msg = NULL");
 		return;
 	}
 
@@ -607,19 +528,15 @@ void Channel::emit(string event, const char *msg, string from,
 	}
 
 	if (messageListeners.size() != 0) {
-		dlog_print(DLOG_INFO, "MSF", "emit 1");
 
 		if (messageListeners.find(event) == messageListeners.end()) {
-			dlog_print(DLOG_INFO, "MSF", "map not found");
 			return;
 		}
 
 		list<OnMessageListener *> &onMessageListeners =
 			(messageListeners.find(event))->second;
-		dlog_print(DLOG_INFO, "MSF", "emit 2");
 
 		if (onMessageListeners.size() != 0) {
-			dlog_print(DLOG_INFO, "MSF", "emit 3");
 			std::list<OnMessageListener *>::const_iterator iterator;
 			for (iterator = onMessageListeners.begin();
 				 iterator != onMessageListeners.end(); ++iterator) {
@@ -627,7 +544,6 @@ void Channel::emit(string event, const char *msg, string from,
 				(*iterator)->onMessage(mesg);
 			}
 		} else {
-			dlog_print(DLOG_INFO, "MSF", "empty listeners");
 		}
 	}
 }
@@ -640,11 +556,9 @@ bool Channel::connect(Result_Base *result1) {
 }
 
 bool Channel::connect(map<string, string> attributes, Result_Base *result1) {
-	dlog_print(DLOG_INFO, "MSF", "Channel::connect(at, res)");
 
 	string uid = getUID();
 
-	dlog_print(DLOG_INFO, "MSF", "connect call registercallback");
 	registerCallback(uid, (void *)result1, Result_Client);
 
 	UID = uid;
@@ -668,18 +582,13 @@ bool Channel::connect(map<string, string> attributes, Result_Base *result1) {
 }
 
 void Channel::disconnect() {
-	dlog_print(DLOG_INFO, "MSF", "channel disconnect()");
+	MSF_DBG("channel disconnect()");
 	disconnect(NULL);
 }
 
 void Channel::disconnect(Result_Base *result1) {
-	dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 1");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	string randID = getUID();
 	UID = randID;
-	dlog_print(DLOG_INFO, "MSF", "disconnect call registercallback");
 	registerCallback(randID, (void *)result1, Result_Client);
 	string message = "";
 
@@ -692,22 +601,15 @@ void Channel::disconnect(Result_Base *result1) {
 	if (message != "") {
 		handleError(UID, Error::create(message));
 	} else {
-		dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 2");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in "
-				"file [%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 		disconnecting = true;
 		// consume the callback
 		getcallback(randID);
-
-		dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 3");
 
 		while (1) {
 			if (mirror_lifetime > 0)
 				mirror_lifetime--;
 
 			if (!mirror_lifetime) {
-				dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 4");
 				break;
 			}
 		}
@@ -715,8 +617,6 @@ void Channel::disconnect(Result_Base *result1) {
 		connectionHandler->stopPing();
 
 		was_closed = 1;
-
-		dlog_print(DLOG_INFO, "MSF", "channel disconnect(result) 5");
 
 		disconnecting = false;
 	}
@@ -739,55 +639,37 @@ void Channel::handleReadyMessage() {
 }
 
 void Channel::handleClientConnectMessage() {
-	dlog_print(DLOG_INFO, "MSF", "handleClientConnectMessage");
+	MSF_DBG("handleClientConnectMessage");
 
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	if (client.isHost())
 		connected = true;
 
 	clients->add(client);
 
-	dlog_print(DLOG_INFO, "MSF", "handleClientConnectMessage client = %s",
-				client.getId());
-	MSF_DBG("\n Debug Log: CLIENTLIST SIZE IS [%d], %s %d in %s \n",
-			clients->size(), __FUNCTION__, __LINE__, __FILE__);
 	if (onClientConnectListener != NULL)
 		onClientConnectListener->onClientConnect(client);
 }
 
 void Channel::handleClientDisconnectMessage() {
-	dlog_print(DLOG_INFO, "MSF", "handle client disconnect Message event = %s",
-				eventType.c_str());
-
+	MSF_DBG("handleClientDisConnectMessage");
 	if (resultresp && isLaunched) {
-		dlog_print(DLOG_INFO, "MSF", "handleclientdisconnectMessage 1");
 		handleSocketClosed();
 		return;
 	}
 
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	Client client = clients->get(clientid);
 	if (client.isHost()) {
-		dlog_print(DLOG_INFO, "MSF", "handleclientdisconnectMessage 2");
 		connected = false;
 	}
 	clients->remove(client);
 
 	if (onClientDisconnectListener != NULL) {
-		dlog_print(DLOG_INFO, "MSF", "handleclientdisconnectMessage 3");
 		onClientDisconnectListener->onClientDisconnect(client);
 	}
 }
 
 void Channel::handleConnect(string UID) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-	dlog_print(DLOG_INFO, "MSF", "handleConnect");
+	MSF_DBG("handleConnect");
 	Client clienttemp = clients->me();
 
 	pair<void *, int> temp;
@@ -811,25 +693,20 @@ void Channel::handleConnect(string UID) {
 	if (isWebSocketOpen()) {
 		// connectionHandler->startPing(this);
 	}
-
-	dlog_print(DLOG_INFO, "MSF", "handleConnect 1");
 }
 
 void Channel::handleSocketClosedAndNotify() {
+	MSF_DBG("handleSocketClosedAndNotify");
 	Client client = clients->me();
 	handleSocketClosed();
 
 	if (Channel::onDisconnectListener != NULL) {
-		dlog_print(DLOG_INFO, "MSF", "handleSocketClosedAndNotify");
 		Channel::onDisconnectListener->onDisconnect(client);
 	}
 }
 
 void Channel::handleSocketClosed() {
-	dlog_print(DLOG_INFO, "MSF", "handleSocketClosed");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("handleSocketClosed");
 	connectionHandler->stopPing();
 	wsi_mirror = NULL;
 	connected = false;
@@ -849,40 +726,24 @@ void Channel::write_socket(Channel* ch_p)
 		if (&(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]) == NULL ||
 				ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING] == 0 ||
 				ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING] == '\0') {
-			printf("\ntry write NULL data");
-			fflush(stdout);
 		} else {
-			// printf("\ntry write data = %s",
-			// &(this_ptr->buf[LWS_SEND_BUFFER_PRE_PADDING]));
-			// printf("\ndata size = %d", this_ptr->buflen);
-			fflush(stdout);
 		}
 
 		if (ch_p->buflen <= 0) {
-			printf("\ntry write 0 size data");
-			fflush(stdout);
 		}
 
-		// printf("\nwrite socket");
-		// fflush(stdout);
 		if (ch_p->binary_message) {
 			n = lws_write(ch_p->wsi_mirror,
 					&(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]),
 					ch_p->buflen, LWS_WRITE_BINARY);
-			dlog_print(DLOG_INFO, "MSF", "write binary message\n%s", &(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING+2]));
 		} else {
 			n = lws_write(ch_p->wsi_mirror,
 					&(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]),
 					ch_p->buflen, LWS_WRITE_TEXT);
-			dlog_print(DLOG_INFO, "MSF", "write text message\n%s", &(ch_p->buf[LWS_SEND_BUFFER_PRE_PADDING]));
 		}
 
 		if (n < 0) {
 			MSF_DBG("Writing failed\n");
-			dlog_print(DLOG_ERROR, "MSF", "socket write failed");
-			printf("\nwrite socket failed");
-			printf("\ncallback isWrite=false");
-			fflush(stdout);
 		}
 	}
 }
@@ -912,29 +773,23 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 		break;
 
 	case LWS_CALLBACK_CLOSED:
-		dlog_print(DLOG_INFO, "MSF_SOCKET", "call handleSocketClosedAndNotify");
 		this_ptr->handleSocketClosedAndNotify();
 		break;
 
 	case LWS_CALLBACK_CLIENT_ESTABLISHED:
-		MSF_DBG("[MSF LOG]: LWS_CALLBACK_CLIENT_ESTABLISHED [%s]\n",
-				__FUNCTION__);
-		//lws_callback_on_writable(wsi);
 		break;
 
 	case LWS_CALLBACK_CLIENT_RECEIVE:
 		if (this_ptr == NULL) {
-			dlog_print(DLOG_INFO, "MSF", "user ptr is NULL. return.");
 			// it means Channel object was deleted
 			return -1;
 		} else {
-			dlog_print(DLOG_INFO, "MSF", "user ptr is not NULL.");
 		}
 
 		this_ptr->eventType = "";
 
 		if (lws_frame_is_binary(wsi)) {
-			dlog_print(DLOG_INFO, "MSF", "BINARY MESSAGE ARRIVED");
+			MSF_DBG("BINARY MESSAGE ARRIVED");
 
 			int header_size = 0;
 
@@ -942,14 +797,14 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 			header_size = header_size << 8;
 			header_size = header_size & 0xff00;
 			header_size = header_size | (int)((unsigned char *)in)[1];
-			dlog_print(DLOG_INFO, "MSF", "header_size = %d", header_size);
+			MSF_DBG("header_size = %d", header_size);
 
 			char header_json[header_size + 1] = {0};
 
 			memcpy(&header_json[0], &(((unsigned char *)in)[2]), header_size);
 			header_json[header_size + 1] = 0;
 
-			dlog_print(DLOG_INFO, "MSF", "in = %s", &header_json[0]);
+			MSF_DBG("in = %s", &header_json[0]);
 
 			this_ptr->json_parse(header_json);
 			memcpy(&(this_ptr->cl_payload),
@@ -959,7 +814,7 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 			this_ptr->cl_payload[len - 2 - header_size] = 0;
 			this_ptr->cl_payload_size = len - 2 - header_size;
 
-			dlog_print(DLOG_INFO, "MSF", "payload = %s",
+			MSF_DBG("payload = %s",
 						&(this_ptr->cl_payload[0]));
 
 			this_ptr->connectionHandler->resetLastPingReceived();
@@ -971,23 +826,10 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 				this_ptr->handleMessage(this_ptr->UID, this_ptr->cl_payload);
 			}
 		} else {
-			dlog_print(DLOG_INFO, "MSF", "TEXT MESSAGE ARRIVED");
-			MSF_DBG("[MSF LOG]LWS_CALLBACK_RECEIVE_ESTABLISHED:\t");
-			MSF_DBG("\n%s\n", (char *)in);
-			fprintf(stderr, "\n %s \n", (char *)in);
-			dlog_print(DLOG_INFO, "MSF", "socket in = %s", (char *)in);
+			MSF_DBG("TEXT MESSAGE ARRIVED");
 			this_ptr->json_parse((char *)in);
 			this_ptr->connectionHandler->resetLastPingReceived();
 
-			// dead code.
-			// server do not send METHOD_EMIT now
-			/*
-				if (!((this_ptr->method).compare(Message::METHOD_EMIT))) {
-				this_ptr->emit(this_ptr->eventType, (this_ptr->data).c_str(),
-				this_ptr->from, this_ptr->Payload);
-				break;
-				}
-			 */
 			if (this_ptr->eventType == CONNECT_EVENT) {
 				this_ptr->handleConnectMessage(this_ptr->UID);
 			} else {
@@ -996,7 +838,6 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 			}
 		}
 
-		dlog_print(DLOG_INFO, "MSF", "Socket receive end ");
 		break;
 
 	case LWS_CALLBACK_CLIENT_WRITEABLE:
@@ -1004,13 +845,9 @@ int Channel::callback_lws_mirror(struct lws *wsi,
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
-		dlog_print(DLOG_INFO, "MSF_SOCKET", "socket LWS_CALLBACK_RECEIVE %d",
-					reason);
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
-		dlog_print(DLOG_INFO, "MSF_SOCKET",
-					"socket LWS_CALLBACK_PROTOCOL_DESTROY %d", reason);
 		break;
 
 	case LWS_CALLBACK_CLIENT_CONFIRM_EXTENSION_SUPPORTED:
@@ -1048,9 +885,6 @@ string Channel::getChannelUri(map<string, string> *attributes) {
 }
 
 void Channel::publish(string event, const char *data) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	string to = "\"";
 	to.append(Message::TARGET_ALL.c_str());
 	to.append("\"");
@@ -1060,11 +894,6 @@ void Channel::publish(string event, const char *data) {
 
 void Channel::publish(string event, const char *data, unsigned char payload[],
 					int payload_size) {
-	dlog_print(DLOG_INFO, "MSF", "publishMessage");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	string to = "\"";
 	to.append(Message::TARGET_ALL.c_str());
 	to.append("\"");
@@ -1072,10 +901,6 @@ void Channel::publish(string event, const char *data, unsigned char payload[],
 }
 
 void Channel::publish(string event, const char *data, const char *target) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	string to = "\"";
 	to.append(target);
 	to.append("\"");
@@ -1084,10 +909,6 @@ void Channel::publish(string event, const char *data, const char *target) {
 
 void Channel::publish(string event, const char *data, const char *target,
 					unsigned char payload[], int payload_size) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	string to = "\"";
 	to.append(target);
 	to.append("\"");
@@ -1095,10 +916,6 @@ void Channel::publish(string event, const char *data, const char *target,
 }
 
 void Channel::publish(string event, const char *data, Client client) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	string to = "\"";
 	to.append(client.getId());
 	to.append("\"");
@@ -1107,10 +924,6 @@ void Channel::publish(string event, const char *data, Client client) {
 
 void Channel::publish(string event, const char *data, Client client,
 					unsigned char payload[], int payload_size) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	string to = "\"";
 	to.append(client.getId());
 	to.append("\"");
@@ -1144,10 +957,6 @@ void Channel::publish(string event, const char *data, list<Client> clients,
 
 void Channel::publishMessage(string event, const char *data, const char *to,
 							 unsigned char payload[], int payload_size) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	publishMessage(Message::METHOD_EMIT, event, data, to, payload,
 					payload_size);
 }
@@ -1155,24 +964,10 @@ void Channel::publishMessage(string event, const char *data, const char *to,
 void Channel::publishMessage(string method, string event, const char *data,
 							 const char *to, unsigned char payload[],
 							 int payload_size) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
-
 	if (!isWebSocketOpen()) {
 		handleError(string(), Error::create("Not Connected"));
 		return;
 	} else {
-		// int l=0;
-		// l += sprintf((char *)&buf[LWS_SEND_BUFFER_PRE_PADDING]," {\n
-		// \"method\": \"%s\",\n \"params\": {\n \"event\": \"%s\",\n \"data\":
-		// \"%s\",\n \"to\": \"%s\"\n }\n}",method.c_str(),event.c_str(),
-		// (unsigned char*)data, (unsigned char*)to);
-
-		// unsigned char *bufer=new char[LWS_SEND_BUFFER_PRE_PADDING + 4096
-		// +LWS_SEND_BUFFER_POST_PADDING];
-		// bufer=prepareMessageMap(method,event,data,to);
-
 		long prepare_buf_len = 0;
 		unsigned char *prepare_buf = prepareMessageMap(
 			method, event, data, to, &prepare_buf_len, payload, payload_size);
@@ -1183,32 +978,19 @@ void Channel::publishMessage(string method, string event, const char *data,
 		buf[LWS_SEND_BUFFER_PRE_PADDING + prepare_buf_len] = 0;
 
 		buflen = prepare_buf_len;
-		// buf code
-		// for(int i=0; i<buflen;i++)
-		//	buf[i]=prepare_buf[i];
-
-		// buf[buflen] = 0;
 
 		delete[](prepare_buf);
 
-		MSF_DBG("buf is = %s %d \n", &buf[LWS_SEND_BUFFER_PRE_PADDING], buflen);
-		// buflen=l;
-		// messagedata=((char*)data);
-
 		if (binary_message) {
-			dlog_print(DLOG_INFO, "MSF", "publish buffer = %s",
+			MSF_DBG("publish buffer = %s",
 						&buf[LWS_SEND_BUFFER_PRE_PADDING + 2]);
 		} else {
-			dlog_print(DLOG_INFO, "MSF", "publish buffer = %s",
+			MSF_DBG("publish buffer = %s",
 						&buf[LWS_SEND_BUFFER_PRE_PADDING]);
 		}
 
-		// if (bufer)
-		//	free(bufer);
-
 		isWrite = true;
 		lws_callback_on_writable(wsi_mirror);
-		// printf("\npublish isWrite=true\n");
 	}
 }
 
@@ -1226,8 +1008,8 @@ unsigned char *Channel::prepareMessageMap(string method, string event,
 	if (payload) {
 		l += snprintf((char *)&prepare_buf[LWS_SEND_BUFFER_PRE_PADDING + 2],
 				prepare_buf_size - (LWS_SEND_BUFFER_PRE_PADDING + 2),
-					 "{\n \"method\": \"%s\",\n \"params\": {\n \"event\": "
-					 "\"%s\",\n \"data\": \"%s\",\n \"to\": %s\n }\n}",
+					 "{\"method\": \"%s\",\"params\": {\"event\": "
+					 "\"%s\",\"data\": \"%s\",\"to\": %s}}",
 					 method.c_str(), event.c_str(), (unsigned char *)data,
 					 (unsigned char *)to);
 
@@ -1237,12 +1019,6 @@ unsigned char *Channel::prepareMessageMap(string method, string event,
 			(unsigned char)header_size;
 		prepare_buf[LWS_SEND_BUFFER_PRE_PADDING] =
 			(unsigned char)((header_size) >> 8);
-
-		dlog_print(DLOG_INFO, "MSF", "publish header size = %d", header_size);
-		dlog_print(DLOG_INFO, "MSF", "buf[1] = %d",
-					(char)prepare_buf[LWS_SEND_BUFFER_PRE_PADDING + 1]);
-		dlog_print(DLOG_INFO, "MSF", "buf[0] = %d",
-					(char)prepare_buf[LWS_SEND_BUFFER_PRE_PADDING]);
 
 		l += 2;
 
@@ -1255,13 +1031,12 @@ unsigned char *Channel::prepareMessageMap(string method, string event,
 	} else {
 		l += snprintf((char *)&prepare_buf[LWS_SEND_BUFFER_PRE_PADDING],
 					prepare_buf_size - LWS_SEND_BUFFER_PRE_PADDING,
-					"{\n \"method\": \"%s\",\n \"params\": {\n \"event\": "
-					"\"%s\",\n \"data\": \"%s\",\n \"to\": %s\n }\n}",
+					"{\"method\": \"%s\",\"params\": {\"event\": "
+					"\"%s\",\"data\": \"%s\",\"to\": %s}}",
 					method.c_str(), event.c_str(), (unsigned char *)data,
 					(unsigned char *)to);
 		binary_message = false;
 	}
-	MSF_DBG("buf is = %s %d \n", &buf[LWS_SEND_BUFFER_PRE_PADDING], l);
 
 	*prepare_buf_len = l;
 	return prepare_buf;
@@ -1275,26 +1050,16 @@ void Channel::start_app(char *data, int buflength, string msgID) {
 
 	l += snprintf((char *)&buf[LWS_SEND_BUFFER_PRE_PADDING],
 			sizeof(buf) - LWS_SEND_BUFFER_PRE_PADDING, "%s", data);
-	MSF_DBG("buf is = %s %d \n", &buf[LWS_SEND_BUFFER_PRE_PADDING], l);
 	buflen = l;
 	buf[LWS_SEND_BUFFER_PRE_PADDING + l] = 0;
 
-	dlog_print(DLOG_INFO, "MSF", "start_app() buf = %s",
-				&buf[LWS_SEND_BUFFER_PRE_PADDING]);
 	binary_message = false;
 
 	isWrite = true;
 	lws_callback_on_writable(wsi_mirror);
-	printf("start_app isWrite=true");
-
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 }
 
 void Channel::registerCallback(string uid, void *callback, int value_type) {
-	dlog_print(DLOG_INFO, "MSF", "registerCallback uid = %s value_type = %d",
-				uid.c_str(), value_type);
 	callbacks[uid] = make_pair(callback, value_type);
 }
 
@@ -1304,8 +1069,7 @@ pair<void *, int> Channel::getcallback(string uid) {
 	map<string, pair<void *, int>>::iterator check_it = callbacks.find(uid);
 
 	if (check_it == callbacks.end()) {
-		dlog_print(DLOG_ERROR, "MSF",
-					"callbacks map not found. critical error");
+		MSF_DBG("callbacks map not found. critical error");
 		return pair<void *, int>();
 	}
 
@@ -1314,12 +1078,12 @@ pair<void *, int> Channel::getcallback(string uid) {
 
 		callbacks.erase(uid);
 
-		dlog_print(DLOG_INFO, "MSF", "getcallback success uid = %s",
+		MSF_DBG("getcallback success uid = %s",
 					uid.c_str());
 		return r1;
 	}
 
-	dlog_print(DLOG_INFO, "MSF", "getcallback failed", uid.c_str());
+	MSF_DBG("getcallback failed", uid.c_str());
 	return pair<void *, int>();
 }
 
@@ -1355,7 +1119,6 @@ void Channel::create_websocket(void *att) {
 
 	int use_ssl = 0;
 	int n = 0;
-	// int ret = 0;
 	map<string, string> *attributes = (map<string, string> *)(att);
 	string uri = getChannelUri(attributes);
 
@@ -1382,25 +1145,19 @@ void Channel::create_websocket(void *att) {
 // info.extensions = lws_get_internal_extensions();
 #endif
 	if (isWebSocketOpen()) {
-		MSF_DBG("\nAlready Connected");
-		dlog_print(DLOG_INFO, "MSF", "create_websocket already Connected");
-		// return 0;
+		MSF_DBG("create_websocket already Connected");
+		return;
 	}
 	context = lws_create_context(&info);
 	Context = context;
 	if (context == NULL) {
 		MSF_DBG("Creating libwebsocket context failed\n");
-		dlog_print(DLOG_ERROR, "MSF", "create_websocket context failed");
-		// return 1;
+		return;
 	}
 	n = 0;
 	get_ip_port_from_uri(uri, &server_ip_address, &server_port);
 	string api = getapifromUri(uri);
 	api.append("channels/").append(ChannelID);
-
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 
 	struct lws_client_connect_info connect_info;
 	connect_info.context = context;
@@ -1423,9 +1180,7 @@ void Channel::create_websocket(void *att) {
 		if (wsi_mirror == NULL) {
 			wsi_mirror = lws_client_connect_via_info(&connect_info);
 			if (wsi_mirror == NULL) {
-				MSF_DBG("Fail to create was_mirror[%s] [%d]\n", __FUNCTION__,
-						__LINE__);
-				dlog_print(DLOG_ERROR, "MSF", "create_websocket create wsi failed");
+				MSF_DBG("Fail to create was_mirror");
 				handleError(UID, Error::create("ConnectFailed"));
 				break;
 			}
@@ -1437,23 +1192,20 @@ void Channel::create_websocket(void *att) {
 			break;
 	}
 
-	dlog_print(DLOG_INFO, "MSF", "create_websocket destroy context");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("create_websocket destroy context");
 	if (context)
 		lws_context_destroy(context);
+
 	context = NULL;
 	wsi_mirror = NULL;
 }
 
 void Channel::get_ip_port_from_uri(string uri, string* dest_ip, int* dest_port) {
-	MSF_DBG("parsing uri : %s", uri.c_str());
 	unsigned int http_index = uri.find("http");
 	unsigned int ip_index = 0;
 	bool is_https = false;
 
-	if (http_index == -1) {
+	if (http_index == std::string::npos) {
 		//there is no http string
 	} else {
 	}
@@ -1530,21 +1282,6 @@ void Channel::setonClientConnectListener(OnClientConnectListener *obj) {
 }
 
 void Channel::unsetonClientConnectListener() { onClientConnectListener = NULL; }
-
-/*
-	void Channel::setmessageListeners(list<OnMessageListener>
-	onMessageListenerlist){
-	std::list<OnMessageListener>::const_iterator iterator;
-	std::list<OnMessageListener>::const_iterator it;
-	for (iterator = onMessageListenerlist.begin(),it =onMessageListeners.begin();
-	iterator != onMessageListenerlist.end(); ++iterator,++it)
-	{
-	it=iterator;
-	}
-
-	}
-	}
- */
 
 void Channel::addOnMessageListener(string event,
 									OnMessageListener *onMessageListener) {
@@ -1648,47 +1385,23 @@ void ChannelConnectionHandler::calculateAverageRT() {
 }
 
 void ChannelConnectionHandler::stopPing() {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	if (ping_thread != 0) {
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in "
-				"file [%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 		pthread_cancel(ping_thread);
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in "
-				"file [%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 		pthread_join(ping_thread, NULL);
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in "
-				"file [%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
 		running = false;
 		ping_thread = 0;
-		printf("ping thread close");
-		fflush(stdout);
 	}
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 }
 
 void ChannelConnectionHandler::startPing(Channel *ptr) {
-	dlog_print(DLOG_INFO, "MSF", "## startPing ###");
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
+	MSF_DBG("## startPing ###");
 	if (running) {
-		dlog_print(DLOG_INFO, "MSF",
-					"## startPing already running. return ###");
+		MSF_DBG("startPing already running. return ###");
 		return;
 	}
 	stopPing();
 	if (pingTimeout <= 0) {
-		dlog_print(DLOG_INFO, "MSF", "## startPing ping timeout. return ###");
-		MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in "
-				"file [%s] \n",
-				__FUNCTION__, __LINE__, __FILE__);
+		MSF_DBG("## startPing ping timeout. return ###");
 		return;
 	}
 	running = true;
@@ -1701,20 +1414,20 @@ void ChannelConnectionHandler::startPing(Channel *ptr) {
 
 	int err = pthread_create(&ping_thread, NULL, Pinging, ptr);
 	if (err) {
-		dlog_print(DLOG_INFO, "MSF", "pthread_create failed err = %d", err);
+		MSF_DBG("pthread_create failed err = %d", err);
 	}
 	// Need to check this
 	// Pinging(ptr);
 }
 
 void ChannelConnectionHandler::ping_again(void *arg) {
-	dlog_print(DLOG_INFO, "MSF", "## ping again ###");
+	MSF_DBG("## ping again ###");
 	Channel *ptr = static_cast<Channel *>(arg);
 	long now = time(0);
 
 	if (now > ptr->connectionHandler->lastPingReceived +
 				ptr->connectionHandler->pingTimeout) {
-		dlog_print(DLOG_INFO, "MSF", "## Pinging timeout. disconnect ###");
+		MSF_DBG("## Pinging timeout. disconnect ###");
 		ptr->disconnect();
 	} else {
 		ptr->publish("msfVersion2", "msfVersion2", ptr->clients->me());
@@ -1725,29 +1438,17 @@ void ChannelConnectionHandler::ping_again(void *arg) {
 }
 
 void *ChannelConnectionHandler::Pinging(void *arg) {
-	dlog_print(DLOG_INFO, "MSF", "## Pinging ###");
+	MSF_DBG("## Pinging ###");
 
 	Channel *ptr = static_cast<Channel *>(arg);
 
 	while (1) {
 		ping_again(ptr);
-		dlog_print(DLOG_INFO, "MSF", "## pinging 1 ###");
 		// usleep(ptr->connectionHandler->pingTimeout);
 		sleep(5);
 	}
 }
 
 void ChannelConnectionHandler::setPingTimeout(long t) {
-	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file "
-			"[%s] \n",
-			__FUNCTION__, __LINE__, __FILE__);
 	pingTimeout = t;
 }
-
-//void Channel::set_connect_result(Result_Base *r) { connect_cb = r; }
-
-//void Channel::unset_connect_result() { connect_cb = NULL; }
-
-//void Channel::set_disconnect_result(Result_Base *r) { disconnect_cb = r; }
-
-//void Channel::unset_disconnect_result() { disconnect_cb = NULL; }
