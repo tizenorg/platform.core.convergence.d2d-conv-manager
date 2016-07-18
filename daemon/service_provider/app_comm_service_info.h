@@ -222,14 +222,23 @@ namespace conv {
 	typedef vector<application_instance*> application_instance_list_t;
 
 	// service information to handle app-to-app service with specific device 'id'
-	class app_comm_service_info : public service_info_base {
+	class app_comm_service_info : public service_info_base, public Result_Base {
 		public:
+			void onSuccess(Service service)
+			{
+				_D("getByUri : service name : %s", service.getName().c_str() ? service.getName().c_str() : "name is NULL");
+				service_obj = service;
+				get_service_result = true;
+			}
+
+			void onError(Error)
+			{
+				_D("getByUri Error");
+				get_service_result = false;
+			}
+
 			~app_comm_service_info()
 			{
-				if (service_obj != NULL) {
-					delete service_obj;
-				}
-
 				if (registered_request != NULL) {
 					delete registered_request;
 				}
@@ -241,8 +250,9 @@ namespace conv {
 				}
 			}
 			std::string id;
-			Service* service_obj;
+			Service service_obj;
 			bool is_local;
+			bool get_service_result;
 			conv::request* registered_request;
 
 			application_instance_list_t application_instance_list;

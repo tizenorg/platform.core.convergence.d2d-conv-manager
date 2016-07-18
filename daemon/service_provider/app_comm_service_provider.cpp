@@ -109,8 +109,8 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 			ASSERT_ALLOC(svc_info);
 
 			_D("uri : %s", uri.c_str());
-			svc_info->service_obj = new(std::nothrow) Service(id, version, name, type, uri);
-			ASSERT_ALLOC(svc_info->service_obj);
+			Service::getByURI(uri, 2000, svc_info);
+			IF_FAIL_RETURN_TAG(svc_info->get_service_result == true, CONV_ERROR_INVALID_OPERATION, _E, "getByURI failed");
 			svc_info->is_local = false;
 			client_obj->add_service_info(_type, id, (service_info_base*)svc_info);
 
@@ -183,7 +183,7 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		svc_info->application_instance_list.push_back(app_info);
 	} else {
 		_D("COMMUNCATION_START : uri : %s, channel_id : %s", uri.c_str(), channel_id.c_str());
-		Application* application = new(std::nothrow) Application(svc_info->service_obj, uri, channel_id);
+		Application* application = new(std::nothrow) Application(&(svc_info->service_obj), uri, channel_id);
 		ASSERT_ALLOC(application);
 
 		// add listeners
