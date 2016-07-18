@@ -348,39 +348,6 @@ void Service::createdata_process(string data, void *dev_result_ptr)
 	}
 }
 
-void Service::foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data)
-{
-	if (json_node_get_node_type(node) == JSON_NODE_VALUE) {
-		if (!strncmp(key, "id", 2)) {
-			serviceval.infoId = json_node_get_string(node);
-			dlog_print(DLOG_ERROR, "MSF", "infoId set as %s", serviceval.infoId.c_str());
-			//cout<<"\nID : \t"<<serviceval.infoId <<"\n";
-		} else if (!strncmp(key, "version", 4)) {
-			serviceval.infoVersion = json_node_get_string(node);
-			dlog_print(DLOG_ERROR, "MSF", "infoVersion set as %s", serviceval.infoVersion.c_str());
-		} else if (!strncmp(key, "name", 7)) {
-			serviceval.infoName = json_node_get_string(node);
-			dlog_print(DLOG_ERROR, "MSF", "infoName set as %s", serviceval.infoName.c_str());
-		} else if (!strncmp(key, "type", 7)) {
-			serviceval.infotype = json_node_get_string(node);
-			dlog_print(DLOG_ERROR, "MSF", "infotype set as %s", serviceval.infotype.c_str());
-
-		} else if (!strncmp(key, "uri", 7)) {
-			serviceval.infoURI = json_node_get_string(node);
-			dlog_print(DLOG_ERROR, "MSF", "infoURI set as %s", serviceval.infoURI.c_str());
-		}
-	} else if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
-		if (!strncmp(key, "device", 7)) {
-			MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
-			if (user_data != NULL) {
-				Device dev = Device::create(node);
-				(static_cast<Result_Base *>(user_data))->onSuccess(dev);
-			}
-		}
-	}
-}
-
-
 int Service::json_parse_service(const char *in, void *ptr)
 {
 	MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
@@ -389,76 +356,43 @@ int Service::json_parse_service(const char *in, void *ptr)
 	JsonParser *parser = json_parser_new();
 
 	if (json_parser_load_from_data(parser, in, -1, NULL)) {
-		JsonNode *node = json_parser_get_root(parser);
-
-		if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
-			json_object_foreach_member(json_node_get_object(node), foreach_json_object, ptr);
-		}
-
 	} else {
 		dlog_print(DLOG_ERROR, "MSF", "json_parsing error");
 	}
 
-	/*
-	dlog_print(DLOG_INFO, "MSF", "Service json_parse_service()");
-	void *result_ptr = ptr;
-	enum json_type typed;
-	json_object_object_foreach(jobj, key, val) {
-		typed = json_object_get_type(val);
-		switch (typed) {
-			case json_type_null:
-				break;
+	JsonObject *root = json_node_get_object(json_parser_get_root(parser));
 
-			case json_type_boolean:
-				break;
+	if (json_object_has_member(root, "id")) {
+		serviceval.infoId = json_object_get_string_member(root, "id");
+		dlog_print(DLOG_ERROR, "MSF", "infoId set as %s", serviceval.infoId.c_str());
+	}
 
-			case json_type_double:
-				break;
+	if (json_object_has_member(root, "version")) {
+		serviceval.infoVersion = json_object_get_string_member(root, "version");
+		dlog_print(DLOG_ERROR, "MSF", "infoVersion set as %s", serviceval.infoVersion.c_str());
+	}
 
-			case json_type_int:
-				break;
+	if (json_object_has_member(root, "name")) {
+		serviceval.infoName = json_object_get_string_member(root, "name");
+		dlog_print(DLOG_ERROR, "MSF", "infoName set as %s", serviceval.infoName.c_str());
+	}
 
-			case json_type_object:
-				dlog_print(DLOG_INFO, "MSF", "Service json_parse_service() 2");
-				if (!strncmp(key , "device", 7)) {
-					dlog_print(DLOG_INFO, "MSF", "Service json_parse_service() 3");
+	if (json_object_has_member(root, "type")) {
+		serviceval.infotype = json_object_get_string_member(root, "type");
+		dlog_print(DLOG_ERROR, "MSF", "infotype set as %s", serviceval.infotype.c_str());
+	}
 
-					MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
-					if (result_ptr != NULL) {
-						dlog_print(DLOG_INFO, "MSF", "Service json_parse_service() 4");
-						MSF_DBG("\n Debug Log: SERVICE FOUND THROUGH  WITH URI [%s] [%d] in %s \n", __FUNCTION__, __LINE__, __FILE__);
+	if (json_object_has_member(root, "uri")) {
+		serviceval.infoURI = json_object_get_string_member(root, "uri");
+		dlog_print(DLOG_ERROR, "MSF", "infoURI set as %s", serviceval.infoURI.c_str());
+	}
 
-						Device dev = Device::create(val);
-						(static_cast<Result_Base *> (result_ptr))->onSuccess(dev);
-						result_ptr=NULL;
-					}
-				}
-				break;
-
-			case json_type_array:
-				break;
-
-			case json_type_string:
-				if (!strncmp(key , "id", 2)) {
-					serviceval.infoId = json_object_get_string(val);
-					//cout<<"\nID : \t"<<serviceval.infoId <<"\n";
-				}
-				else if (!strncmp(key , "version", 4)) {
-					serviceval.infoVersion = json_object_get_string(val);
-				}
-				else if (!strncmp(key , "name", 7)) {
-					serviceval.infoName = json_object_get_string(val);
-				}
-				else if (!strncmp(key , "type", 7)) {
-					serviceval.infotype = json_object_get_string(val);
-				}
-				else if (!strncmp(key , "uri", 7)) {
-					serviceval.infoURI = json_object_get_string(val);
-				}
-				break;
+	if (json_object_has_member(root, "device")) {
+		if (ptr != NULL) {
+			Device dev = Device::create(json_object_get_member(root, "device"));
+			(static_cast<Result_Base *>(ptr))->onSuccess(dev);
 		}
 	}
-	*/
 
 	if ((Resulturi!= NULL)) {
 		dlog_print(DLOG_INFO, "MSF", "json_parse_service() call onSuccess()");

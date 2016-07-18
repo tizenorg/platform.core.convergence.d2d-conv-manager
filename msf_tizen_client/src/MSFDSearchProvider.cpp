@@ -25,6 +25,7 @@
 #include "Debug.h"
 #include "Error.h"
 #include "Result.h"
+#include "Channel.h"
 #define MSGBUFSIZE 1000
 #define MULTICAST_PORT 8001
 #define MULTICAST_GROUP "224.0.0.7"
@@ -44,6 +45,28 @@ int MSFDSearchProvider::SERVICE_CHECK_TIMEOUT = 5000;
 
 int MSFDSearchProvider::flag = 0;
 long MSFDSearchProvider::ttl = 0;
+
+class ResultMSFDServiceCallback : public Result_Base
+{
+	public:
+		MSFDSearchProvider* MSFDSearchProvider_pointer = NULL;
+		long ttl;
+		string ip_id;
+		int provider_type;
+
+		void onSuccess(Service abc)
+		{
+			MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+			MSFDSearchProvider_pointer->push_in_alivemap(ttl, ip_id, provider_type);
+			MSFDSearchProvider_pointer->addService(abc);
+		}
+
+		void onError(Error)
+		{
+			MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
+		}
+};
+
 
 MSFDSearchProvider::MSFDSearchProvider()
 {
@@ -84,7 +107,6 @@ void MSFDSearchProvider::start()
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	clearServices();
 
-	receive = false;
 	createMSFD();
 }
 
@@ -146,13 +168,10 @@ void MSFDSearchProvider::createMSFD()
 	while (1) {
 		addrlen = sizeof(msf_server_addr);
 		if ((nbytes = recvfrom(fd, msgbuf, MSGBUFSIZE, 0, (struct sockaddr *) &msf_server_addr, &addrlen)) < 0) {
-			receive = false;
-			reapServices();
 			if (fd < 1)
 				return;
 		} else {
 			msgbuf[nbytes] = '\0';
-			receive = true;
 			processReceivedMsg(msgbuf, nbytes);
 		}
 	}
@@ -160,85 +179,47 @@ void MSFDSearchProvider::createMSFD()
 
 void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 {
-	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg start");
-	if (buf != NULL) {
-	}
+	if (buf == NULL)
+		return;
 
-	while(receive) {
-	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg 1");
-		reapServices();
-	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg 2");
-		string data;
-		data.append(buf, buflen);
-		json_parse(data.c_str());
+	dlog_print(DLOG_INFO, "MSF", "msfd = %s", buf);
 
-		//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg after parse");
+	json_parse(buf);
 
-		if (state == TYPE_DISCOVER) {
-			//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg state = discover");
-			continue;
-		}
+	string ip;
+	int port = 0;
 
-		if (id.length() > 0) {
-			//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg id length > 0");
-			Service serv =	getServiceById(id);
-			Service *serv1 = &serv;
+	Channel::get_ip_port_from_uri(url, &ip, &port);
+	map<string,ttl_info>::iterator itr = aliveMap.find(ip);
 
-			if (serv.getId() != "") {
-				receive = false;
-			}
+	if (state == TYPE_DISCOVER) {
+		dlog_print(DLOG_INFO, "MSF", "discover packet.");
+		return;
+	} else if (state == STATE_ALIVE || state == STATE_UP) {
 
-			string ip;
-			if (!url.empty()) {
-				ip = getIP(url);
-			}
-
-			if (state == STATE_ALIVE || state == STATE_UP) {
-				map<string,ttl_info>::iterator i=aliveMap.find(id);
-				if (((serv.getId()).length() == 0)) {//&&(i==aliveMap.end()))
-					static string tempid = getIP(url);
-					updateAlive(ttl, tempid, MSFD);
-					static map<string, ttl_info>* tempaliveMap=&aliveMap;
-					static MSFDSearchProvider *MSFDSearchProvider_pointer = this;
-
-					class ResultMSFDServiceCallback : public Result_Base
-					{
-						public:
-							void onSuccess(Service abc)
-							{
-								MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-								MSFDSearchProvider_pointer->updateAlive(ttl, tempid, MSFD);
-								//(*tempaliveMap)[tempid]=tempttl;
-								MSFDSearchProvider_pointer->addService(abc);
-							}
-
-							void onError(Error)
-							{
-								MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
-								tempaliveMap->erase(tempid);
-								//aliveMap.erase(id);
-							}
-					};
-					Result_Base *rService = NULL;
-					ResultMSFDServiceCallback *r1Service = new ResultMSFDServiceCallback();
-					rService = r1Service;
-					Service::getByURI(url, SERVICE_CHECK_TIMEOUT, rService);
-
-					// ........ critical bug
-					//delete r1Service;
-					//r1Service = rService = NULL;
-				} else {
-					updateAlive(ttl, ip, MSFD);
-				}
-			} else if ((serv1->getId() != "") && (state == STATE_DOWN)) {
-				aliveMap.erase(id);
-				removeServiceAndNotify(serv);
-			}
+		if (itr == aliveMap.end()) {
+			ResultMSFDServiceCallback *rService = new ResultMSFDServiceCallback();
+			rService->MSFDSearchProvider_pointer = this;
+			rService->ttl = ttl;
+			rService->provider_type = MSFD;
+			rService->ip_id = ip;
+			dlog_print(DLOG_INFO, "MSF", "there is no ip %s in aliveMap. call getByURI", ip.c_str());
+			Service::getByURI(url, SERVICE_CHECK_TIMEOUT, rService);
 		} else {
-			receive = false;
+			dlog_print(DLOG_INFO, "MSF", "already exist. call updateAlive");
+			updateAlive(ttl, ip, MSFD);
+		}
+	} else if (state == STATE_DOWN) {
+		if (itr != aliveMap.end()) {
+			aliveMap.erase(ip);
+		}
+
+		Service serv =	getServiceById(id);
+
+		if (serv.getId().length() != 0) {
+			removeServiceAndNotify(serv);
 		}
 	}
-	//dlog_print(DLOG_INFO, "MSF", "MSFD processReceivedMsg end");
 }
 
 void MSFDSearchProvider::foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data)
@@ -294,7 +275,6 @@ bool MSFDSearchProvider::stop()
 	//if (!searching) {
 	//	return false;
 	//}
-	receive = false;
 	shutdown(fd, SHUT_RDWR);
 	close(fd);
 	fd = 0;

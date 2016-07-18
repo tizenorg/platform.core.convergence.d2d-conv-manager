@@ -65,6 +65,7 @@ bool ttl_info::is_expired()
 	long now = time(0);
 
 	MSF_DBG("Expired => msfd : %d, mdns : %d", msfd_ttl < now, mdns_ttl < now);
+	dlog_print(DLOG_INFO, "MSF", "Expired => msfd : %d, mdns : %d", msfd_ttl < now, mdns_ttl < now);
 	if (msfd_ttl < now && mdns_ttl < now)
 		return true;
 	else
@@ -196,6 +197,23 @@ bool SearchProvider::isSearching()
 		return false;
 }
 
+void SearchProvider::push_in_alivemap(long ttl, string id, int service_type)
+{
+	MSF_DBG("updateAlive : ttl = %d, id = %s, service_type = %d", ttl, id.c_str(), service_type);
+
+	if (id.empty()) {
+		return;
+	}
+
+	if (aliveMap.find(id) == aliveMap.end()) {
+		ttl_info info;
+		info.update_ttl(time(0) + ttl, service_type);
+		aliveMap[id] = info;
+	} else {
+		updateAlive(ttl, id, service_type);
+	}
+}
+
 void SearchProvider::updateAlive(long ttl, string id, int service_type)
 {
 	MSF_DBG("updateAlive : ttl = %d, id = %s, service_type = %d", ttl, id.c_str(), service_type);
@@ -203,11 +221,17 @@ void SearchProvider::updateAlive(long ttl, string id, int service_type)
 	if (id.empty()) {
 		return;
 	}
-	long _ttl=time(0) + ttl;
-	ttl_info info = aliveMap[id];
-	MSF_DBG("mdns ttl : %d , msfd ttl : %d", info.get_ttl(MDNS), info.get_ttl(MSFD));
-	info.update_ttl(_ttl, service_type);
-	aliveMap[id]=info;
+
+	if (aliveMap.find(id) == aliveMap.end()) {
+	} else {
+		long _ttl=time(0) + ttl;
+
+		ttl_info info = aliveMap[id];
+
+		MSF_DBG("mdns ttl : %d , msfd ttl : %d", info.get_ttl(MDNS), info.get_ttl(MSFD));
+		info.update_ttl(_ttl, service_type);
+		aliveMap[id]=info;
+	}
 }
 
 void SearchProvider::reapServices()

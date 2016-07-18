@@ -170,6 +170,7 @@ public:
 				enum lws_callback_reasons reason, void *user,
 				void *in, size_t len);
 	static void *pt_startConnect(void *arg);
+	static void get_ip_port_from_uri(string uri, string* dest_ip, int* dest_port);
 
 	Clients *clients; //=new Clients(this );
 
@@ -180,7 +181,6 @@ protected:
 	void disconnect(Result_Base *result1);
 	void registerCallback(string, void *, int);
 	void handleError(string, Error);
-	void get_ip_port_from_uri(string uri);
 	string getapifromUri(string uri);
 	string getUID();
 

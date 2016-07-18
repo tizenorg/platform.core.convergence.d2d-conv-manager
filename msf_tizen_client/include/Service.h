@@ -91,7 +91,6 @@ public:
 	static int json_parse_service(const char *in,  void *);
 	static Service create(ServiceInfo);
 	static Service create(map<string, string>);
-	static void foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data);
 	Channel *createChannel(string uri);
 	Application createApplication(string uri);
 	Application createApplication(string uri, string channelId);
