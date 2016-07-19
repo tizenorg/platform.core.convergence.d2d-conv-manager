@@ -69,14 +69,13 @@ public:
 	virtual void onLost(Service);
 };
 
-class Search:public SearchListener
+class Search
 {
 private :
 	static int SERVICE_CHECK_TIMEOUT;
 	static Search *instance;
 	list<SearchProvider> providers ;
 	list<SearchProvider> removedProviders ;
-	static list<Service> services;
 
 	static int numRunning;
 	SearchListener *searchListener;
@@ -85,10 +84,11 @@ private :
 	static int search_ref_count;
 	static bool stopping;
 	bool searching_now;
-	static mDNSSearchProvider provider1;
-	static MSFDSearchProvider provider2;
+	static mDNSSearchProvider provider_mdns;
+	static MSFDSearchProvider provider_msfd;
 
 public:
+	static list<Service> services;
 	static bool pt_update_start;
 	static pthread_t threads[NUM_OF_THREADS];
 	static int onStartNotified;
@@ -100,27 +100,17 @@ public:
 	bool stop();
 
 	static list<Search*> search_list;
-	void onStart();
-	void onStop();
-	void onFound(Service);
-	void onLost(Service);
-	static void st_onStart();
-	static void st_onStop();
-	static void st_onFound(Service);
-	static void st_onLost(Service);
+	static void onStart();
+	static void onStop();
+	static void onFound(Service);
+	static void onLost(Service);
 
-	bool isEqualto(SearchProvider, SearchProvider);
-	list<Service> getServices();
-	bool remove(list<SearchProvider> *, SearchProvider);
-	void addProvider(SearchProvider);
-	//bool removeProvider(SearchProvider);
-	//void processRemovedProviders();
-	//void removeAllProviders();
+	static list<Service> getServices();
 	void startDiscovery();
 	void stopDiscovery();
 	static bool addService(Service);
 	static bool removeService(Service);
-	void removeAndNotify(Service);
+	static void removeServiceAndNotify(Service);
 	void validateService(Service);
 	Service getServiceById(string id);
 

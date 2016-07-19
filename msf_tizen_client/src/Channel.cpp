@@ -1273,7 +1273,7 @@ void Channel::create_websocket(void *att) {
 			}
 		}
 
-		n = lws_service(Context, -1);
+		n = lws_service(Context, 3000);
 
 		if (n < 0)
 			break;

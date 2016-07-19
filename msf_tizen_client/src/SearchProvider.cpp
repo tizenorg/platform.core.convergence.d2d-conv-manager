@@ -20,7 +20,6 @@
 #include "SearchProvider.h"
 #include "Debug.h"
 
-list<Service> SearchProvider::services;
 map<string, ttl_info> SearchProvider::aliveMap;
 
 ttl_info::ttl_info(long ttl, int service_type):msfd_ttl(0), mdns_ttl(0)
@@ -61,6 +60,8 @@ bool ttl_info::is_expired()
 {
 	long now = time(0);
 
+	MSF_DBG("msfd_remain_ttl = %d mdns_remain_ttl = %d", msfd_ttl - now, mdns_ttl - now);
+
 	if (msfd_ttl < now && mdns_ttl < now)
 		return true;
 	else
@@ -78,10 +79,10 @@ SearchProvider::SearchProvider(Search *searchListen)
 	searching = false;
 }
 
-list<Service> SearchProvider::getServices()
-{
-	return services;
-}
+//list<Service> SearchProvider::getServices()
+//{
+//	return services;
+//}
 
 void SearchProvider::setServices(list<Service> listofservices)
 {
@@ -89,73 +90,22 @@ void SearchProvider::setServices(list<Service> listofservices)
 	if (listofservices.size() != 0) {
 		std::list<Service>::const_iterator iterator;
 		for (iterator = listofservices.begin(); iterator != listofservices.end(); ++iterator) {
-			services.push_back(*iterator);
+			Search::services.push_back(*iterator);
 		}
 	}
 }
 
-void SearchProvider::setSearchListener(Search *obj)
-{
-	searchListener = obj;
-}
 
-void SearchProvider::addService(Service service)
-{
-	bool found = false;
-
-	std::list<Service>::iterator iterator;
-
-	bool match = false;
-
-	for (iterator = services.begin(); iterator != services.end(); ++iterator) {
-		if (iterator->getId() == service.getId()) {
-			match = true;
-			break;
-		}
-	}
-
-	if (!match) {
-		services.push_back(service);
-		found = true;
-
-		if (found) {
-			Search::st_onFound(service);
-		}
-	} else {
-	}
-}
-
-void SearchProvider::removeService(Service service)
-{
-	if (&service == NULL) {
-		return;
-	}
-
-	std::list<Service>::iterator it = services.begin();
-	while (it != services.end()) {
-		if (((*it).getId()) == (service.getId())) {
-			services.erase(it++);
-		} else {
-			it++;
-		}
-	}
-}
-
-void SearchProvider::removeServiceAndNotify(Service service)
-{
-	removeService(service);
-	Search::st_onLost(service);
-}
 
 void SearchProvider::clearServices()
 {
-	services.clear();
+	Search::services.clear();
 }
 
 Service SearchProvider::getServiceById(string id)
 {
 	std::list<Service>::iterator iterator;
-	for (iterator = services.begin(); iterator != services.end(); ++iterator) {
+	for (iterator = Search::services.begin(); iterator != Search::services.end(); ++iterator) {
 		if (((*iterator).getId()) == id) {
 			return(*iterator);
 		}
@@ -166,7 +116,7 @@ Service SearchProvider::getServiceById(string id)
 Service SearchProvider::getServiceByIp(string ip)
 {
 	std::list<Service>::iterator iterator;
-	for (iterator = services.begin(); iterator != services.end(); ++iterator) {
+	for (iterator = Search::services.begin(); iterator != Search::services.end(); ++iterator) {
 
 		string url = (*iterator).getUri();
 		std::string::size_type pos = url.find(ip);
@@ -204,9 +154,10 @@ void SearchProvider::push_in_alivemap(long ttl, string id, int service_type)
 
 void SearchProvider::updateAlive(long ttl, string id, int service_type)
 {
-	MSF_DBG("updateAlive : ttl = %d, id = %s, service_type = %d", ttl, id.c_str(), service_type);
+	MSF_DBG("updateAlive : ttl = %d, id = %s, service_type = %s", ttl, id.c_str(), (service_type == 1)? "MSFD" : "MDNS");
 
 	if (id.empty()) {
+		MSF_DBG("updateAlive id is empty");
 		return;
 	}
 
@@ -230,7 +181,7 @@ void SearchProvider::reapServices()
 			Service service=getServiceByIp(it->first);
 			MSF_DBG("reapServices - Remove service : [%s]", service.getId().c_str());
 			aliveMap.erase(it->first);
-			removeServiceAndNotify(service);
+			Search::removeServiceAndNotify(service);
 		}
 	}
 }
