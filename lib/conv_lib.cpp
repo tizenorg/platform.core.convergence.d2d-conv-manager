@@ -22,6 +22,7 @@
 #include <map>
 #include <string>
 #include <cstring>
+#include <vconf.h>
 
 #include "common.h"
 #include "d2d_conv_service.h"
@@ -235,4 +236,36 @@ EXTAPI int conv_device_foreach_service(conv_device_h handle, conv_service_foreac
 	return CONV_ERROR_NONE;
 	//LCOV_EXCL_STOP
 }
+/*
+EXTAPI int conv_internal_set_activation_state(int activation_state)
+{
+	int error = vconf_set_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE, activation_state);
+	IF_FAIL_RETURN_TAG(error >= 0, CONV_ERROR_INVALID_OPERATION, _E, "vconf error (%d)", error);
 
+	return CONV_ERROR_NONE;
+}
+
+EXTAPI int conv_internal_get_activation_state(int* activation_state)
+{
+	int error = vconf_get_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE, activation_state);
+	IF_FAIL_RETURN_TAG(error >= 0, CONV_ERROR_INVALID_OPERATION, _E, "vconf error (%d)", error);
+
+	return CONV_ERROR_NONE;
+}
+
+EXTAPI int conv_internal_set_service_activation_state(int activation_state)
+{
+	int error = vconf_set_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE_SERVICE, activation_state);
+	IF_FAIL_RETURN_TAG(error >= 0, CONV_ERROR_INVALID_OPERATION, _E, "vconf error (%d)", error);
+
+	return CONV_ERROR_NONE;
+}
+
+EXTAPI int conv_internal_get_service_activation_state(int* activation_state)
+{
+	int error = vconf_get_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE_SERVICE, activation_state);
+	IF_FAIL_RETURN_TAG(error >= 0, CONV_ERROR_INVALID_OPERATION, _E, "vconf error (%d)", error);
+
+	return CONV_ERROR_NONE;
+}
+*/
