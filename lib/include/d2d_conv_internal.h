@@ -32,6 +32,18 @@ extern "C" {
  */
 
 /**
+ * @brief	The internal value to set app-to-app communication service
+ * @since_tizen 3.0
+ */
+#define CONV_INTERNAL_SERVICE_APP_TO_APP_COMMUNICATION 0x0001
+
+/**
+ * @brief	The internal value to set remote app-control service
+ * @since_tizen 3.0
+ */
+#define CONV_INTERNAL_SERVICE_REMOTE_APP_CONTROL 0x0002
+
+/**
  * @brief		Exports json string from channel.
  * @since_tizen 3.0
  * @remarks		The @a value must be released using free().
@@ -66,6 +78,70 @@ int conv_channel_internal_export_to_string(conv_channel_h handle, char** value);
  *
  */
 int conv_payload_internal_export_to_string(conv_payload_h handle, char** value);
+
+/**
+ * @brief		Set D2D convergence activation state
+ * @since_tizen 3.0
+ *
+ * @param[in]	activation_state		The activation state to set
+ *
+ * @return		0 on success, otherwise a negative error value
+ * @retval		#CONV_ERROR_NONE					Successful
+ * @retval		#CONV_ERROR_INVALID_PARAMETER	Invalid parameter
+ * @retval		#CONV_ERROR_NOT_SUPPORTED		Not supported
+ * @retval		#CONV_ERROR_NO_DATA				No Data
+ * @retval		#CONV_ERROR_OUT_OF_MEMORY			Out of memory
+ *
+ */
+int conv_internal_set_activation_state(int activation_state);
+
+/**
+ * @brief		Get D2D convergence activation state
+ * @since_tizen 3.0
+ *
+ * @param[out]	activation_state		The current activation state
+ *
+ * @return		0 on success, otherwise a negative error value
+ * @retval		#CONV_ERROR_NONE					Successful
+ * @retval		#CONV_ERROR_INVALID_PARAMETER	Invalid parameter
+ * @retval		#CONV_ERROR_NOT_SUPPORTED		Not supported
+ * @retval		#CONV_ERROR_NO_DATA				No Data
+ * @retval		#CONV_ERROR_OUT_OF_MEMORY			Out of memory
+ *
+ */
+int conv_internal_get_activation_state(int* activation_state);
+
+/**
+ * @brief		Set D2D convergence activation state of services
+ * @since_tizen 3.0
+ *
+ * @param[in]	activation_state		The activation state to set
+ *
+ * @return		0 on success, otherwise a negative error value
+ * @retval		#CONV_ERROR_NONE					Successful
+ * @retval		#CONV_ERROR_INVALID_PARAMETER	Invalid parameter
+ * @retval		#CONV_ERROR_NOT_SUPPORTED		Not supported
+ * @retval		#CONV_ERROR_NO_DATA				No Data
+ * @retval		#CONV_ERROR_OUT_OF_MEMORY			Out of memory
+ *
+ */
+int conv_internal_set_service_activation_state(int activation_state);
+
+/**
+ * @brief		Get D2D convergence activation state of services
+ * @since_tizen 3.0
+ *
+ * @param[in]	activation_state		The activation state to set
+ *
+ * @return		0 on success, otherwise a negative error value
+ * @retval		#CONV_ERROR_NONE					Successful
+ * @retval		#CONV_ERROR_INVALID_PARAMETER	Invalid parameter
+ * @retval		#CONV_ERROR_NOT_SUPPORTED		Not supported
+ * @retval		#CONV_ERROR_NO_DATA				No Data
+ * @retval		#CONV_ERROR_OUT_OF_MEMORY			Out of memory
+ *
+ */
+int conv_internal_get_service_activation_state(int* activation_state);
 
 #ifdef __cplusplus
 }

@@ -35,6 +35,13 @@ namespace conv {
 			virtual int register_request(request* request_obj) = 0;
 			virtual int load_service_info(request* request_obj) = 0;
 			virtual int get_service_info_for_discovery(json* json_obj) = 0;
+			int check_activation_state() {
+				if (_activation_state == 1) {
+					return CONV_ERROR_NONE;
+				} else {
+					return CONV_ERROR_INVALID_OPERATION;
+				}
+			}
 
 			std::string get_type() {
 				return _type;
@@ -52,6 +59,7 @@ namespace conv {
 			std::string _type;
 			std::string _resource_type;
 			std::string _uri;
+			int _activation_state;
 	};	/* class service_provider_base */
 }
 

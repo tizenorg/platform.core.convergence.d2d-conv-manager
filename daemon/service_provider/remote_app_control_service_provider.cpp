@@ -51,6 +51,7 @@ conv::remote_app_control_service_provider::remote_app_control_service_provider()
 	_type = CONV_SERVICE_TYPE_REMOTE_APP_CONTROL;
 	_resource_type = CONV_RESOURCE_TYPE_REMOTE_APP_CONTROL;
 	_uri = CONV_URI_SMARTVIEW_REMOTE_APP_CONTROL;
+	_activation_state = 1;
 }
 
 conv::remote_app_control_service_provider::~remote_app_control_service_provider()
@@ -304,6 +305,8 @@ int conv::remote_app_control_service_provider::release()
 
 int conv::remote_app_control_service_provider::start_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/start requested");
 	int error;
 
@@ -346,6 +349,8 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 
 int conv::remote_app_control_service_provider::stop_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/stop requested");
 
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
@@ -364,6 +369,8 @@ int conv::remote_app_control_service_provider::stop_request(request* request_obj
 
 int conv::remote_app_control_service_provider::get_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	return CONV_ERROR_NONE;
 }
 
@@ -429,6 +436,8 @@ static void on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 
 int conv::remote_app_control_service_provider::set_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 	int error;
 
@@ -476,6 +485,8 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 
 int conv::remote_app_control_service_provider::register_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/recv requested");
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 
@@ -506,6 +517,8 @@ int conv::remote_app_control_service_provider::register_request(request* request
 
 int conv::remote_app_control_service_provider::load_service_info(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	string client;
 	conv::client* client_obj = NULL;
 

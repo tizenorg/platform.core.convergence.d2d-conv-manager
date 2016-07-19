@@ -25,6 +25,7 @@ conv::app_comm_service_provider::app_comm_service_provider()
 	_type = CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION;
 	_resource_type = CONV_RESOURCE_TYPE_SMARTVIEW_APP_COMMUNICATION;
 	_uri = CONV_URI_SMARTVIEW_APP_COMMUNICATION;
+	_activation_state = 1;
 }
 
 conv::app_comm_service_provider::~app_comm_service_provider()
@@ -44,6 +45,8 @@ int conv::app_comm_service_provider::release()
 
 int conv::app_comm_service_provider::load_service_info(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	string client;
 	conv::client* client_obj = NULL;
 	int is_local = 0;
@@ -123,6 +126,8 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 
 int conv::app_comm_service_provider::start_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/start requested");
 	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
 
@@ -210,6 +215,8 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 
 int conv::app_comm_service_provider::stop_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/stop requested");
 	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
 
@@ -250,6 +257,8 @@ int conv::app_comm_service_provider::stop_request(request* request_obj)
 
 int conv::app_comm_service_provider::get_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/get requested");
 	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
 
@@ -342,6 +351,8 @@ int conv::app_comm_service_provider::send_response(json payload, request* reques
 
 int conv::app_comm_service_provider::set_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/set requested");
 	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
 
@@ -387,6 +398,8 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 
 int conv::app_comm_service_provider::register_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/recv requested");
 	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
 
