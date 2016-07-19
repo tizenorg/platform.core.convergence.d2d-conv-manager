@@ -23,7 +23,7 @@
 #include <iotcon.h>
 
 static conv::service_manager_impl *_instance;
-static iotcon_resource_h iotcon_resource;
+static iotcon_resource_h iotcon_resource = NULL;
 
 using namespace std;
 
@@ -35,20 +35,55 @@ conv::service_manager_impl::~service_manager_impl()
 {
 }
 
+int conv::service_manager_impl::handle_vconf_update(keynode_t *node)
+{
+	activation_state = vconf_keynode_get_int(node);
+
+	if ( activation_state == 1 ) {
+		register_discovery_info();
+	} else {
+		unregister_discovery_info();
+	}
+
+	return CONV_ERROR_NONE;
+}
+
+static void vconf_update_cb(keynode_t *node, void* user_data)
+{
+	conv::service_manager_impl* instance = static_cast<conv::service_manager_impl*>(user_data);
+	IF_FAIL_VOID_TAG(instance, _E, "static_cast failed");
+
+	instance->handle_vconf_update(node);
+}
+
 int conv::service_manager_impl::init()
 {
 	register_provider(new(std::nothrow) conv::app_comm_service_provider());
 	register_provider(new(std::nothrow) conv::remote_app_control_service_provider());
 
-	register_discovery_info();
+	int error = vconf_get_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE, &activation_state);
+
+	if ( error < 0 ) {
+		_E("vconf error (%d)", error);
+		// temporary code
+		activation_state = 1;
+	}
+
+	if ( activation_state == 1 ) {
+		register_discovery_info();
+	} else {
+		unregister_discovery_info();
+	}
+
+	error = vconf_notify_key_changed(VCONFKEY_SETAPPL_D2D_CONVERGENCE, vconf_update_cb, this);
+//	IF_FAIL_RETURN_TAG(error >= 0, CONV_ERROR_INVALID_OPERATION, _E, "vconf error (%d)", error);
+
 	return CONV_ERROR_NONE;
 }
 
 int conv::service_manager_impl::release()
 {
-	int error = iotcon_resource_destroy(iotcon_resource);
-	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource destroy failed");
-	iotcon_resource = NULL;
+	unregister_discovery_info();
 
 	for (service_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
 		(*it)->release();
@@ -79,6 +114,8 @@ int conv::service_manager_impl::handle_request(request* request_obj)
 		if ( (*it)->get_type().compare(type) == 0 )
 		{
 			_D("found service provider");
+			error = (*it)->check_activation_state();
+			IF_FAIL_CATCH_TAG(error == CONV_ERROR_NONE, _E, "service provider is not activated");
 
 			error = (*it)->load_service_info(request_obj);
 			IF_FAIL_CATCH_TAG(error == CONV_ERROR_NONE, _E, "%d, service_info load error", error);
@@ -164,10 +201,14 @@ int conv::service_manager_impl::register_provider(conv::service_provider_base *p
 		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
-	if (provider->init() != CONV_ERROR_NONE) {
-		_E("Provider initialization failed");
-		delete provider;
-		return CONV_ERROR_INVALID_OPERATION;
+	if (provider->check_activation_state() == CONV_ERROR_NONE) {
+		if (provider->init() != CONV_ERROR_NONE) {
+			_E("Provider initialization failed");
+			delete provider;
+			return CONV_ERROR_INVALID_OPERATION;
+		}
+	} else {
+		_D("provider is not activated. init pending");
 	}
 
 	provider_list.push_back(provider);
@@ -339,6 +380,8 @@ static void iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h reque
 
 int conv::service_manager_impl::register_discovery_info()
 {
+	IF_FAIL_RETURN_TAG(iotcon_resource == NULL, CONV_ERROR_INVALID_PARAMETER, _E, "resource for discovery is already registered");
+
 	// register resource
 	int properties;
 	iotcon_resource_interfaces_h resource_ifaces = NULL;
@@ -358,13 +401,26 @@ int conv::service_manager_impl::register_discovery_info()
 
 	iotcon_resource_interfaces_add(resource_ifaces, IOTCON_INTERFACE_DEFAULT);
 
-	error = iotcon_resource_create(CONV_URI_SMARTVIEW_TIZEN_D2D_SERVICE, resource_types, resource_ifaces, properties, iotcon_request_cb, this, &iotcon_resource);
+	error = iotcon_resource_create(CONV_URI_TIZEN_D2D_SERVICE, resource_types, resource_ifaces, properties, iotcon_request_cb, this, &iotcon_resource);
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource creation failed");
 
 	_D("device info registered as resource");
 	iotcon_resource_types_destroy(resource_types);
 	iotcon_resource_interfaces_destroy(resource_ifaces);
 
+	return CONV_ERROR_NONE;
+}
+
+int conv::service_manager_impl::unregister_discovery_info()
+{
+	IF_FAIL_RETURN_TAG(iotcon_resource != NULL, CONV_ERROR_INVALID_PARAMETER, _E, "resource for discovery is already unregistered");
+
+	int error = iotcon_resource_destroy(iotcon_resource);
+	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource destroy failed");
+	iotcon_resource = NULL;
+
+
+	_D("device info unregistered");
 	return CONV_ERROR_NONE;
 }
 

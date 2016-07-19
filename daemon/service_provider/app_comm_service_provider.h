@@ -20,6 +20,7 @@
 #include <iotcon.h>
 #include <glib.h>
 #include <vector>
+#include <vconf.h>
 #include "../service_provider_base.h"
 #include "app_comm_service_info.h"
 
@@ -40,6 +41,7 @@ namespace conv {
 			int register_request(request* request_obj);
 			int load_service_info(request* request_obj);
 			int get_service_info_for_discovery(json* json_obj);
+			int handle_vconf_update(keynode_t *node);
 
 		private:
 			int send_response(json payload, request* request_obj);

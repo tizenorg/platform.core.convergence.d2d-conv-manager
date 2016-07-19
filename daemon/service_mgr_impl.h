@@ -20,6 +20,7 @@
 #include <iotcon.h>
 #include <glib.h>
 #include <vector>
+#include <vconf.h>
 #include "manager_iface.h"
 #include "request.h"
 #include "service_provider_base.h"
@@ -35,12 +36,16 @@ namespace conv {
 			int handle_request(request* request_obj);
 
 			int get_service_info_for_discovery(json* service_json);
+			int handle_vconf_update(keynode_t *node);
 
 		private:
+			int activation_state;
+
 			typedef std::list<service_provider_base*> service_provider_list_t;
 
 			int register_provider(service_provider_base *provider_base);
 			int register_discovery_info();
+			int unregister_discovery_info();
 			service_provider_list_t provider_list;
 	};
 

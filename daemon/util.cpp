@@ -161,3 +161,20 @@ std::string conv::util::get_device_id()
 
 	return g_device_id;
 }
+
+bool conv::util::is_service_activated(int service_value)
+{
+	int current_state;
+	int error = vconf_get_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE_SERVICE, &current_state);
+
+	if (error != 0) {
+		_D("vconf_get_int failed %d", error);
+		return false;
+	}
+
+	if ((service_value & current_state) > 0) {
+		return true;
+	} else {
+		return false;
+	}
+}

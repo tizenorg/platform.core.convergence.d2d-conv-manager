@@ -78,8 +78,8 @@
 #define CONV_RESOURCE_TYPE_TIZEN_D2D_SERVICE	"x.org.tizen.d2d-service"
 
 #define CONV_URI_SMARTVIEW_APP_COMMUNICATION "/tizen/app-communication"
-#define CONV_URI_SMARTVIEW_REMOTE_APP_CONTROL "/tizen/remote-app-control"
-#define CONV_URI_SMARTVIEW_TIZEN_D2D_SERVICE "/tizen/d2d-service"
+#define CONV_URI_REMOTE_APP_CONTROL "/tizen/remote-app-control"
+#define CONV_URI_TIZEN_D2D_SERVICE "/tizen/d2d-service"
 
 #define CONV_PRIVILEGE_INTERNET			"internet"
 #define CONV_PRIVILEGE_BLUETOOTH		"bluetooth"
@@ -152,5 +152,8 @@ enum request_type {
 // remote app control service
 #define CONV_JSON_APP_CONTROL			"app_control"
 #define CONV_JSON_REPLY					"reply"
+
+#define CONV_SETTING_VALUE_SERVICE_APP_TO_APP_COMMUNICATION 0x0001
+#define CONV_SETTING_VALUE_SERVICE_REMOTE_APP_CONTROL 0x0002
 
 #endif

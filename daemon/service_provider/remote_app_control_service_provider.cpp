@@ -19,6 +19,7 @@
 #include <app_control_internal.h>
 #include "remote_app_control_service_provider.h"
 #include "../client_mgr_impl.h"
+#include "../util.h"
 
 using namespace std;
 
@@ -46,17 +47,47 @@ static int get_req_id()
 static std::map<int, app_control_cb_info_s> app_control_cb_map;
 static std::map<int, response_cb_info_s> response_cb_map;
 
+static void vconf_update_cb(keynode_t *node, void* user_data)
+{
+	conv::remote_app_control_service_provider* instance = static_cast<conv::remote_app_control_service_provider*>(user_data);
+	IF_FAIL_VOID_TAG(instance, _E, "static_cast failed");
+
+	instance->handle_vconf_update(node);
+}
+
 conv::remote_app_control_service_provider::remote_app_control_service_provider()
 {
 	_type = CONV_SERVICE_TYPE_REMOTE_APP_CONTROL;
 	_resource_type = CONV_RESOURCE_TYPE_REMOTE_APP_CONTROL;
-	_uri = CONV_URI_SMARTVIEW_REMOTE_APP_CONTROL;
+	_uri = CONV_URI_REMOTE_APP_CONTROL;
+	iotcon_resource = NULL;
+	if (conv::util::is_service_activated(CONV_SETTING_VALUE_SERVICE_REMOTE_APP_CONTROL))
+		_activation_state = 1;
+	else
+		_activation_state = 0;
+
+	vconf_notify_key_changed(VCONFKEY_SETAPPL_D2D_CONVERGENCE_SERVICE, vconf_update_cb, this);
 }
 
 conv::remote_app_control_service_provider::~remote_app_control_service_provider()
 {
 	app_control_cb_map.clear();
 	response_cb_map.clear();
+}
+
+int conv::remote_app_control_service_provider::handle_vconf_update(keynode_t *node)
+{
+	int current_state = vconf_keynode_get_int(node);
+
+	if ((CONV_SETTING_VALUE_SERVICE_REMOTE_APP_CONTROL & current_state) > 0) {
+		_activation_state = 1;
+		init();
+	} else {
+		_activation_state = 0;
+		release();
+	}
+
+	return CONV_ERROR_NONE;
 }
 
 static int _send_response(iotcon_request_h request, iotcon_representation_h repr,
@@ -261,49 +292,59 @@ void conv::remote_app_control_service_provider::iotcon_request_cb(iotcon_resourc
 
 int conv::remote_app_control_service_provider::init()
 {
-	// register resource
-	int properties;
-	iotcon_resource_interfaces_h resource_ifaces = NULL;
-	iotcon_resource_types_h resource_types = NULL;
-	int error;
+	if (iotcon_resource == NULL) {
+		// register resource
+		int properties;
+		iotcon_resource_interfaces_h resource_ifaces = NULL;
+		iotcon_resource_types_h resource_types = NULL;
+		int error;
 
-	properties = IOTCON_RESOURCE_DISCOVERABLE | IOTCON_RESOURCE_OBSERVABLE;
+		properties = IOTCON_RESOURCE_DISCOVERABLE | IOTCON_RESOURCE_OBSERVABLE;
 
-	error = iotcon_resource_types_create(&resource_types);
-	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "rt creation failed");
+		error = iotcon_resource_types_create(&resource_types);
+		IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "rt creation failed");
 
-	iotcon_resource_types_add(resource_types, _resource_type.c_str());
+		iotcon_resource_types_add(resource_types, _resource_type.c_str());
 
-	error = iotcon_resource_interfaces_create(&resource_ifaces);
+		error = iotcon_resource_interfaces_create(&resource_ifaces);
 
-	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "ri creation failed");
+		IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "ri creation failed");
 
-	iotcon_resource_interfaces_add(resource_ifaces, IOTCON_INTERFACE_DEFAULT);
+		iotcon_resource_interfaces_add(resource_ifaces, IOTCON_INTERFACE_DEFAULT);
 
 
-	error = iotcon_resource_create(CONV_URI_SMARTVIEW_REMOTE_APP_CONTROL, resource_types, resource_ifaces, properties, iotcon_request_cb, NULL, &iotcon_resource);
-	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource creation failed");
+		error = iotcon_resource_create(CONV_URI_REMOTE_APP_CONTROL, resource_types, resource_ifaces, properties, iotcon_request_cb, NULL, &iotcon_resource);
+		IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource creation failed");
 
-	iotcon_resource_types_destroy(resource_types);
-	iotcon_resource_interfaces_destroy(resource_ifaces);
+		iotcon_resource_types_destroy(resource_types);
+		iotcon_resource_interfaces_destroy(resource_ifaces);
 
-	_D("remote_app_control_service_provider init done");
+		_D("remote_app_control_service_provider init done");
+	} else {
+		_D("remote_app_control_service_provider is already initiated");
+	}
 
 	return CONV_ERROR_NONE;
 }
 
 int conv::remote_app_control_service_provider::release()
 {
-	// unregister resource
-	int error = iotcon_resource_destroy(iotcon_resource);
-	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource destroy failed");
-	iotcon_resource = NULL;
+	if (iotcon_resource == NULL) {
+		_D("remote_app_control_service_provider is already released");
+	} else {
+		// unregister resource
+		int error = iotcon_resource_destroy(iotcon_resource);
+		IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "resource destroy failed");
+		iotcon_resource = NULL;
+	}
 
 	return CONV_ERROR_NONE;
 }
 
 int conv::remote_app_control_service_provider::start_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/start requested");
 	int error;
 
@@ -346,6 +387,8 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 
 int conv::remote_app_control_service_provider::stop_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/stop requested");
 
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
@@ -364,6 +407,8 @@ int conv::remote_app_control_service_provider::stop_request(request* request_obj
 
 int conv::remote_app_control_service_provider::get_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	return CONV_ERROR_NONE;
 }
 
@@ -429,6 +474,8 @@ static void on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 
 int conv::remote_app_control_service_provider::set_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 	int error;
 
@@ -476,6 +523,8 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 
 int conv::remote_app_control_service_provider::register_request(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	_D("communcation/recv requested");
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 
@@ -506,6 +555,8 @@ int conv::remote_app_control_service_provider::register_request(request* request
 
 int conv::remote_app_control_service_provider::load_service_info(request* request_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
+
 	string client;
 	conv::client* client_obj = NULL;
 
@@ -554,7 +605,7 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 		svc_info->device_address = device_address;
 
 		svc_info->iotcon_info_obj.address = device_address;
-		svc_info->iotcon_info_obj.uri = CONV_URI_SMARTVIEW_REMOTE_APP_CONTROL;
+		svc_info->iotcon_info_obj.uri = CONV_URI_REMOTE_APP_CONTROL;
 		svc_info->iotcon_info_obj.resource_type = _resource_type;
 
 		//save service info
@@ -569,6 +620,8 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 
 int conv::remote_app_control_service_provider::get_service_info_for_discovery(json* json_obj)
 {
+	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_NOT_SUPPORTED, _E, "service provider is not activated");
+
 	json_obj->set(NULL, CONV_JSON_DISCOVERY_SERVICE_TYPE, CONV_SERVICE_REMOTE_APP_CONTROL);
 
 	// set data for service handle
