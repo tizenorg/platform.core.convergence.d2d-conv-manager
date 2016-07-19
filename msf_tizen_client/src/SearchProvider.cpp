@@ -48,7 +48,7 @@ long ttl_info:: get_ttl(int service_type)
 
 }
 
-int ttl_info::update_ttl(long ttl, int service_type)
+void ttl_info::update_ttl(long ttl, int service_type)
 {
 	if (service_type == MSFD) {
 		msfd_ttl = ttl;

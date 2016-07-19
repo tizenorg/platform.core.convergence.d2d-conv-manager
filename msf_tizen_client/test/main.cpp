@@ -129,7 +129,7 @@ public:
 		fflush(stdout);
 		const char* welcome = "hello welcome";
 		unsigned char binary[5] = {'a', 'b', 'c', 'd', '\0'};
-		app->publish("test_say", welcome, c, binary, 5);
+		app->publish("test_say", welcome, c, binary, 5, NULL);
 
 		//fprintf(stderr,"\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	}
@@ -313,7 +313,12 @@ public:
 	}
 };
 
-
+class published_listener : public OnPublishListener {
+public:
+	void onPublished(bool result, void* user_data) {
+		printf("\n published result = %s, user_data = %d", result ? "true" : "false", (int)user_data);
+	}
+};
 
 //Service service;
 Search* search1;
@@ -335,8 +340,7 @@ SearchListenerinherit search_listener2;
 startListener startListener1;
 stopListener stopListener1;
 installListener installListener1;
-
-
+published_listener published_listener1;
 
 void display_service_list()
 {
@@ -591,10 +595,11 @@ void publish()
 
 	if (!done) {
 		application->addOnMessageListener("hello", &msg_listener1);
+		application->setonPublishListener(&published_listener1);
 		done = true;
 	}
 
-	application->publish("hello", "hello");
+	application->publish("hello", "hello", (void*)1);
 }
 
 void Menu()
