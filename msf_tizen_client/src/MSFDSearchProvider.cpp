@@ -26,6 +26,7 @@
 #include "Error.h"
 #include "Result.h"
 #include "Channel.h"
+#include "Search.h"
 #define MSGBUFSIZE 1000
 #define MULTICAST_PORT 8001
 #define MULTICAST_GROUP "224.0.0.7"
@@ -54,11 +55,11 @@ class ResultMSFDServiceCallback : public Result_Base
 		string ip_id;
 		int provider_type;
 
-		void onSuccess(Service abc)
+		void onSuccess(Service svc)
 		{
 			MSF_DBG("MSFD Service Callback onSucces()");
 			MSFDSearchProvider_pointer->push_in_alivemap(ttl, ip_id, provider_type);
-			MSFDSearchProvider_pointer->addService(abc);
+			Search::addService(svc);
 		}
 
 		void onError(Error)
@@ -178,7 +179,15 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 	if (buf == NULL)
 		return;
 
-	json_parse(buf);
+	if (buflen < 10) {
+		return;
+	}
+
+	MSF_DBG("buf = %s", buf);
+
+	if (!json_parse(buf, buflen)) {
+		return;
+	}
 
 	string ip;
 	int port = 0;
@@ -208,7 +217,7 @@ void MSFDSearchProvider::processReceivedMsg(char *buf, int buflen)
 		Service serv =	getServiceById(id);
 
 		if (serv.getId().length() != 0) {
-			removeServiceAndNotify(serv);
+			Search::removeServiceAndNotify(serv);
 		}
 	}
 }
@@ -239,20 +248,32 @@ void MSFDSearchProvider::foreach_json_object(JsonObject *object, const gchar *ke
 	}
 }
 
-void MSFDSearchProvider::json_parse(const char *in)
+bool MSFDSearchProvider::json_parse(const char *in, int length)
 {
 	JsonParser *parser = json_parser_new();
 
-	if (json_parser_load_from_data(parser, in, -1, NULL)) {
-		JsonNode *node = json_parser_get_root(parser);
+	if (json_parser_load_from_data(parser, in, length, NULL)) {
+		JsonNode *node = NULL;
+		node = json_parser_get_root(parser);
+
+		if (node == NULL) {
+			MSF_DBG("json_parsing error");
+			return false;
+		}
 
 		if (json_node_get_node_type(node) == JSON_NODE_OBJECT) {
 			json_object_foreach_member(json_node_get_object(node), foreach_json_object, this);
+		} else {
+			MSF_DBG("json_parsing error");
+			return false;
 		}
 
 	} else {
 		MSF_DBG("json_parsing error");
+		return false;
 	}
+
+	return true;
 }
 
 bool MSFDSearchProvider::stop()

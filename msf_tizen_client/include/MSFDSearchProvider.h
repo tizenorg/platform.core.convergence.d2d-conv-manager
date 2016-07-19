@@ -59,7 +59,7 @@ public:
 	void processReceivedMsg(char *, int);
 	static SearchProvider create();
 	static SearchProvider create(Search *);
-	void json_parse(const char *in);
+	bool json_parse(const char *in, int length);
 	static void foreach_json_object(JsonObject *object, const gchar *key, JsonNode *node, gpointer user_data);
 };
 

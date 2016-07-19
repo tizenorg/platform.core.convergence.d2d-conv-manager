@@ -53,7 +53,7 @@ class SearchProvider
 {
 private:
 	Search *searchListener;
-	static list<Service> services;
+	//static list<Service> services;
 
 public:
 	SearchProvider();
@@ -61,11 +61,9 @@ public:
 	virtual ~SearchProvider(){}
 	virtual void start() {}
 	virtual bool stop() { return true; }
-	static list<Service> getServices();
+	//static list<Service> getServices();
 	bool isSearching();
-	void setSearchListener(Search *obj);
 	std::string getIP(std::string url);
-	void addService(Service service);
 	void push_in_alivemap(long ttl, string id , int service_type);
 	void updateAlive(long ttl, string id , int service_type);
 	static void reapServices();
@@ -73,8 +71,6 @@ public:
 protected:
 	bool searching;
 	void setServices(list<Service>);
-	static void removeService(Service service);
-	static void removeServiceAndNotify(Service service);
 	void clearServices();
 	Service getServiceById(string id);
 	static Service getServiceByIp(string ip);
