@@ -102,6 +102,11 @@ public:
 	virtual void onError(/*Error error*/) {}
 };
 
+class OnPublishListener {
+public:
+	virtual void onPublished(bool, void*) {}
+};
+
 class Channel {
 public:
 	Channel();
@@ -139,23 +144,25 @@ public:
 	void unsetmessageListeners();
 	void setonErrorListener(OnErrorListener *);
 	void unsetonErrorListener();
-	void publish(string event, const char *data);
+	void setonPublishListener(OnPublishListener *);
+	void unsetonPublishListener();
+	void publish(string event, const char *data, void *user_data);
 	void publish(string event, const char *data, unsigned char payload[],
-		int payload_size);
-	void publish(string event, const char *data, const char *target);
+		int payload_size, void *user_data);
+	void publish(string event, const char *data, const char *target, void *user_data);
 	void publish(string event, const char *data, const char *target,
-		unsigned char payload[], int payload_size);
-	void publish(string event, const char *data, Client client);
+		unsigned char payload[], int payload_size, void *user_data);
+	void publish(string event, const char *data, Client client, void *user_data);
 	void publish(string event, const char *data, Client client,
-		unsigned char payload[], int payload_size);
-	void publish(string event, const char *data, list<Client> clients);
+		unsigned char payload[], int payload_size, void *user_data);
+	void publish(string event, const char *data, list<Client> clients, void *user_data);
 	void publish(string event, const char *data, list<Client> clients,
-		unsigned char payload[], int payload_size);
+		unsigned char payload[], int payload_size, void *user_data);
 	void publishMessage(string event, const char *data, const char *to,
-			unsigned char payload[], int payload_size);
+			unsigned char payload[], int payload_size, void *user_data);
 	void publishMessage(string method, string event, const char *data,
 			const char *to, unsigned char payload[],
-			int payload_size);
+			int payload_size, void *user_data);
 	// unsigned char *createBinaryMessage(string json, unsigned char payload[],
 	// int payload_size);
 	static void init_json_key_map();
@@ -164,7 +171,6 @@ public:
 	static void foreach_json_array(JsonArray *object, guint index,
 				JsonNode *node, gpointer user_data);
 
-	void set_isWrite(bool flag);
 	static void write_socket(Channel*);
 	static int callback_lws_mirror(struct lws *wsi,
 				enum lws_callback_reasons reason, void *user,
@@ -198,6 +204,7 @@ protected:
 	OnClientConnectListener *onClientConnectListener = NULL;
 	OnClientDisconnectListener *onClientDisconnectListener = NULL;
 	OnReadyListener *onReadyListener = NULL;
+	OnPublishListener *onPublishListener = NULL;
 	map<string, list<OnMessageListener *> > messageListeners;
 	//Result_Base *connect_cb = NULL;
 	//Result_Base *disconnect_cb = NULL;
@@ -235,16 +242,22 @@ private:
 	static string CLIENT_CONNECT_EVENT;
 	static string CLIENT_DISCONNECT_EVENT;
 	static string READY_EVENT;
-	unsigned char
-	buf[LWS_SEND_BUFFER_PRE_PADDING + 4096 + LWS_SEND_BUFFER_POST_PADDING];
+	unsigned char *write_buf[1000];
+	int write_buf_count;
+	int write_buf_index;
+	int write_buf_last_sent_index;
+	void* publish_user_data[1000];
+	int write_buf_len[1000];
+	bool write_buf_binary_flag[1000];
+	//LWS_SEND_BUFFER_PRE_PADDING + 4096 + LWS_SEND_BUFFER_POST_PADDING];
 	static pthread_t connect_thread;
 	int mirror_lifetime;
 	int force_exit;
 	char *messagedata;
-	bool isWrite;
-	bool binary_message;
+	//bool isWrite;
+	//bool binary_message;
 	bool disconnecting;
-	long buflen;
+	//long buflen;
 	unsigned char cl_payload[1000];
 	int cl_payload_size;
 	int was_closed;

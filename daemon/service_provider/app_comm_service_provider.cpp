@@ -371,7 +371,7 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 				string payload_str = payload.str();
 				_D("payload : %s, size : %d", message, strlen(message));
 
-				(*iter)->application->publish("d2d_service_message", NULL, reinterpret_cast<unsigned char*>(message), strlen(message));
+				(*iter)->application->publish("d2d_service_message", NULL, reinterpret_cast<unsigned char*>(message), strlen(message), NULL);
 
 				_D("publishing done");
 

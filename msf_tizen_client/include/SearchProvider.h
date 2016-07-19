@@ -44,7 +44,7 @@ private:
 public:
 	ttl_info(long ttl, int service_type);
 	ttl_info();
-	int update_ttl(long ttl, int service_type);
+	void update_ttl(long ttl, int service_type);
 	long get_ttl(int service_type);
 	bool is_expired();
 };

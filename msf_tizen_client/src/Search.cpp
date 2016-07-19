@@ -286,6 +286,8 @@ void *Search::pt_update_alivemap(void *arg)
 		sleep(5);
 		SearchProvider::reapServices();
 	}
+
+	return NULL;
 }
 
 void Search::startDiscovery()
