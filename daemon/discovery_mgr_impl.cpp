@@ -76,6 +76,7 @@ int conv::discovery_manager_impl::notify_time_up(std::string client)
 	// 1. When no client is using discovery, it should be stopped
 	_D("notify_time_up.. with current discovery count :%d", count_discovery_request);
 	if (--count_discovery_request <= 0) {
+		count_discovery_request = 0;
 		stop_discovery();
 	}
 
@@ -179,9 +180,16 @@ int conv::discovery_manager_impl::handle_request(request* request_obj)
 
 			request_obj->reply(CONV_ERROR_NONE);
 		} else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_STOP) ){
-			stop_discovery();
+			const char* client = request_obj->get_sender();
 
-			request_obj->reply(CONV_ERROR_NONE);
+			if (count_discovery_request<=0) {
+				_D("discovery is already stopped");
+				request_obj->reply(CONV_ERROR_INVALID_OPERATION);
+			} else {
+				notify_time_up(client);
+				request_obj->reply(CONV_ERROR_NONE);
+			}
+
 			delete request_obj;
 		}
 

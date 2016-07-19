@@ -180,7 +180,7 @@ protected:
 	void disconnect(Result_Base *result1);
 	void registerCallback(string, void *, int);
 	void handleError(string, Error);
-	string getipaddressfromUri(string uri);
+	void get_ip_port_from_uri(string uri);
 	string getapifromUri(string uri);
 	string getUID();
 
@@ -274,6 +274,8 @@ private:
 	map<void *, int> onReadyCallbacks;
 	static map<string, int> json_keys;
 	static JsonObject *root_json_object;
+	string server_ip_address;
+	int server_port;
 };
 
 #endif

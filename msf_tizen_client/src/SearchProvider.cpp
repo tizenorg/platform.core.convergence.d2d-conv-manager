@@ -57,8 +57,6 @@ int ttl_info::update_ttl(long ttl, int service_type)
 		mdns_ttl = ttl;
 		MSF_DBG("mDNS ttl update : %d", ttl);
 	}
-
-	return 0;
 }
 
 

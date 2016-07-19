@@ -504,6 +504,9 @@ EXTAPI int conv_service_connect(conv_service_h handle, conv_service_connected_cb
 	ASSERT_NOT_NULL(callback);
 
 	//LCOV_EXCL_START
+	IF_FAIL_RETURN_TAG(handle->connection_state != CONV_SERVICE_CONNECTION_STATE_CONNECTED, CONV_ERROR_INVALID_OPERATION, _E, "Service is already connected");
+	IF_FAIL_RETURN_TAG(handle->connection_state != CONV_SERVICE_CONNECTION_STATE_CONNECTING, CONV_ERROR_INVALID_OPERATION, _E, "Service is now connecting");
+
 	int req_id;
 
 	json description;
