@@ -150,13 +150,9 @@ static void conv_connect_subject_cb(const char* subject, int req_id, int error, 
 
 static void register_subject_callbacks()
 {
-	static bool done = false;
+	conv::dbus_client::register_callback(CONV_SUBJECT_COMMUNICATION_RECV, conv_subject_cb);
+	conv::dbus_client::register_callback(CONV_SUBJECT_CONNECTION_START, conv_connect_subject_cb);
 
-	if (!done) {
-		conv::dbus_client::register_callback(CONV_SUBJECT_COMMUNICATION_RECV, conv_subject_cb);
-		conv::dbus_client::register_callback(CONV_SUBJECT_CONNECTION_START, conv_connect_subject_cb);
-		done = true;
-	}
 	_I("Done with registering subject callback");
 }
 //LCOV_EXCL_STOP

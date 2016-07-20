@@ -61,12 +61,8 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 
 static void register_subject_callbacks()
 {
-	static bool done = false;
+	conv::dbus_client::register_callback(CONV_SUBJECT_DISCOVERY_START, conv_subject_cb);
 
-	if (!done) {
-		conv::dbus_client::register_callback(CONV_SUBJECT_DISCOVERY_START, conv_subject_cb);
-		done = true;
-	}
 	_I("Done with registering subject callback");
 }
 //LCOV_EXCL_STOP

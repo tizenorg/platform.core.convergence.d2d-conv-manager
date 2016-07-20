@@ -231,9 +231,12 @@ int conv::dbus_client::register_callback(const char* subject, subject_response_c
 	_I("Registering callback for subject '%s'", subject);
 	_I("response_cb_map : %x", response_cb_map);
 
-	response_cb_map->insert(std::pair<std::string, subject_response_cb> (subject, callback));
-
-	_D("registering done..");
+	if (response_cb_map->find(subject) == response_cb_map->end()) {
+		response_cb_map->insert(std::pair<std::string, subject_response_cb> (subject, callback));
+		_D("registering done..");
+	} else {
+		_I("Already registered for subject %s", subject);
+	}
 
 	return true;
 }
