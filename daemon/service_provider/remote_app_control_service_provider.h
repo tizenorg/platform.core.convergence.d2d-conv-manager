@@ -44,7 +44,7 @@ namespace conv {
 
 		private:
 			iotcon_resource_h iotcon_resource;
-			int send_response(json payload, request* request_obj);
+			int send_response(json payload, const char* request_type, conv_error_e error, request* request_obj);
 
 			static void iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h request, void *user_data);
 	};

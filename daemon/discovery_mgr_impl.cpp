@@ -182,7 +182,7 @@ int conv::discovery_manager_impl::handle_request(request* request_obj)
 		} else if ( !strcmp(request_obj->get_subject(), CONV_SUBJECT_DISCOVERY_STOP) ){
 			const char* client = request_obj->get_sender();
 
-			if (count_discovery_request<=0) {
+			if (count_discovery_request <= 0) {
 				_D("discovery is already stopped");
 				request_obj->reply(CONV_ERROR_INVALID_OPERATION);
 			} else {

@@ -44,7 +44,7 @@ namespace conv {
 			int handle_vconf_update(keynode_t *node);
 
 		private:
-			int send_response(json payload, request* request_obj);
+			int send_read_response(json payload, const char* read_type, conv_error_e error, request* request_obj);
 	};
 }
 #endif /* __APP_COMMUNICATION_SERVICE_PROVIDER_H__ */

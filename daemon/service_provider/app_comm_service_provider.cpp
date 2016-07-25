@@ -34,7 +34,7 @@ conv::app_comm_service_provider::app_comm_service_provider()
 	_type = CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION;
 	_resource_type = CONV_RESOURCE_TYPE_SMARTVIEW_APP_COMMUNICATION;
 	_uri = CONV_URI_SMARTVIEW_APP_COMMUNICATION;
-	if (conv::util::is_service_activated(CONV_SETTING_VALUE_SERVICE_APP_TO_APP_COMMUNICATION))
+	if (conv::util::is_service_activated(CONV_INTERNAL_SERVICE_APP_TO_APP_COMMUNICATION))
 		_activation_state = 1;
 	else
 		_activation_state = 0;
@@ -46,7 +46,7 @@ int conv::app_comm_service_provider::handle_vconf_update(keynode_t *node)
 {
 	int current_state = vconf_keynode_get_int(node);
 
-	if ((CONV_SETTING_VALUE_SERVICE_APP_TO_APP_COMMUNICATION & current_state) > 0) {
+	if ((CONV_INTERNAL_SERVICE_APP_TO_APP_COMMUNICATION & current_state) > 0) {
 		_activation_state = 1;
 		init();
 	} else {
@@ -210,6 +210,7 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		application->setonErrorListener(app_info);
 		application->setonDisconnectListener(app_info);
 		application->addOnAllMessageListener(app_info);
+		application->setonPublishListener(app_info);
 
 		app_info->is_local = true;
 		app_info->application = application;
@@ -231,6 +232,7 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 		((Application*)application)->setonStartAppListener(app_info);
 		((Application*)application)->setonStopAppListener(app_info);
 		application->addOnAllMessageListener(app_info);
+		application->setonPublishListener(app_info);
 
 		app_info->is_local = false;
 		app_info->application = application;
@@ -301,6 +303,7 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 	channel.get(NULL, CONV_JSON_CHANNEL_ID, &channel_id);
 
 	application_instance *app_info = NULL;
+	json result;
 
 	for (application_instance_list_t::iterator iter = svc_info->application_instance_list.begin(); iter != svc_info->application_instance_list.end(); ++iter) {
 		_D("iteration");
@@ -313,16 +316,14 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 
 				if ( svc_info->registered_request == NULL) {
 					_D("No callback is registered");
-					request_obj->reply(CONV_ERROR_INVALID_OPERATION);
-					delete request_obj;
+					send_read_response(result, CONV_JSON_GET_CLIENTS, CONV_ERROR_INVALID_OPERATION, svc_info->registered_request);
 
 					return CONV_ERROR_INVALID_OPERATION;
 				}
 
 				if (client_list == NULL) {
 					_D("No clients");
-					request_obj->reply(CONV_ERROR_NO_DATA);
-					delete request_obj;
+					send_read_response(result, CONV_JSON_GET_CLIENTS, CONV_ERROR_NO_DATA, svc_info->registered_request);
 
 					return CONV_ERROR_NO_DATA;
 				} else {
@@ -332,9 +333,6 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 
 					Client client_obj;
 					_D("clients size = %d", client_list->size());
-
-					json result;
-
 					for (auto cs_itr = cl.begin(); cs_itr != cl.end(); cs_itr++) {
 						cs_index++;
 						json client;
@@ -350,31 +348,33 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 
 						result.array_append(NULL, CONV_JSON_CLIENT_LIST, client);
 					}
-					send_response(result, svc_info->registered_request);
+					send_read_response(result, CONV_JSON_GET_CLIENTS, CONV_ERROR_NONE, svc_info->registered_request);
 
 					return CONV_ERROR_NONE;
 				}
 			}
 		}
 	}
-
 	_D("service is not started");
+	send_read_response(result, CONV_JSON_GET_CLIENTS, CONV_ERROR_INVALID_OPERATION, svc_info->registered_request);
 
 	return CONV_ERROR_INVALID_OPERATION;
 }
 
-int conv::app_comm_service_provider::send_response(json payload, request* request_obj)
+int conv::app_comm_service_provider::send_read_response(json payload, const char* read_type, conv_error_e error, request* request_obj)
 {
 	_D(RED("publishing_response"));
-	json result;
+	IF_FAIL_RETURN_TAG(request_obj != NULL, CONV_ERROR_INVALID_OPERATION, _E, "listener_cb is not registered");
 
+	json result;
 	json description = request_obj->get_description();
 
-	payload.set(NULL, CONV_JSON_RESULT_TYPE, "getClient");
+	payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_READ);
+	payload.set(NULL, CONV_JSON_READ_TYPE, read_type);
 
 	result.set(NULL, CONV_JSON_DESCRIPTION, description);
 	result.set(NULL, CONV_JSON_PAYLOAD, payload);
-	request_obj->publish(CONV_ERROR_NONE, result);
+	request_obj->publish(error, result);
 
 	return CONV_ERROR_NONE;
 }

@@ -61,7 +61,7 @@ conv::remote_app_control_service_provider::remote_app_control_service_provider()
 	_resource_type = CONV_RESOURCE_TYPE_REMOTE_APP_CONTROL;
 	_uri = CONV_URI_REMOTE_APP_CONTROL;
 	iotcon_resource = NULL;
-	if (conv::util::is_service_activated(CONV_SETTING_VALUE_SERVICE_REMOTE_APP_CONTROL))
+	if (conv::util::is_service_activated(CONV_INTERNAL_SERVICE_REMOTE_APP_CONTROL))
 		_activation_state = 1;
 	else
 		_activation_state = 0;
@@ -79,7 +79,7 @@ int conv::remote_app_control_service_provider::handle_vconf_update(keynode_t *no
 {
 	int current_state = vconf_keynode_get_int(node);
 
-	if ((CONV_SETTING_VALUE_SERVICE_REMOTE_APP_CONTROL & current_state) > 0) {
+	if ((CONV_INTERNAL_SERVICE_REMOTE_APP_CONTROL & current_state) > 0) {
 		_activation_state = 1;
 		init();
 	} else {
@@ -347,6 +347,7 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 
 	_D("communcation/start requested");
 	int error;
+	json result;
 
 	int properties;
 	iotcon_resource_interfaces_h resource_ifaces = NULL;
@@ -356,6 +357,7 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 
 	if (svc_info->iotcon_info_obj.iotcon_resource_handle != NULL) {
 		_D("already started");
+		send_response(result, CONV_JSON_ON_START, CONV_ERROR_INVALID_OPERATION, svc_info->registered_request);
 		return CONV_ERROR_INVALID_OPERATION;
 	}
 
@@ -382,6 +384,25 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 	iotcon_resource_types_destroy(resource_types);
 	iotcon_resource_interfaces_destroy(resource_ifaces);
 
+	send_response(result, CONV_JSON_ON_START, CONV_ERROR_NONE, svc_info->registered_request);
+
+	return CONV_ERROR_NONE;
+}
+
+int conv::remote_app_control_service_provider::send_response(json payload, const char* request_type, conv_error_e error, request* request_obj)
+{
+	_D(RED("publishing_response"));
+	IF_FAIL_RETURN_TAG(request_obj != NULL, CONV_ERROR_INVALID_OPERATION, _E, "listener_cb is not registered");
+
+	json result;
+	json description = request_obj->get_description();
+
+	payload.set(NULL, CONV_JSON_RESULT_TYPE, request_type);
+
+	result.set(NULL, CONV_JSON_DESCRIPTION, description);
+	result.set(NULL, CONV_JSON_PAYLOAD, payload);
+	request_obj->publish(error, result);
+
 	return CONV_ERROR_NONE;
 }
 
@@ -390,17 +411,19 @@ int conv::remote_app_control_service_provider::stop_request(request* request_obj
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/stop requested");
+	json result;
 
 	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
 
 	if (svc_info->iotcon_info_obj.iotcon_resource_handle == NULL) {
 		_D("not even started");
+		send_response(result, CONV_JSON_ON_STOP, CONV_ERROR_INVALID_OPERATION, svc_info->registered_request);
 		return CONV_ERROR_INVALID_OPERATION;
 	}
 
 	iotcon_remote_resource_destroy(svc_info->iotcon_info_obj.iotcon_resource_handle);
-
 	svc_info->iotcon_info_obj.iotcon_resource_handle = NULL;
+	send_response(result, CONV_JSON_ON_STOP, CONV_ERROR_NONE, svc_info->registered_request);
 
 	return CONV_ERROR_NONE;
 }
@@ -409,11 +432,6 @@ int conv::remote_app_control_service_provider::get_request(request* request_obj)
 {
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
-	return CONV_ERROR_NONE;
-}
-
-int conv::remote_app_control_service_provider::send_response(json payload, request* request_obj)
-{
 	return CONV_ERROR_NONE;
 }
 
@@ -462,12 +480,17 @@ static void on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 		json payload;
 		json description;
 
-		payload.set(NULL, CONV_JSON_APP_CONTROL, appctl_char);
-		result.set(NULL, CONV_JSON_DESCRIPTION, cb_info.request_obj->get_description());
-		result.set(NULL, CONV_JSON_PAYLOAD, payload);
+		if (cb_info.request_obj == NULL) {
+			_E("listener_cb is not registered");
+		} else {
+			payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_PUBLISH);
+			payload.set(NULL, CONV_JSON_APP_CONTROL, appctl_char);
+			result.set(NULL, CONV_JSON_DESCRIPTION, cb_info.request_obj->get_description());
+			result.set(NULL, CONV_JSON_PAYLOAD, payload);
 
-		cb_info.request_obj->publish(CONV_ERROR_NONE, result);
-		_D("response published");
+			cb_info.request_obj->publish(CONV_ERROR_NONE, result);
+			_D("response published");
+		}
 	}
 	response_cb_map.erase(find_iter);
 }
@@ -517,6 +540,11 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 	error = iotcon_remote_resource_put(svc_info->iotcon_info_obj.iotcon_resource_handle, representation, NULL, on_response, NULL);
 
 	IF_FAIL_RETURN_TAG(error == IOTCON_ERROR_NONE, CONV_ERROR_INVALID_OPERATION, _E, "iotcon_remote_resource_put failed");
+
+	if (reply != 1) {
+		json result;
+		send_response(result, CONV_JSON_ON_PUBLISH, CONV_ERROR_NONE, svc_info->registered_request);
+	}
 
 	return CONV_ERROR_NONE;
 }

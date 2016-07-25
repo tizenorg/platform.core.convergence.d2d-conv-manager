@@ -29,7 +29,7 @@
 
 namespace conv {
 	class application_instance : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
-									public OnMessageListener, public OnErrorListener, public OnStartAppListener, public OnStopAppListener {
+									public OnMessageListener, public OnErrorListener, public OnStartAppListener, public OnStopAppListener, public OnPublishListener {
 		public:
 			virtual ~application_instance()
 			{
@@ -54,7 +54,7 @@ namespace conv {
 					json payload;
 					json description;
 
-					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onStart");
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_START);
 
 					description = (*request_obj)->get_description();
 
@@ -84,7 +84,7 @@ namespace conv {
 					json payload;
 					json description;
 
-					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onStop");
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_STOP);
 
 					description = (*request_obj)->get_description();
 
@@ -103,7 +103,7 @@ namespace conv {
 			void onConnect(Client client)
 			{
 				_D("onConnect Called");
-				publish_response(CONV_ERROR_NONE, "onConnect", &client);
+				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_CONNECT, &client);
 
 				if (!is_local && application != NULL) {
 					((Application*)application)->start();
@@ -114,19 +114,19 @@ namespace conv {
 			void onDisconnect(Client client)
 			{
 				_D("onDisconnect Called");
-				publish_response(CONV_ERROR_NONE, "onDisconnect", &client);
+				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_DISCONNECT, &client);
 			}
 
 			void onClientConnect(Client client)
 			{
 				_D("onClientConnect Called");
-				publish_response(CONV_ERROR_NONE, "onClientConnect", &client);
+				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_CLIENT_CONNECT, &client);
 			}
 
 			void onClientDisconnect(Client client)
 			{
 				_D("onClientDisconnect Called");
-				publish_response(CONV_ERROR_NONE, "onClientDisconnect", &client);
+				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_CLIENT_DISCONNECT, &client);
 			}
 
 			void onMessage(Message message)
@@ -150,7 +150,7 @@ namespace conv {
 					json payload = payload_str;
 
 					payload.set(NULL, CONV_JSON_PAYLOAD_SIZE, message.m_payload_size);
-					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onMessage");
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_MESSAGE);
 					payload.set(NULL, CONV_JSON_MESSAGE, message_json);
 
 					description = (*request_obj)->get_description();
@@ -174,7 +174,7 @@ namespace conv {
 					json payload;
 					json description;
 
-					payload.set(NULL, CONV_JSON_RESULT_TYPE, "onError");
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_ERROR);
 					payload.set(NULL, CONV_JSON_ERROR_MESSAGE, error.get_error_message());
 
 					description = (*request_obj)->get_description();
@@ -185,6 +185,32 @@ namespace conv {
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
 					(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+				}
+			}
+
+			void onPublished(bool publish_result, void* user_data)
+			{
+				_D("onPublished Called");
+
+				if ((*request_obj) != NULL) {
+					_D(RED("publishing_response"));
+					json result;
+					json payload;
+					json description;
+
+					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_PUBLISH);
+
+					description = (*request_obj)->get_description();
+
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+
+					result.set(NULL, CONV_JSON_DESCRIPTION, description);
+					result.set(NULL, CONV_JSON_PAYLOAD, payload);
+					if (publish_result)
+						(*request_obj)->publish(CONV_ERROR_NONE, result);
+					else
+						(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
 				}
 			}
 

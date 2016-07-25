@@ -21,6 +21,7 @@
 #include <tzplatform_config.h>
 #include "log.h"
 #include "d2d_conv_manager.h"
+#include "d2d_conv_internal.h"
 
 #define CONV_DATA "ConvHeader"
 #define CONV_OPTION "ConvOption"
@@ -137,9 +138,10 @@ enum request_type {
 #define CONV_JSON_CHANNEL_ID			"channel_id"
 #define CONV_JSON_URI					"uri"
 #define CONV_JSON_RESULT_TYPE			"result_type"
-#define CONV_JSON_MESSAGE				"message"
+#define CONV_JSON_READ_TYPE				"read_type"
+#define CONV_JSON_MESSAGE				"message_smartview"
 #define CONV_JSON_CLIENT				"client"
-#define CONV_JSON_PAYLOAD_SIZE			"payload_size"
+#define CONV_JSON_PAYLOAD_SIZE			"payload_size_smartview"
 #define CONV_JSON_EVENT					"event"
 #define CONV_JSON_FROM					"from"
 #define CONV_JSON_IS_HOST				"isHost"
@@ -149,11 +151,23 @@ enum request_type {
 #define CONV_JSON_CLIENT_LIST			"client_list"
 #define CONV_JSON_ERROR_MESSAGE			"error_message"
 
+#define CONV_JSON_ON_START				"onStart"
+#define CONV_JSON_ON_CONNECT			"onConnect"
+#define CONV_JSON_ON_STOP				"onStop"
+#define CONV_JSON_ON_DISCONNECT			"onDisconnect"
+#define CONV_JSON_ON_MESSAGE			"onMessage"
+#define CONV_JSON_ON_ERROR				"onError"
+
+#define CONV_JSON_ON_CLIENT_CONNECT		"onClientConnect"
+#define CONV_JSON_ON_CLIENT_DISCONNECT	"onClientDisconnect"
+
+#define CONV_JSON_ON_PUBLISH			"onPublish"
+#define CONV_JSON_ON_READ				"onRead"
+
+#define CONV_JSON_GET_CLIENTS			"getClients"
+
 // remote app control service
 #define CONV_JSON_APP_CONTROL			"app_control"
 #define CONV_JSON_REPLY					"reply"
-
-#define CONV_SETTING_VALUE_SERVICE_APP_TO_APP_COMMUNICATION 0x0001
-#define CONV_SETTING_VALUE_SERVICE_REMOTE_APP_CONTROL 0x0002
 
 #endif
