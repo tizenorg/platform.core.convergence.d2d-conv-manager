@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _DEVICE_INTERFACE_H__
+#define	_DEVICE_INTERFACE_H__
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#include "IService.h"
+#include <string>
+#include <list>
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+using namespace std;
 
-static int _feature_supported = -1;
+namespace conv {
+	class IDevice {
+		public:
+			virtual ~IDevice() {}
 
-bool conv::util::is_feature_supported()
-{
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
+			virtual int add_service(IService* service_obj) = 0;
+			virtual int remove_service(IService* service_obj) = 0;
+			virtual int get_services_list(std::list<IService*> *list) = 0;
+
+			virtual string getName() = 0;
+			virtual string getId() = 0;
+			virtual string getAddress() = 0;
+	};
 }
+
+#endif

@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#ifndef __CONV_COMMUNICATION_INFO_BASE_H__
+#define __CONV_COMMUNICATION_INFO_BASE_H__
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+#include <string>
 
-static int _feature_supported = -1;
-
-bool conv::util::is_feature_supported()
+namespace conv
 {
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
+	class ICommunicationInfo {
+		public:
+			virtual ~ICommunicationInfo() {}
+	};
 }
+
+#endif	/* End of __CONV_COMMUNICATION_INFO_BASE_H__ */

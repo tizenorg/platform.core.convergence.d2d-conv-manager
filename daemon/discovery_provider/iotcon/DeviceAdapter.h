@@ -14,45 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef __CONV_DEVICE_H__
-#define __CONV_DEVICE_H__
-
-#include <string>
-#include <vector>
-#include "../../IService.h"
-#include "../../conv_json.h"
+#ifndef __DEVICE_ADAPTER_H__
+#define __DEVICE_ADAPTER_H__
 
 #include "../../IDevice.h"
+#include "ResourceHandle.h"
+#include <list>
+#include <string>
 
 namespace conv {
-	class device : public IDevice {
-		public:
+	class DeviceAdapter : public IDevice {
+		public :
 			typedef std::list<IService*> service_list_t;
-			device();
-			~device();
+			DeviceAdapter(ResourceHandle res_h);
+			~DeviceAdapter();
 
-			// functions from IDevice
 			int add_service(IService* service_obj);
 			int remove_service(IService* service_obj);
 			int get_services_list(std::list<IService*> *list);
-			std::string getName();
-			std::string getId();
-			std::string getAddress();
-			int setName(std::string name);
-			int setId(std::string id);
-			int setAddress(std::string host_address);
+			string getName();
+			string getId();
+			string getAddress();
 
-		private:
+		private :
+			ResourceHandle	m_resource_h;
 			service_list_t service_list;
-
-		protected:
-			std::string id;
-			std::string ip_address;
-			std::string name;
-			std::string type;
-			std::string wd_mac_address;
-			std::string bt_mac_address;
 	};
 }
 
-#endif	/* End of __CONV_DEVICE_H__ */
+#endif

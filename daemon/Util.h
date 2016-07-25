@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#ifndef __D2D_SERVICE_UTIL_H__
+#define __D2D_SERVICE_UTIL_H__
+#include <string>
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+using namespace std;
 
-static int _feature_supported = -1;
+#define MAC_ADDR_STR_LEN 18
 
-bool conv::util::is_feature_supported()
-{
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
+namespace conv {
+	namespace util {
+		std::string getBtMacAddress();
+		std::string getDeviceName();
+		std::string getP2pMacAddress();
+		std::string getDeviceId();
+		bool isServiceActivated(int serviceValue);
+
+		typedef void (*timer_function)(void *data);
+		void* miscStartTimer(timer_function function, unsigned int interval, void *data);
+		void miscStopTimer(void *timer);
 	}
-	return _feature_supported;
 }
+#endif
+

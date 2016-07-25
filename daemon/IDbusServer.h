@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#ifndef __CONV_DBUS_SERVER_INTERFACE_H__
+#define __CONV_DBUS_SERVER_INTERFACE_H__
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+#include <sys/types.h>
 
-static int _feature_supported = -1;
+namespace conv {
+	class IDbusServer {
+		public:
+			virtual ~IDbusServer() {}
+	};	/* class conv::IDbusServer */
 
-bool conv::util::is_feature_supported()
-{
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
-}
+}	/* namespace conv */
+
+#endif	/* End of __CONV_DBUS_SERVER_INTERFACE_H__ */

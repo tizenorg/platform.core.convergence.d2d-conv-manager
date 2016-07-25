@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#include "DiscoveryManager.h"
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+conv::DiscoveryManager* conv::IDiscoveryProvider::_discovery_manager = NULL;
 
-static int _feature_supported = -1;
-
-bool conv::util::is_feature_supported()
+int conv::IDiscoveryProvider::set_manager(DiscoveryManager* discovery_manager)
 {
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
+	_discovery_manager = discovery_manager;
+	return CONV_ERROR_NONE;
 }

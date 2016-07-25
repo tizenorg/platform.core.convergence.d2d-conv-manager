@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#ifndef __IOTCON_COMMUNICATION_INFO_H__
+#define __IOTCON_COMMUNICATION_INFO_H__
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+#include <iotcon.h>
+#include <glib.h>
+#include <iotcon.h>
+#include <string>
+#include "ICommunicationInfo.h"
 
-static int _feature_supported = -1;
+namespace conv {
+	class IotconCommunicationInfo : public ICommunicationInfo {
+		public:
+			std::string address;
+			std::string uri;
+			std::string resource_type;
 
-bool conv::util::is_feature_supported()
-{
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
+			iotcon_remote_resource_h iotcon_resource_handle;
+			iotcon_representation_h iotcon_representation_handle;
+	};
+
 }
+#endif /* __IOTCON_COMMUNICATION_INFO_H__ */

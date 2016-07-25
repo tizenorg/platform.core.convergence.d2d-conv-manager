@@ -23,7 +23,7 @@
 #include <string>
 #include <cstring>
 
-#include "common.h"
+#include "Types.h"
 #include "d2d_conv_manager.h"
 #include "conv_lib_json.h"
 #include "internal_types.h"

@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#ifndef __DISCOVERY_PROVIDER_BASE_H__
+#define __DISCOVERY_PROVIDER_BASE_H__
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+#include <string>
+#include "conv_json.h"
 
-static int _feature_supported = -1;
+namespace conv {
 
-bool conv::util::is_feature_supported()
-{
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
+	class DiscoveryManager;
+
+	class IDiscoveryProvider {
+		public:
+			virtual ~IDiscoveryProvider() {}
+			virtual int init() = 0;
+			virtual int release() = 0;
+			virtual int start() = 0;
+			virtual int stop() = 0;
+
+			int set_manager(DiscoveryManager* discovery_manager);
+
+		protected:
+			static DiscoveryManager* _discovery_manager;
+	};	/* class IDiscoveryProvider */
 }
+
+#endif	/* End of __DISCOVERY_PROVIDER_BASE_H__ */

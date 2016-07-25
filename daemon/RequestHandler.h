@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-#include "Types.h"
-#include "conv_lib_util.h"
-#include <system_info.h>
+#ifndef __REQUEST_HANDLER_H__
+#define __REQUEST_HANDLER_H__
 
-#define D2D_FEATURE "http://tizen.org/feature/convergence.d2d"
+#include <glib.h>
+#include "request.h"
 
-static int _feature_supported = -1;
+namespace conv {
+	class RequestHandler {
+		public:
+			RequestHandler();
+			~RequestHandler();
 
-bool conv::util::is_feature_supported()
-{
-	if (_feature_supported < 0) {
-		bool feature_supported = false;
-		system_info_get_platform_bool(D2D_FEATURE, &feature_supported);
-		_feature_supported = feature_supported ? 1 : 0;
-		_D("D2D feature enable %d", feature_supported);
-	}
-	return _feature_supported;
+			int init();
+			int release();
+
+			int handleRequest(request* requestObj);
+	};
 }
+
+#endif /* __REQUEST_HANDLER_H__ */

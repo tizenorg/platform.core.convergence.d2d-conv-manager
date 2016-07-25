@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef __CONV_SERVICE_H__
-#define __CONV_SERVICE_H__
+#ifndef __SERVICE_ADAPTER_H__
+#define __SERVICE_ADAPTER_H__
 
-#include <string>
-#include "../../conv_json.h"
 #include "../../IService.h"
+#include "ResourceHandle.h"
 
-using namespace std;
+namespace conv {
 
-namespace conv
-{
-	class service : public IService {
+	class ServiceAdapter : public IService {
 		public:
-			service();
-			~service();
+			ServiceAdapter(ResourceHandle resourceHandle);
+			~ServiceAdapter();
 
-			// functions from IService
 			string getName();
 			string getVersion();
 			string getType();
@@ -39,27 +35,16 @@ namespace conv
 			int getServiceType();
 			string getServiceInfo();
 
-			void setName(string name);
-			void setVersion(string version);
-			void setType(string type);
-			void setId(string id);
-			void setUri(string uri);
-			void setServiceInfo(string service_info);
-			void setServiceType(int service_type);
+			int		setServiceType(int serviceType);
+			int		setServiceInfo(string serviceInfo);
 
-			void printInfo();
+		private:
+			ResourceHandle	m_resource_h;
 
-		protected:
-			int connection_state;
-			string service_name;
 			int service_type;
 			string service_info;
-
-			string service_version;
-			string service_id;
-			string service_uri;
-			string type;
 	};
+
 }
 
-#endif	/* End of __CONV_SERVICE_H__ */
+#endif
