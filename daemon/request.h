@@ -19,11 +19,11 @@
 
 #include <string>
 #include <gio/gio.h>
-#include "common.h"
+#include "Types.h"
 #include "conv_json.h"
-#include "service_info_base.h"
-#include "communication_info_base.h"
-#include "access_control/peer_creds.h"
+#include "IServiceInfo.h"
+#include "ICommunicationInfo.h"
+#include "access_control/PeerCreds.h"
 
 namespace conv {
 	class request {
@@ -31,7 +31,7 @@ namespace conv {
 			request(int type, const char *client, int req_id, const char *subj, const char *desc);
 			request(int type,
 			const char *client, int req_id, const char *subj, const char *desc,
-			const char *sender, credentials *creds, GDBusMethodInvocation *inv);
+			const char *sender, Credentials *creds, GDBusMethodInvocation *inv);
 			~request();
 
 			int get_type();
@@ -40,7 +40,7 @@ namespace conv {
 			const char *get_sender();
 			const char *get_subject();
 			json& get_description();
-			credentials *get_creds();
+			Credentials *get_creds();
 			bool reply(int error);
 			bool reply(int error, json &request_result);
 			bool reply(int error, json &request_result, json &data_read);
@@ -51,8 +51,8 @@ namespace conv {
 			std::string service_type;
 
 			std::string connection_type;
-			service_info_base* service_info;
-			communication_info_base* communication_info;
+			IServiceInfo* service_info;
+			ICommunicationInfo* communication_info;
 
 		protected:
 			int _type;
@@ -60,7 +60,7 @@ namespace conv {
 			std::string _client;
 			std::string _subject;
 			json _description;
-			credentials *__creds;
+			Credentials *__creds;
 			std::string __sender;
 			GDBusMethodInvocation *__invocation;
 	};

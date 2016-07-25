@@ -21,16 +21,16 @@
 #include <glib.h>
 #include <vector>
 #include <map>
-#include "../discovery_provider_base.h"
+#include "../IDiscoveryProvider.h"
 #include "../request.h"
 
-#include "../service_iface.h"
+#include "../IService.h"
 #include "iotcon/resource_handle.h"
 
 using namespace std;
 
 namespace conv {
-	class iotcon_discovery_provider : public discovery_provider_base  {
+	class iotcon_discovery_provider : public IDiscoveryProvider  {
 		private:
 
 			static bool _found_resource(iotcon_remote_resource_h resource, iotcon_error_e result,
@@ -58,7 +58,7 @@ namespace conv {
 			int start();
 			int stop();
 
-			static int notice_discovered(service_iface* service);
+			static int notice_discovered(IService* service);
 	};
 }
 #endif /* __SMARTVIEW_DISCOVERY_PROVIDER_H__ */

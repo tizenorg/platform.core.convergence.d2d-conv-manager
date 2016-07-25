@@ -14,37 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CONV_PRIVILEGE_MANAGER_H__
+#define __CONV_PRIVILEGE_MANAGER_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <string>
+#include "PeerCreds.h"
 
 namespace conv {
+	namespace privilege_manager {
+		bool isAllowed(const conv::Credentials *creds, const char *privilege);
+	}	/* namespace conv::privilege_manager */
+}	/* namespace conv */
 
-	class service_adapter : public IService {
-		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
-	};
-
-}
-
-#endif
+#endif	/* End of __CONV_PRIVILEGE_MANAGER_H__ */

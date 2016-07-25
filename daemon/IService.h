@@ -13,38 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _SERVICE_INTERFACE_H__
+#define	_SERVICE_INTERFACE_H__
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
-
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <string>
+using namespace std;
 
 namespace conv {
-
-	class service_adapter : public IService {
+	class IService {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			virtual ~IService() {}
+			virtual string getName() = 0;
+			virtual string getVersion() = 0;
+			virtual string getType() = 0;
+			virtual string getId() = 0;
+			virtual string getUri() = 0;
+			virtual int getServiceType() = 0;
+			virtual string getServiceInfo() = 0;
 	};
-
 }
 
 #endif

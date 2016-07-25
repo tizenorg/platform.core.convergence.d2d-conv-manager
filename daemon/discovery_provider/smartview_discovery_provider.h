@@ -22,7 +22,7 @@
 #include <vector>
 #include <map>
 
-#include "../discovery_provider_base.h"
+#include "../IDiscoveryProvider.h"
 #include "../request.h"
 #include "smartview/service.h"
 #include "smartview/device.h"
@@ -32,7 +32,7 @@
 
 namespace conv {
 
-	class smartview_discovery_provider : public discovery_provider_base  {
+	class smartview_discovery_provider : public IDiscoveryProvider  {
 		public:
 			smartview_discovery_provider();
 			~smartview_discovery_provider();

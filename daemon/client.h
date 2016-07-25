@@ -23,14 +23,14 @@
 #include <gio/gio.h>
 #include "client.h"
 #include "conv_json.h"
-#include "device_iface.h"
-#include "service_info_base.h"
+#include "IDevice.h"
+#include "IServiceInfo.h"
 
 namespace conv {
 	class client {
-		typedef std::vector<device_iface*> device_list_t;
+		typedef std::vector<IDevice*> device_list_t;
 		typedef std::pair<std::string, std::string> service_key_t;
-		typedef std::map<service_key_t, service_info_base*> service_info_map_t;
+		typedef std::map<service_key_t, IServiceInfo*> service_info_map_t;
 
 		public:
 			client(std::string id, GDBusMethodInvocation *inv);
@@ -41,8 +41,8 @@ namespace conv {
 
 			std::string get_id();
 
-			service_info_base* get_service_info(std::string type, std::string id);
-			int add_service_info(std::string type, std::string id, service_info_base* info);
+			IServiceInfo* get_service_info(std::string type, std::string id);
+			int add_service_info(std::string type, std::string id, IServiceInfo* info);
 		private:
 			device_list_t device_list;
 			service_info_map_t service_info_map;

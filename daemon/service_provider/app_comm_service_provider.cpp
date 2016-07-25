@@ -16,8 +16,8 @@
 
 #include <net_connection.h>
 #include "app_comm_service_provider.h"
-#include "../client_mgr_impl.h"
-#include "../util.h"
+#include "../ClientManager.h"
+#include "../Util.h"
 
 using namespace std;
 
@@ -34,7 +34,7 @@ conv::app_comm_service_provider::app_comm_service_provider()
 	_type = CONV_SERVICE_TYPE_SMARTVIEW_APP_COMMUNICATION;
 	_resource_type = CONV_RESOURCE_TYPE_SMARTVIEW_APP_COMMUNICATION;
 	_uri = CONV_URI_SMARTVIEW_APP_COMMUNICATION;
-	if (conv::util::is_service_activated(CONV_INTERNAL_SERVICE_APP_TO_APP_COMMUNICATION))
+	if (conv::util::isServiceActivated(CONV_INTERNAL_SERVICE_APP_TO_APP_COMMUNICATION))
 		_activation_state = 1;
 	else
 		_activation_state = 0;
@@ -99,17 +99,17 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 	client = request_obj->get_sender();
 
 	_D("client id : %s", client.c_str());
-	client_obj = conv::client_manager::get_client(client);
+	client_obj = conv::client_manager::getClient(client);
 	IF_FAIL_RETURN_TAG(client_obj, CONV_ERROR_OUT_OF_MEMORY, _E, "client info alloc failed");
 
-	app_comm_service_info *svc_info = NULL;
+	AppCommServiceInfo *svc_info = NULL;
 
 	if (is_local == 1) {
-		service_info_base* svc_info_base = client_obj->get_service_info(_type, "LOCAL_HOST");
+		IServiceInfo* svc_info_base = client_obj->get_service_info(_type, "LOCAL_HOST");
 
 		if ( svc_info_base != NULL ) {
 			_D("local service instance already exists");
-			svc_info = reinterpret_cast<app_comm_service_info*>(svc_info_base);
+			svc_info = reinterpret_cast<AppCommServiceInfo*>(svc_info_base);
 
 			if (svc_info == NULL) {
 				_D("casting failed");
@@ -117,20 +117,20 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 			}
 		} else {
 			_D("allocating new service instance for local service");
-			svc_info = new(std::nothrow) app_comm_service_info();
+			svc_info = new(std::nothrow) AppCommServiceInfo();
 			ASSERT_ALLOC(svc_info);
 
 			svc_info->is_local = true;
-			client_obj->add_service_info(_type, "LOCAL_HOST", (service_info_base*)svc_info);
+			client_obj->add_service_info(_type, "LOCAL_HOST", (IServiceInfo*)svc_info);
 
 			_D("MSF service is created");
 		}
 	} else {
-		service_info_base* svc_info_base = client_obj->get_service_info(_type, id);
+		IServiceInfo* svc_info_base = client_obj->get_service_info(_type, id);
 
 		if ( svc_info_base != NULL ) {
 			_D("service instance already exists");
-			svc_info = reinterpret_cast<app_comm_service_info*>(svc_info_base);
+			svc_info = reinterpret_cast<AppCommServiceInfo*>(svc_info_base);
 
 			if (svc_info == NULL) {
 				_D("casting failed");
@@ -138,14 +138,14 @@ int conv::app_comm_service_provider::load_service_info(request* request_obj)
 			}
 		} else {
 			_D("allocating new service instance");
-			svc_info = new(std::nothrow) app_comm_service_info();
+			svc_info = new(std::nothrow) AppCommServiceInfo();
 			ASSERT_ALLOC(svc_info);
 
 			_D("uri : %s", uri.c_str());
 			Service::getByURI(uri, 2000, svc_info);
 			IF_FAIL_RETURN_TAG(svc_info->get_service_result == true, CONV_ERROR_INVALID_OPERATION, _E, "getByURI failed");
 			svc_info->is_local = false;
-			client_obj->add_service_info(_type, id, (service_info_base*)svc_info);
+			client_obj->add_service_info(_type, id, (IServiceInfo*)svc_info);
 
 			_D("MSF service is created");
 		}
@@ -159,7 +159,7 @@ int conv::app_comm_service_provider::start_request(request* request_obj)
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/start requested");
-	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
+	AppCommServiceInfo *svc_info = reinterpret_cast<AppCommServiceInfo*>(request_obj->service_info);
 
 	json channel;
 	request_obj->get_channel_from_description(&channel);
@@ -250,7 +250,7 @@ int conv::app_comm_service_provider::stop_request(request* request_obj)
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/stop requested");
-	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
+	AppCommServiceInfo *svc_info = reinterpret_cast<AppCommServiceInfo*>(request_obj->service_info);
 
 	json channel;
 	request_obj->get_channel_from_description(&channel);
@@ -292,7 +292,7 @@ int conv::app_comm_service_provider::get_request(request* request_obj)
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/get requested");
-	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
+	AppCommServiceInfo *svc_info = reinterpret_cast<AppCommServiceInfo*>(request_obj->service_info);
 
 	json channel;
 	request_obj->get_channel_from_description(&channel);
@@ -384,7 +384,7 @@ int conv::app_comm_service_provider::set_request(request* request_obj)
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/set requested");
-	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
+	AppCommServiceInfo *svc_info = reinterpret_cast<AppCommServiceInfo*>(request_obj->service_info);
 
 	json channel;
 	request_obj->get_channel_from_description(&channel);
@@ -431,7 +431,7 @@ int conv::app_comm_service_provider::register_request(request* request_obj)
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/recv requested");
-	app_comm_service_info *svc_info = reinterpret_cast<app_comm_service_info*>(request_obj->service_info);
+	AppCommServiceInfo *svc_info = reinterpret_cast<AppCommServiceInfo*>(request_obj->service_info);
 
 	switch (request_obj->get_type()) {
 	case REQ_SUBSCRIBE:

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "common.h"
+#include "Types.h"
 #include "conv_lib_util.h"
 #include <system_info.h>
 

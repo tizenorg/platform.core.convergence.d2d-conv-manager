@@ -14,37 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CONV_SERVICE_INFO_BASE_H__
+#define __CONV_SERVICE_INFO_BASE_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <string>
 
-namespace conv {
-
-	class service_adapter : public IService {
+namespace conv
+{
+	class IServiceInfo {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			virtual ~IServiceInfo() {}
 	};
-
 }
 
-#endif
+#endif	/* End of __CONV_SERVICE_INFO_BASE_H__ */

@@ -22,12 +22,12 @@
 #include <vector>
 #include <map>
 
-#include "../discovery_provider_base.h"
+#include "../IDiscoveryProvider.h"
 #include "../request.h"
 #include "smartview/service.h"
 
 namespace conv {
-	class wifi_direct_discovery_provider : public discovery_provider_base  {
+	class wifi_direct_discovery_provider : public IDiscoveryProvider  {
 		public:
 			wifi_direct_discovery_provider();
 			~wifi_direct_discovery_provider();

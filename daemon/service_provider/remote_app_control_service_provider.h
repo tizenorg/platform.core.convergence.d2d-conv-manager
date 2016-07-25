@@ -21,11 +21,11 @@
 #include <glib.h>
 #include <vector>
 #include <vconf.h>
-#include "../service_provider_base.h"
-#include "remote_app_control_service_info.h"
+#include "../IServiceProvider.h"
+#include "RemoteAppControlServiceInfo.h"
 
 namespace conv {
-	class remote_app_control_service_provider : public service_provider_base  {
+	class remote_app_control_service_provider : public IServiceProvider  {
 		public:
 			remote_app_control_service_provider();
 			~remote_app_control_service_provider();

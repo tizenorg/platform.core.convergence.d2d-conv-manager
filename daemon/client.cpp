@@ -16,7 +16,7 @@
 
 #include <glib.h>
 #include "client.h"
-#include "log.h"
+#include "Log.h"
 #include "d2d_conv_manager.h"
 
 using namespace std;
@@ -49,23 +49,23 @@ string conv::client::get_id()
 	return id;
 }
 
-conv::service_info_base* conv::client::get_service_info(string type, string id)
+conv::IServiceInfo* conv::client::get_service_info(string type, string id)
 {
 	service_info_map_t::iterator it;
 	it = service_info_map.find(std::pair<string, string>(type, id));
 
 	if ( it != service_info_map.end() ) {
 		_D("service info found : %s, %s", type.c_str(), id.c_str());
-		return (service_info_base*)(it->second);
+		return (IServiceInfo*)(it->second);
 	} else {
 		_D("service info not found : %s, %s", type.c_str(), id.c_str());
 		return NULL;
 	}
 }
 
-int conv::client::add_service_info(string type, string id, service_info_base* info)
+int conv::client::add_service_info(string type, string id, IServiceInfo* info)
 {
-	service_info_map.insert(std::pair<service_key_t, service_info_base*>(std::pair<string, string>(type, id), info));
+	service_info_map.insert(std::pair<service_key_t, IServiceInfo*>(std::pair<string, string>(type, id), info));
 	_D("service info is added : %s, %s", type.c_str(), id.c_str());
 
 	return CONV_ERROR_NONE;

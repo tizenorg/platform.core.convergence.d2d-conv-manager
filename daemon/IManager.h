@@ -14,37 +14,22 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CONV_MANAGER_INTERFACE_H__
+#define __CONV_MANAGER_INTERFACE_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <string>
+#include "conv_json.h"
 
 namespace conv {
+	class request;
 
-	class service_adapter : public IService {
+	class IManager {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
-	};
-
+			virtual ~IManager() {}
+			virtual int init() = 0;
+			virtual int release() = 0;
+			virtual int handleRequest(request* requestObj) = 0;
+	};	/* class IManager */
 }
 
-#endif
+#endif	/* End of __CONV_MANAGER_INTERFACE_H__ */

@@ -14,37 +14,23 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __REQUEST_HANDLER_H__
+#define __REQUEST_HANDLER_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <glib.h>
+#include "request.h"
 
 namespace conv {
-
-	class service_adapter : public IService {
+	class RequestHandler {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
+			RequestHandler();
+			~RequestHandler();
 
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
+			int init();
+			int release();
 
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			int handleRequest(request* requestObj);
 	};
-
 }
 
-#endif
+#endif /* __REQUEST_HANDLER_H__ */

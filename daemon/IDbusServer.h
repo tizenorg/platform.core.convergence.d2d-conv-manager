@@ -14,37 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CONV_DBUS_SERVER_INTERFACE_H__
+#define __CONV_DBUS_SERVER_INTERFACE_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <sys/types.h>
 
 namespace conv {
-
-	class service_adapter : public IService {
+	class IDbusServer {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
+			virtual ~IDbusServer() {}
+	};	/* class conv::IDbusServer */
 
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
+}	/* namespace conv */
 
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
-	};
-
-}
-
-#endif
+#endif	/* End of __CONV_DBUS_SERVER_INTERFACE_H__ */

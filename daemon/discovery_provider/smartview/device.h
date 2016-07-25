@@ -19,22 +19,22 @@
 
 #include <string>
 #include <vector>
-#include "../../service_iface.h"
+#include "../../IService.h"
 #include "../../conv_json.h"
 
-#include "../../device_iface.h"
+#include "../../IDevice.h"
 
 namespace conv {
-	class device : public device_iface {
+	class device : public IDevice {
 		public:
-			typedef std::list<service_iface*> service_list_t;
+			typedef std::list<IService*> service_list_t;
 			device();
 			~device();
 
-			// functions from device_iface
-			int add_service(service_iface* service_obj);
-			int remove_service(service_iface* service_obj);
-			int get_services_list(std::list<service_iface*> *list);
+			// functions from IDevice
+			int add_service(IService* service_obj);
+			int remove_service(IService* service_obj);
+			int get_services_list(std::list<IService*> *list);
 			std::string getName();
 			std::string getId();
 			std::string getAddress();

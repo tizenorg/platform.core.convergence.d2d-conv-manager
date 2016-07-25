@@ -14,37 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __IOTCON_COMMUNICATION_INFO_H__
+#define __IOTCON_COMMUNICATION_INFO_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <iotcon.h>
+#include <glib.h>
+#include <iotcon.h>
+#include <string>
+#include "ICommunicationInfo.h"
 
 namespace conv {
-
-	class service_adapter : public IService {
+	class IotconCommunicationInfo : public ICommunicationInfo {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
+			std::string address;
+			std::string uri;
+			std::string resource_type;
 
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			iotcon_remote_resource_h iotcon_resource_handle;
+			iotcon_representation_h iotcon_representation_handle;
 	};
 
 }
-
-#endif
+#endif /* __IOTCON_COMMUNICATION_INFO_H__ */

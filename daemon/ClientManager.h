@@ -14,37 +14,36 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CLIENT_MANAGER_IMPL_H__
+#define __CLIENT_MANAGER_IMPL_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <iotcon.h>
+#include <glib.h>
+#include <vector>
+#include <string>
+#include "IManager.h"
+#include "client.h"
 
 namespace conv {
-
-	class service_adapter : public IService {
+	class ClientManager : public IManager  {
+		typedef std::vector<client*> ClientList;
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
+			ClientManager();
+			~ClientManager();
 
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
+			int init();
+			int release();
+			int handleRequest(request* requestObj);
+			conv::client* getClient(std::string clientId);
 
 		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			ClientList clientList;
 	};
 
+	namespace client_manager {
+		void setInstance(ClientManager* mgr);
+		conv::client* getClient(std::string clientId);
+	}
 }
 
-#endif
+#endif /* __CLIENT_MANAGER_IMPL_H__ */

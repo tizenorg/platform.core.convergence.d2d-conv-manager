@@ -21,11 +21,11 @@
 #include <glib.h>
 #include <vector>
 #include <vconf.h>
-#include "../service_provider_base.h"
-#include "app_comm_service_info.h"
+#include "../IServiceProvider.h"
+#include "AppCommServiceInfo.h"
 
 namespace conv {
-	class app_comm_service_provider : public service_provider_base  {
+	class app_comm_service_provider : public IServiceProvider  {
 		public:
 			app_comm_service_provider();
 			~app_comm_service_provider();
@@ -33,7 +33,7 @@ namespace conv {
 			int init();
 			int release();
 
-			app_comm_service_info* get_svc_info(request* request_obj);
+			AppCommServiceInfo* get_svc_info(request* request_obj);
 			int start_request(request* request_obj);
 			int stop_request(request* request_obj);
 			int get_request(request* request_obj);

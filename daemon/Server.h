@@ -14,37 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CONV_SERVER_H__
+#define __CONV_SERVER_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#define CONV_DAEMON
+#include "Log.h"
+#include "request.h"
 
 namespace conv {
-
-	class service_adapter : public IService {
-		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
-	};
-
+	void initialize();
+	void release();
+	void sendRequest(request* requestObj);
 }
-
 #endif

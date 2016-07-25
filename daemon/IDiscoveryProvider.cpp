@@ -14,37 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#include "DiscoveryManager.h"
 
-#include "../../IService.h"
-#include "resource_handle.h"
+conv::DiscoveryManager* conv::IDiscoveryProvider::_discovery_manager = NULL;
 
-namespace conv {
-
-	class service_adapter : public IService {
-		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
-	};
-
+int conv::IDiscoveryProvider::set_manager(DiscoveryManager* discovery_manager)
+{
+	_discovery_manager = discovery_manager;
+	return CONV_ERROR_NONE;
 }
-
-#endif

@@ -14,37 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __DEVICE_ADAPTER_H__
+#define __DEVICE_ADAPTER_H__
 
-#include "../../IService.h"
+#include "../../IDevice.h"
 #include "resource_handle.h"
+#include <list>
+#include <string>
 
 namespace conv {
+	class DeviceAdapter : public IDevice {
+		public :
+			typedef std::list<IService*> service_list_t;
+			DeviceAdapter(resource_handle res_h);
+			~DeviceAdapter();
 
-	class service_adapter : public IService {
-		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
+			int add_service(IService* service_obj);
+			int remove_service(IService* service_obj);
+			int get_services_list(std::list<IService*> *list);
 			string getName();
-			string getVersion();
-			string getType();
 			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
+			string getAddress();
 
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
+		private :
 			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			service_list_t service_list;
 	};
-
 }
 
 #endif

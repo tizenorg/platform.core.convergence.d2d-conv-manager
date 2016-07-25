@@ -24,7 +24,7 @@
 #include <cstring>
 #include <vconf.h>
 
-#include "common.h"
+#include "Types.h"
 #include "d2d_conv_service.h"
 #include "conv_lib_json.h"
 #include "internal_types.h"

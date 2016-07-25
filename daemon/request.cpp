@@ -15,9 +15,9 @@
  */
 
 #include <glib.h>
-#include "common.h"
+#include "Types.h"
 #include "request.h"
-#include "dbus_server_impl.h"
+#include "DbusServer.h"
 
 conv::request::request(int type, const char* client, int req_id, const char* subj, const char* desc)
 	: _type(type)
@@ -30,7 +30,7 @@ conv::request::request(int type, const char* client, int req_id, const char* sub
 
 conv::request::request(int type,
 		const char *client, int req_id, const char *subj, const char *desc,
-		const char *sender, credentials *creds, GDBusMethodInvocation *inv)
+		const char *sender, Credentials *creds, GDBusMethodInvocation *inv)
 	:  _type(type)
 	, _req_id(req_id)
 	, _client(client)
@@ -79,7 +79,7 @@ json& conv::request::get_description()
 	return _description;
 }
 
-conv::credentials* conv::request::get_creds()
+conv::Credentials* conv::request::get_creds()
 {
 	return __creds;
 }

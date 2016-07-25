@@ -15,7 +15,7 @@
  */
 
 #include "wifi_direct_discovery_provider.h"
-#include "../discovery_mgr_impl.h"
+#include "../DiscoveryManager.h"
 
 #include <net_connection.h>
 #include <wifi-direct.h>

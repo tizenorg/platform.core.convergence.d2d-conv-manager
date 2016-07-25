@@ -14,37 +14,30 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __CONNECTION_MANAGER_IMPL_H__
+#define __CONNECTION_MANAGER_IMPL_H__
 
-#include "../../IService.h"
-#include "resource_handle.h"
+#include <iotcon.h>
+#include <glib.h>
+#include <vector>
+#include "IManager.h"
+#include "request.h"
 
 namespace conv {
-
-	class service_adapter : public IService {
+	class ConnectionManager : public IManager  {
 		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
+			ConnectionManager();
+			~ConnectionManager();
 
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
+			int init();
+			int release();
+			int handleRequest(request* requestObj);
 	};
 
+	namespace connection_manager {
+		void setInstance(ConnectionManager* mgr);
+		int handleRequest(request* requestObj);
+	}
 }
 
-#endif
+#endif /* __CONNECTION_MANAGER_IMPL_H__ */

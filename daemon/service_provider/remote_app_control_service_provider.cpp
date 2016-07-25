@@ -18,8 +18,8 @@
 #include <bundle_internal.h>
 #include <app_control_internal.h>
 #include "remote_app_control_service_provider.h"
-#include "../client_mgr_impl.h"
-#include "../util.h"
+#include "../ClientManager.h"
+#include "../Util.h"
 
 using namespace std;
 
@@ -61,7 +61,7 @@ conv::remote_app_control_service_provider::remote_app_control_service_provider()
 	_resource_type = CONV_RESOURCE_TYPE_REMOTE_APP_CONTROL;
 	_uri = CONV_URI_REMOTE_APP_CONTROL;
 	iotcon_resource = NULL;
-	if (conv::util::is_service_activated(CONV_INTERNAL_SERVICE_REMOTE_APP_CONTROL))
+	if (conv::util::isServiceActivated(CONV_INTERNAL_SERVICE_REMOTE_APP_CONTROL))
 		_activation_state = 1;
 	else
 		_activation_state = 0;
@@ -353,7 +353,7 @@ int conv::remote_app_control_service_provider::start_request(request* request_ob
 	iotcon_resource_interfaces_h resource_ifaces = NULL;
 	iotcon_resource_types_h resource_types = NULL;
 
-	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
+	RemoteAppControlServiceInfo *svc_info = reinterpret_cast<RemoteAppControlServiceInfo*>(request_obj->service_info);
 
 	if (svc_info->iotcon_info_obj.iotcon_resource_handle != NULL) {
 		_D("already started");
@@ -413,7 +413,7 @@ int conv::remote_app_control_service_provider::stop_request(request* request_obj
 	_D("communcation/stop requested");
 	json result;
 
-	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
+	RemoteAppControlServiceInfo *svc_info = reinterpret_cast<RemoteAppControlServiceInfo*>(request_obj->service_info);
 
 	if (svc_info->iotcon_info_obj.iotcon_resource_handle == NULL) {
 		_D("not even started");
@@ -499,7 +499,7 @@ int conv::remote_app_control_service_provider::set_request(request* request_obj)
 {
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
-	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
+	RemoteAppControlServiceInfo *svc_info = reinterpret_cast<RemoteAppControlServiceInfo*>(request_obj->service_info);
 	int error;
 
 	request_obj->communication_info = &(svc_info->iotcon_info_obj);
@@ -554,7 +554,7 @@ int conv::remote_app_control_service_provider::register_request(request* request
 	IF_FAIL_RETURN_TAG(_activation_state == 1, CONV_ERROR_INVALID_OPERATION, _E, "service provider is not activated");
 
 	_D("communcation/recv requested");
-	remote_app_control_service_info *svc_info = reinterpret_cast<remote_app_control_service_info*>(request_obj->service_info);
+	RemoteAppControlServiceInfo *svc_info = reinterpret_cast<RemoteAppControlServiceInfo*>(request_obj->service_info);
 
 	switch (request_obj->get_type()) {
 	case REQ_SUBSCRIBE:
@@ -590,7 +590,7 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 
 	client = request_obj->get_sender();
 	_D("client id : %s", client.c_str());
-	client_obj = conv::client_manager::get_client(client);
+	client_obj = conv::client_manager::getClient(client);
 	IF_FAIL_RETURN_TAG(client_obj, CONV_ERROR_OUT_OF_MEMORY, _E, "client info alloc failed");
 
 	json description = request_obj->get_description();
@@ -611,12 +611,12 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 	device.get(NULL, CONV_DEVICE_NAME, &device_name);
 	device.get(NULL, CONV_JSON_DEVICE_ADDRESS, &device_address);
 
-	remote_app_control_service_info *svc_info = NULL;
-	service_info_base* svc_info_base = client_obj->get_service_info(_type, device_id);
+	RemoteAppControlServiceInfo *svc_info = NULL;
+	IServiceInfo* svc_info_base = client_obj->get_service_info(_type, device_id);
 
 	if (svc_info_base != NULL) {
 		_D("service instance already exists");
-		svc_info = reinterpret_cast<remote_app_control_service_info*>(svc_info_base);
+		svc_info = reinterpret_cast<RemoteAppControlServiceInfo*>(svc_info_base);
 
 		if (svc_info == NULL)
 		{
@@ -625,7 +625,7 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 		}
 	} else {
 		_D("allocating new service instance");
-		svc_info = new(std::nothrow) remote_app_control_service_info();
+		svc_info = new(std::nothrow) RemoteAppControlServiceInfo();
 		IF_FAIL_RETURN_TAG(svc_info, CONV_ERROR_OUT_OF_MEMORY, _E, "svc_info alloc failed");
 
 		svc_info->device_id = device_id;
@@ -637,7 +637,7 @@ int conv::remote_app_control_service_provider::load_service_info(request* reques
 		svc_info->iotcon_info_obj.resource_type = _resource_type;
 
 		//save service info
-		client_obj->add_service_info(_type, device_id, (service_info_base*)svc_info);
+		client_obj->add_service_info(_type, device_id, (IServiceInfo*)svc_info);
 
 		_D("remote app control service is created");
 	}

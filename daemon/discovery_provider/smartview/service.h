@@ -19,18 +19,18 @@
 
 #include <string>
 #include "../../conv_json.h"
-#include "../../service_iface.h"
+#include "../../IService.h"
 
 using namespace std;
 
 namespace conv
 {
-	class service : public service_iface {
+	class service : public IService {
 		public:
 			service();
 			~service();
 
-			// functions from service_iface
+			// functions from IService
 			string getName();
 			string getVersion();
 			string getType();

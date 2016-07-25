@@ -14,37 +14,26 @@
  * limitations under the License.
  */
 
-#ifndef __SERVICE_ADAPTER_H__
-#define __SERVICE_ADAPTER_H__
+#ifndef __D2D_SERVICE_UTIL_H__
+#define __D2D_SERVICE_UTIL_H__
+#include <string>
 
-#include "../../IService.h"
-#include "resource_handle.h"
+using namespace std;
+
+#define MAC_ADDR_STR_LEN 18
 
 namespace conv {
+	namespace util {
+		std::string getBtMacAddress();
+		std::string getDeviceName();
+		std::string getP2pMacAddress();
+		std::string getDeviceId();
+		bool isServiceActivated(int serviceValue);
 
-	class service_adapter : public IService {
-		public:
-			service_adapter(resource_handle res_h);
-			~service_adapter();
-
-			string getName();
-			string getVersion();
-			string getType();
-			string getId();
-			string getUri();
-			int getServiceType();
-			string getServiceInfo();
-
-			int		setServiceType(int serviceType);
-			int		setServiceInfo(string serviceInfo);
-
-		private:
-			resource_handle	m_resource_h;
-
-			int service_type;
-			string service_info;
-	};
-
+		typedef void (*timer_function)(void *data);
+		void* miscStartTimer(timer_function function, unsigned int interval, void *data);
+		void miscStopTimer(void *timer);
+	}
 }
-
 #endif
+

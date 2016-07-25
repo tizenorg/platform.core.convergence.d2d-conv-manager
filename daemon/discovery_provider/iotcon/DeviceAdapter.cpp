@@ -14,42 +14,20 @@
  * limitations under the License.
  */
 
-#include <glib.h>
-#include "device.h"
-#include "Log.h"
-#include "d2d_conv_manager.h"
+#include "DeviceAdapter.h"
 #include <algorithm>
 #include <functional>
 
 using namespace std;
 
-conv::device::device()
+conv::DeviceAdapter::DeviceAdapter(resource_handle res_h)
 {
+	this->m_resource_h = res_h;
 }
 
-conv::device::~device()
+conv::DeviceAdapter::~DeviceAdapter()
 {
 }
-
-template <typename T>
-struct GenericComparator
-{
-	typedef int (T::*GETTER)() const;
-	GETTER m_getterFunc;
-	int m_data;
-	GenericComparator(GETTER getterFunc, int data)
-	{
-		m_getterFunc = getterFunc;
-		m_data = data;
-	}
-	bool operator()(const T & obj)
-	{
-		if ((obj.*m_getterFunc)() == m_data)
-			return true;
-		else
-			return false;
-	}
-};
 
 static bool serviceComparision(conv::IService* obj, int serviceType)
 {
@@ -59,7 +37,7 @@ static bool serviceComparision(conv::IService* obj, int serviceType)
 		return false;
 }
 
-int conv::device::add_service(IService* service_obj)
+int conv::DeviceAdapter::add_service(IService* service_obj)
 {
 	service_list_t::iterator itr;
 	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, service_obj->getServiceType()));
@@ -75,51 +53,31 @@ int conv::device::add_service(IService* service_obj)
 	return CONV_ERROR_NONE;
 }
 
-int conv::device::remove_service(IService* service_obj)
+int conv::DeviceAdapter::remove_service(IService* service_obj)
 {
 	service_list.remove(service_obj);
 	return CONV_ERROR_NONE;
 }
 
-string conv::device::getName()
+string conv::DeviceAdapter::getName()
 {
-	return name;
+	return m_resource_h.get_device_name();
 }
 
-string conv::device::getId()
+string conv::DeviceAdapter::getId()
 {
-	return id;
+	return m_resource_h.get_device_id();
 }
 
-string conv::device::getAddress()
+string conv::DeviceAdapter::getAddress()
 {
-	return ip_address;
+	return m_resource_h.get_host_address();
 }
 
-int conv::device::get_services_list(std::list<IService*> *list)
+int conv::DeviceAdapter::get_services_list(std::list<IService*> *list)
 {
-	for (service_list_t::iterator iterPos = service_list.begin(); iterPos != service_list.end(); ++iterPos)
-	{
+	for (service_list_t::iterator iterPos = service_list.begin(); iterPos != service_list.end(); ++iterPos) {
 		list->push_back(*iterPos);
 	}
-	return CONV_ERROR_NONE;
-}
-
-
-int conv::device::setName(string name)
-{
-	this->name = name;
-	return CONV_ERROR_NONE;
-}
-
-int conv::device::setId(string id)
-{
-	this->id = id;
-	return CONV_ERROR_NONE;
-}
-
-int conv::device::setAddress(string id)
-{
-	ip_address = id;
 	return CONV_ERROR_NONE;
 }

@@ -16,20 +16,20 @@
 
 #include "smartview_discovery_provider.h"
 
-#include "../discovery_mgr_impl.h"
+#include "../DiscoveryManager.h"
 #include "../conv_json.h"
 
-#include "../util.h"
+#include "../Util.h"
 
 using namespace std;
 
 class SearchListenerImpl : public SearchListener {
 	private:
-		conv::discovery_manager_impl* disc_manager;
+		conv::DiscoveryManager* disc_manager;
 		conv::smartview_discovery_provider*	disc_provider;
 
 	public:
-		void set_discovery_manager(conv::discovery_manager_impl* discovery_manager)
+		void set_discovery_manager(conv::DiscoveryManager* discovery_manager)
 		{
 			this->disc_manager = discovery_manager;
 		}
@@ -221,7 +221,7 @@ int conv::smartview_discovery_provider::notice_discovered(Service* service, bool
 
 	_D("Success in converting into flow.service[%x] .device[%x]", conv_service, conv_device);
 
-	if ( conv::util::get_device_id().compare(conv_service->getId()) == 0 )	{
+	if ( conv::util::getDeviceId().compare(conv_service->getId()) == 0 )	{
 		_D("the device has found itself..[device_id:%s].. out!", conv_service->getId().c_str());
 		if(conv_device != NULL)		delete conv_device;
 		if(conv_service != NULL)	delete conv_service;

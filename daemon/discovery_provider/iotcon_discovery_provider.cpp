@@ -22,11 +22,11 @@
 #include "iotcon/resource_handle.h"
 #include "../conv_json.h"
 
-#include "../discovery_mgr_impl.h"
+#include "../DiscoveryManager.h"
 #include "iotcon/service_adapter.h"
-#include "iotcon/device_adapter.h"
+#include "iotcon/DeviceAdapter.h"
 
-#include "../util.h"
+#include "../Util.h"
 
 using namespace std;
 
@@ -89,7 +89,7 @@ static bool response_attributes_cb(iotcon_attributes_h attributes, const char* k
 	return true;
 }
 
-int conv::iotcon_discovery_provider::notice_discovered(service_iface* service)
+int conv::iotcon_discovery_provider::notice_discovered(IService* service)
 {
 	return CONV_ERROR_NONE;
 }
@@ -157,7 +157,7 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
 	cur_resource_h.set_device_id(string(device_id));
 
-	if ( conv::util::get_device_id().compare(device_id) == 0 ) {
+	if ( conv::util::getDeviceId().compare(device_id) == 0 ) {
 		_D("the device has found itself..[device_id:%s].. out!", device_id);
 		return;
 	}
@@ -184,7 +184,7 @@ void conv::iotcon_discovery_provider::_on_response_get(iotcon_remote_resource_h 
 									, device_id, device_name, device_type, version, service_list);
 
 	if (_discovery_manager != NULL) {
-		device_adapter*	device = new(std::nothrow) device_adapter (cur_resource_h);
+		DeviceAdapter*	device = new(std::nothrow) DeviceAdapter (cur_resource_h);
 
 		int num_service = service_list_json.array_get_size(NULL, "service_list");
 		for (int index = 0; index < num_service; index++) {
