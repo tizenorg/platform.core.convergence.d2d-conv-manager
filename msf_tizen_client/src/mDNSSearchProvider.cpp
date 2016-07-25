@@ -297,7 +297,7 @@ void MDNSServiceCallback::onSuccess(Service service)
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
 	provider->addService(service);
 	string ip = provider->getIP(service.getUri());
-	provider->updateAlive(0x00ffffff, ip, MDNS);
+	provider->push_in_alivemap(0x00ffffff, ip, MDNS);
 	MSF_DBG("service : id( %s ) registerd.", ip.c_str());
 }
 
