@@ -20,49 +20,52 @@
 #include <string>
 #include <gio/gio.h>
 #include "Types.h"
-#include "conv_json.h"
+#include "Json.h"
 #include "IServiceInfo.h"
 #include "ICommunicationInfo.h"
 #include "access_control/PeerCreds.h"
 
 namespace conv {
-	class request {
+	class Request {
 		public:
-			request(int type, const char *client, int req_id, const char *subj, const char *desc);
-			request(int type,
-			const char *client, int req_id, const char *subj, const char *desc,
+			Request(int type, const char *client, int reqId, const char *subj, const char *desc);
+			Request(int type,
+			const char *client, int reqId, const char *subj, const char *desc,
 			const char *sender, Credentials *creds, GDBusMethodInvocation *inv);
-			~request();
+			~Request();
 
-			int get_type();
-			int get_id();
-			const char *get_client();
-			const char *get_sender();
-			const char *get_subject();
-			json& get_description();
-			Credentials *get_creds();
+			int getType();
+			int getId();
+			const char *getClient();
+			const char *getSender();
+			const char *getSubject();
+			Json& getDescription();
+			Credentials *getCreds();
 			bool reply(int error);
-			bool reply(int error, json &request_result);
-			bool reply(int error, json &request_result, json &data_read);
-			bool publish(int error, json &data);
+			bool reply(int error, Json &requestResult);
+			bool reply(int error, Json &requestResult, Json &readData);
+			bool publish(int error, Json &data);
 
-			bool get_channel_from_description(json* target);
-			bool get_payload_from_description(json* target);
-			std::string service_type;
+			bool getChannelFromDescription(Json* target);
+			bool getPayloadFromDescription(Json* target);
 
-			std::string connection_type;
-			IServiceInfo* service_info;
-			ICommunicationInfo* communication_info;
+			IServiceInfo* getServiceInfo();
+			ICommunicationInfo* getCommunicationInfo();
+			void setServiceInfo(IServiceInfo* serviceInfo);
+			void setCommunicationInfo(ICommunicationInfo* communicationInfo);
 
 		protected:
-			int _type;
-			int _req_id;
-			std::string _client;
-			std::string _subject;
-			json _description;
+			int __type;
+			int __reqId;
+			std::string __client;
+			std::string __subject;
+			Json __description;
 			Credentials *__creds;
 			std::string __sender;
 			GDBusMethodInvocation *__invocation;
+
+			IServiceInfo* __serviceInfo;
+			ICommunicationInfo* __communicationInfo;
 	};
 }
 

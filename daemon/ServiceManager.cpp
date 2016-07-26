@@ -34,14 +34,14 @@ conv::ServiceManager::~ServiceManager()
 {
 }
 
-int conv::ServiceManager::handle_vconf_update(keynode_t *node)
+int conv::ServiceManager::handleVconfUpdate(keynode_t *node)
 {
-	activation_state = vconf_keynode_get_int(node);
+	__activationState = vconf_keynode_get_int(node);
 
-	if ( activation_state == 1 ) {
-		register_discovery_info();
+	if ( __activationState == 1 ) {
+		registerDiscoveryInfo();
 	} else {
-		unregister_discovery_info();
+		unregisterDiscoveryInfo();
 	}
 
 	return CONV_ERROR_NONE;
@@ -52,26 +52,26 @@ static void vconf_update_cb(keynode_t *node, void* user_data)
 	conv::ServiceManager* instance = static_cast<conv::ServiceManager*>(user_data);
 	IF_FAIL_VOID_TAG(instance, _E, "static_cast failed");
 
-	instance->handle_vconf_update(node);
+	instance->handleVconfUpdate(node);
 }
 
 int conv::ServiceManager::init()
 {
-	register_provider(new(std::nothrow) conv::AppCommServiceProvider());
-	register_provider(new(std::nothrow) conv::RemoteAppControlServiceProvider());
+	registerProvider(new(std::nothrow) conv::AppCommServiceProvider());
+	registerProvider(new(std::nothrow) conv::RemoteAppControlServiceProvider());
 
-	int error = vconf_get_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE, &activation_state);
+	int error = vconf_get_int(VCONFKEY_SETAPPL_D2D_CONVERGENCE, &__activationState);
 
 	if ( error < 0 ) {
 		_E("vconf error (%d)", error);
 		// temporary code
-		activation_state = 1;
+		__activationState = 1;
 	}
 
-	if ( activation_state == 1 ) {
-		register_discovery_info();
+	if ( __activationState == 1 ) {
+		registerDiscoveryInfo();
 	} else {
-		unregister_discovery_info();
+		unregisterDiscoveryInfo();
 	}
 
 	error = vconf_notify_key_changed(VCONFKEY_SETAPPL_D2D_CONVERGENCE, vconf_update_cb, this);
@@ -82,87 +82,87 @@ int conv::ServiceManager::init()
 
 int conv::ServiceManager::release()
 {
-	unregister_discovery_info();
+	unregisterDiscoveryInfo();
 
-	for (service_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
+	for (ServiceProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
 		(*it)->release();
 	}
 
-	for (service_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
+	for (ServiceProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
 		delete *it;
 	}
 
-	provider_list.clear();
+	__providerList.clear();
 
 	return CONV_ERROR_NONE;
 }
 
-int conv::ServiceManager::handleRequest(request* requestObj)
+int conv::ServiceManager::handleRequest(Request* requestObj)
 {
 	_D("handle_request called");
 	string type;
 	int error = CONV_ERROR_INVALID_OPERATION;
-	bool json_return;
+	bool result;
 
-	json description = requestObj->get_description();
-	json_return = description.get(NULL, CONV_JSON_TYPE, &type);
+	Json description = requestObj->getDescription();
+	result = description.get(NULL, CONV_JSON_TYPE, &type);
 
-	IF_FAIL_CATCH_TAG(json_return, _E, "json parse error : no type info");
+	IF_FAIL_CATCH_TAG(result, _E, "json parse error : no type info");
 
-	for (service_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
-		if ( (*it)->get_type().compare(type) == 0 )
+	for (ServiceProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
+		if ( (*it)->getType().compare(type) == 0 )
 		{
 			_D("found service provider");
-			error = (*it)->check_activation_state();
+			error = (*it)->checkActivationState();
 			IF_FAIL_CATCH_TAG(error == CONV_ERROR_NONE, _E, "service provider is not activated");
 
-			error = (*it)->load_service_info(requestObj);
+			error = (*it)->loadServiceInfo(requestObj);
 			IF_FAIL_CATCH_TAG(error == CONV_ERROR_NONE, _E, "%d, service_info load error", error);
 
-			if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_START)) {
-				if ( !conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-						!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) ||
-						!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_D2D_DATA_SHARING) )
+			if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_START)) {
+				if ( !conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_INTERNET) ||
+						!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_BLUETOOTH) ||
+						!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_D2D_DATA_SHARING) )
 				{
 					_E("permission denied");
 					requestObj->reply(CONV_ERROR_PERMISSION_DENIED);
 					delete requestObj;
 					return CONV_ERROR_PERMISSION_DENIED;
 				}
-				error = (*it)->start_request(requestObj);
-			} else if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_STOP)) {
-				if ( !conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-						!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) )
+				error = (*it)->startRequest(requestObj);
+			} else if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_STOP)) {
+				if ( !conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_INTERNET) ||
+						!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_BLUETOOTH) )
 				{
 					_E("permission denied");
 					requestObj->reply(CONV_ERROR_PERMISSION_DENIED);
 					delete requestObj;
 					return CONV_ERROR_PERMISSION_DENIED;
 				}
-				error = (*it)->stop_request(requestObj);
-			} else if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_GET)) 	{
-				if ( !conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-						!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) )
+				error = (*it)->stopRequest(requestObj);
+			} else if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_GET)) 	{
+				if ( !conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_INTERNET) ||
+						!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_BLUETOOTH) )
 				{
 					_E("permission denied");
 					requestObj->reply(CONV_ERROR_PERMISSION_DENIED);
 					delete requestObj;
 					return CONV_ERROR_PERMISSION_DENIED;
 				}
-				error = (*it)->get_request(requestObj);
-			} else if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_SET)) {
-				if ( !conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-						!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) ||
-						!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_D2D_DATA_SHARING) )
+				error = (*it)->readRequest(requestObj);
+			} else if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_SET)) {
+				if ( !conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_INTERNET) ||
+						!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_BLUETOOTH) ||
+						!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_D2D_DATA_SHARING) )
 				{
 					_E("permission denied");
 					requestObj->reply(CONV_ERROR_PERMISSION_DENIED);
 					delete requestObj;
 					return CONV_ERROR_PERMISSION_DENIED;
 				}
-				error = (*it)->set_request(requestObj);
-			} else if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV)) {
-				return (*it)->register_request(requestObj);
+				error = (*it)->publishRequest(requestObj);
+			} else if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_RECV)) {
+				return (*it)->registerRequest(requestObj);
 			}
 			IF_FAIL_CATCH_TAG(error == CONV_ERROR_NONE, _E, "service manager request handle error");
 		}
@@ -180,12 +180,12 @@ CATCH:
 	return error;
 }
 
-void conv::service_manager::set_instance(conv::ServiceManager* mgr)
+void conv::service_manager::setInstance(conv::ServiceManager* mgr)
 {
 	_instance = mgr;
 }
 
-int conv::service_manager::handleRequest(request* requestObj)
+int conv::service_manager::handleRequest(Request* requestObj)
 {
 	IF_FAIL_RETURN_TAG(_instance, CONV_ERROR_INVALID_PARAMETER, _E, "Not initialized");
 	_instance->handleRequest(requestObj);
@@ -193,14 +193,14 @@ int conv::service_manager::handleRequest(request* requestObj)
 	return CONV_ERROR_NONE;
 }
 
-int conv::ServiceManager::register_provider(conv::IServiceProvider *provider)
+int conv::ServiceManager::registerProvider(conv::IServiceProvider *provider)
 {
 	if (!provider) {
 		_E("Provider NULL");
 		return CONV_ERROR_INVALID_PARAMETER;
 	}
 
-	if (provider->check_activation_state() == CONV_ERROR_NONE) {
+	if (provider->checkActivationState() == CONV_ERROR_NONE) {
 		if (provider->init() != CONV_ERROR_NONE) {
 			_E("Provider initialization failed");
 			delete provider;
@@ -210,7 +210,7 @@ int conv::ServiceManager::register_provider(conv::IServiceProvider *provider)
 		_D("provider is not activated. init pending");
 	}
 
-	provider_list.push_back(provider);
+	__providerList.push_back(provider);
 
 	return CONV_ERROR_NONE;
 }
@@ -288,9 +288,9 @@ static iotcon_representation_h _get_d2d_service_representation(conv::ServiceMana
 #endif
 	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_TYPE, (char*) device_type.c_str());
 
-	json service_json;
-	instance->get_service_info_for_discovery(&service_json);
-	char* service_json_char = service_json.dup_cstr();
+	conv::Json service_json;
+	instance->getServiceInfoForDiscovery(&service_json);
+	char* service_json_char = service_json.dupCstr();
 
 	iotcon_attributes_add_str(attributes, "service_json", service_json_char);
 
@@ -308,14 +308,14 @@ static iotcon_representation_h _get_d2d_service_representation(conv::ServiceMana
 	return repr;
 }
 
-int conv::ServiceManager::get_service_info_for_discovery(json* service_json)
+int conv::ServiceManager::getServiceInfoForDiscovery(Json* service_json)
 {
 	IF_FAIL_RETURN_TAG(service_json, CONV_ERROR_INVALID_OPERATION, _E, "service_json is NULL");
 
-	for (service_provider_list_t::iterator it = provider_list.begin(); it != provider_list.end(); ++it) {
-		json service_info;
-		if ((*it)->get_service_info_for_discovery(&service_info) == CONV_ERROR_NONE) {
-			service_json->array_append(NULL, "service_list", service_info);
+	for (ServiceProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
+		Json service_info;
+		if ((*it)->getServiceInfoForDiscovery(&service_info) == CONV_ERROR_NONE) {
+			service_json->appendArray(NULL, "service_list", service_info);
 		}
 	}
 
@@ -377,7 +377,7 @@ static void iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h reque
 	}
 }
 
-int conv::ServiceManager::register_discovery_info()
+int conv::ServiceManager::registerDiscoveryInfo()
 {
 	IF_FAIL_RETURN_TAG(iotcon_resource == NULL, CONV_ERROR_INVALID_PARAMETER, _E, "resource for discovery is already registered");
 
@@ -410,7 +410,7 @@ int conv::ServiceManager::register_discovery_info()
 	return CONV_ERROR_NONE;
 }
 
-int conv::ServiceManager::unregister_discovery_info()
+int conv::ServiceManager::unregisterDiscoveryInfo()
 {
 	IF_FAIL_RETURN_TAG(iotcon_resource != NULL, CONV_ERROR_INVALID_PARAMETER, _E, "resource for discovery is already unregistered");
 

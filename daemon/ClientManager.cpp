@@ -50,24 +50,24 @@ void conv::client_manager::setInstance(conv::ClientManager* mgr)
 }
 
 
-int conv::ClientManager::handleRequest(request* requestObj)
+int conv::ClientManager::handleRequest(Request* requestObj)
 {
 	_D("handle_request called");
 
 	return CONV_ERROR_NONE;
 }
 
-conv::client* conv::client_manager::getClient(std::string clientId)
+conv::ClientInfo* conv::client_manager::getClient(std::string clientId)
 {
 	IF_FAIL_RETURN_TAG(_instance, NULL, _E, "Not initialized");
 
 	return _instance->getClient(clientId);
 }
 
-conv::client* conv::ClientManager::getClient(std::string clientId)
+conv::ClientInfo* conv::ClientManager::getClient(std::string clientId)
 {
 	for (ClientList::iterator it = clientList.begin(); it != clientList.end(); ++it) {
-		if ( !(*it)->get_id().compare(clientId) )
+		if ( !(*it)->getId().compare(clientId) )
 		{
 			// already exists
 			_D("client exists");
@@ -76,7 +76,7 @@ conv::client* conv::ClientManager::getClient(std::string clientId)
 	}
 
 	_D("new client obj created");
-	client* clientObj = new(std::nothrow) conv::client(clientId, NULL);
+	ClientInfo* clientObj = new(std::nothrow) conv::ClientInfo(clientId, NULL);
 
 	clientList.push_back(clientObj);
 	return clientObj;

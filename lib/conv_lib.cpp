@@ -205,7 +205,7 @@ EXTAPI int conv_device_foreach_service(conv_device_h handle, conv_service_foreac
 	std::string strval;
 
 	int service_count = 0;
-	service_count = json_data.array_get_size(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_DATA);	// json data..
+	service_count = json_data.getArraySize(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_DATA);	// json data..
 
 	for (int index =0; index < service_count; index++) {
 		_conv_service_handle* service = new(std::nothrow) _conv_service_handle();
@@ -215,8 +215,8 @@ EXTAPI int conv_device_foreach_service(conv_device_h handle, conv_service_foreac
 		json json_service;
 		std::string version, type, uri;
 		conv_service_e service_type;
-		json_data.get_array_elem(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_DATA, index, &json_service);
-		json_data.get_array_elem(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_TYPE, index, (int*)&service_type);
+		json_data.getArrayElem(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_DATA, index, &json_service);
+		json_data.getArrayElem(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_TYPE, index, (int*)&service_type);
 
 		service->jservice = json_service;
 		service->service_type = service_type;

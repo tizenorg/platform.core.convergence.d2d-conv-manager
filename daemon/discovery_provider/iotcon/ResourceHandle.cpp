@@ -20,95 +20,95 @@
 using namespace std;
 
 
-int conv::ResourceHandle::set_device_id(string dev_id)
+int conv::ResourceHandle::setDeviceId(string dev_id)
 {
 	this->device_id = dev_id;
 	return CONV_ERROR_NONE;
 }
 
-string conv::ResourceHandle::get_device_id()
+string conv::ResourceHandle::getDeviceId()
 {
 	return this->device_id;
 }
 
-int conv::ResourceHandle::set_device_name(string dev_name)
+int conv::ResourceHandle::setDeviceName(string dev_name)
 {
 	this->device_name = dev_name;
 	return CONV_ERROR_NONE;
 }
 
-string conv::ResourceHandle::get_device_name()
+string conv::ResourceHandle::getDeviceName()
 {
 	return device_name;
 }
 
-int conv::ResourceHandle::set_device_type(string dev_type)
+int conv::ResourceHandle::setDeviceType(string dev_type)
 {
 	this->device_type = dev_type;
 	return CONV_ERROR_NONE;
 }
 
-string conv::ResourceHandle::get_device_type()
+string conv::ResourceHandle::getDeviceType()
 {
 	return device_type;
 }
 
-int	conv::ResourceHandle::set_version(string ver)
+int	conv::ResourceHandle::setVersion(string ver)
 {
 	this->version = ver;
 	return CONV_ERROR_NONE;
 }
 
-string conv::ResourceHandle::get_version()
+string conv::ResourceHandle::getVersion()
 {
 	return version;
 }
 
-int	conv::ResourceHandle::set_services_list(string list)
+int	conv::ResourceHandle::setServiceList(string list)
 {
-	this->services_list = json(list);
+	this->services_list = Json(list);
 	return CONV_ERROR_NONE;
 }
 
-int conv::ResourceHandle::set_uri_path(string uri_path)
+int conv::ResourceHandle::setUriPath(string uri_path)
 {
 	this->uri_path = uri_path;
 	return CONV_ERROR_NONE;
 }
 
-string conv::ResourceHandle::get_uri_path()
+string conv::ResourceHandle::getUriPath()
 {
 	return uri_path;
 }
 
-int	conv::ResourceHandle::set_host_address(string host_address)
+int	conv::ResourceHandle::setHostAddress(string host_address)
 {
 	this->host_address = host_address;
 	return CONV_ERROR_NONE;
 }
 
-string conv::ResourceHandle::get_host_address()
+string conv::ResourceHandle::getHostAddress()
 {
 	return host_address;
 }
 
-list<string>& conv::ResourceHandle::get_types()
+list<string>& conv::ResourceHandle::getTypes()
 {
 	return types;
 }
 
-int	conv::ResourceHandle::add_types(string type)
+int	conv::ResourceHandle::addType(string type)
 {
 	types.push_back(type);
 	return CONV_ERROR_NONE;
 }
 
-list<string>& conv::ResourceHandle::get_interfaces()
+list<string>& conv::ResourceHandle::getInterfaces()
 {
 	return interfaces;
 }
 
-int	conv::ResourceHandle::add_interfaces(string interface)
+int	conv::ResourceHandle::addInterface(string interface)
 {
 	interfaces.push_back(interface);
 	return CONV_ERROR_NONE;

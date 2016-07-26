@@ -18,8 +18,8 @@
 #define __SERVICE_PROVIDER_BASE_H__
 
 #include <string>
-#include "request.h"
-#include "conv_json.h"
+#include "Request.h"
+#include "Json.h"
 
 namespace conv {
 	class IServiceProvider {
@@ -28,38 +28,38 @@ namespace conv {
 			virtual int init() = 0;
 			virtual int release() = 0;
 
-			virtual int start_request(request* request_obj) = 0;
-			virtual int stop_request(request* request_obj) = 0;
-			virtual int get_request(request* request_obj) = 0;
-			virtual int set_request(request* request_obj) = 0;
-			virtual int register_request(request* request_obj) = 0;
-			virtual int load_service_info(request* request_obj) = 0;
-			virtual int get_service_info_for_discovery(json* json_obj) = 0;
-			int check_activation_state() {
-				if (_activation_state == 1) {
+			virtual int startRequest(Request* request_obj) = 0;
+			virtual int stopRequest(Request* request_obj) = 0;
+			virtual int readRequest(Request* request_obj) = 0;
+			virtual int publishRequest(Request* request_obj) = 0;
+			virtual int registerRequest(Request* request_obj) = 0;
+			virtual int loadServiceInfo(Request* request_obj) = 0;
+			virtual int getServiceInfoForDiscovery(Json* json_obj) = 0;
+			int checkActivationState() {
+				if (__activationState == 1) {
 					return CONV_ERROR_NONE;
 				} else {
 					return CONV_ERROR_INVALID_OPERATION;
 				}
 			}
 
-			std::string get_type() {
-				return _type;
+			std::string getType() {
+				return __type;
 			}
 
 			std::string get_resource_type() {
-					return _resource_type;
+					return __resourceType;
 			}
 
 			std::string get_uri() {
-					return _uri;
+					return __uri;
 			}
 
 		protected:
-			std::string _type;
-			std::string _resource_type;
-			std::string _uri;
-			int _activation_state;
+			std::string __type;
+			std::string __resourceType;
+			std::string __uri;
+			int __activationState;
 	};	/* class IServiceProvider */
 }
 

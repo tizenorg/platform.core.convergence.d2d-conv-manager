@@ -15,43 +15,43 @@
  */
 
 #include <glib.h>
-#include "client.h"
+#include "ClientInfo.h"
 #include "Log.h"
 #include "d2d_conv_manager.h"
 
 using namespace std;
 
-conv::client::client(string client_id, GDBusMethodInvocation *inv)
+conv::ClientInfo::ClientInfo(string clientId, GDBusMethodInvocation *inv)
 {
-	id = client_id;
+	id = clientId;
 }
 
-conv::client::~client()
+conv::ClientInfo::~ClientInfo()
 {
-	for (service_info_map_t::iterator it = service_info_map.begin(); it != service_info_map.end(); ++it) {
+	for (ServiceInfoMap::iterator it = service_info_map.begin(); it != service_info_map.end(); ++it) {
 		delete (it->second);
 	}
 	service_info_map.clear();
 }
 
-int conv::client::add_device()
+int conv::ClientInfo::add_device()
 {
 	return CONV_ERROR_NONE;
 }
 
-int conv::client::remove_device()
+int conv::ClientInfo::remove_device()
 {
 	return CONV_ERROR_NONE;
 }
 
-string conv::client::get_id()
+string conv::ClientInfo::getId()
 {
 	return id;
 }
 
-conv::IServiceInfo* conv::client::get_service_info(string type, string id)
+conv::IServiceInfo* conv::ClientInfo::getServiceInfo(string type, string id)
 {
-	service_info_map_t::iterator it;
+	ServiceInfoMap::iterator it;
 	it = service_info_map.find(std::pair<string, string>(type, id));
 
 	if ( it != service_info_map.end() ) {
@@ -63,9 +63,9 @@ conv::IServiceInfo* conv::client::get_service_info(string type, string id)
 	}
 }
 
-int conv::client::add_service_info(string type, string id, IServiceInfo* info)
+int conv::ClientInfo::addServiceInfo(string type, string id, IServiceInfo* info)
 {
-	service_info_map.insert(std::pair<service_key_t, IServiceInfo*>(std::pair<string, string>(type, id), info));
+	service_info_map.insert(std::pair<ServiceKey, IServiceInfo*>(std::pair<string, string>(type, id), info));
 	_D("service info is added : %s, %s", type.c_str(), id.c_str());
 
 	return CONV_ERROR_NONE;

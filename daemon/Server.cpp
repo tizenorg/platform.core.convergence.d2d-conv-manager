@@ -53,7 +53,7 @@ void conv::initialize()
 	_I("Init Discovery Manager");
 	discoveryMgr = new(std::nothrow) conv::DiscoveryManager();
 	IF_FAIL_CATCH_TAG(discoveryMgr, _E, "Memory allocation failed");
-	discovery_manager::set_instance(discoveryMgr);
+	discovery_manager::setInstance(discoveryMgr);
 	result = discoveryMgr->init();
 	IF_FAIL_CATCH_TAG(result == CONV_ERROR_NONE, _E, "Initialization Failed");
 
@@ -74,7 +74,7 @@ void conv::initialize()
 	_I("Init Service Manager");
 	serviceMgr = new(std::nothrow) conv::ServiceManager();
 	IF_FAIL_CATCH_TAG(serviceMgr, _E, "Memory allocation failed");
-	service_manager::set_instance(serviceMgr);
+	service_manager::setInstance(serviceMgr);
 	result = serviceMgr->init();
 	IF_FAIL_CATCH_TAG(result == CONV_ERROR_NONE, _E, "Initialization Failed");
 
@@ -143,7 +143,7 @@ void conv::release()
 }
 
 
-void conv::sendRequest(request* requestObj)
+void conv::sendRequest(Request* requestObj)
 {
 	_D("send_request requestObj:%x request_mg:%x", requestObj, requestMgr);
 	if (requestMgr) {

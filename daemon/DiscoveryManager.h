@@ -24,14 +24,13 @@
 
 #include "IManager.h"
 #include "IDiscoveryProvider.h"
-#include "request.h"
+#include "Request.h"
 
 #include "IDevice.h"
 #include "IService.h"
 
 namespace conv {
-	class request;
-	class device;
+	class SmartViewDevice;
 
 	class DiscoveryManager : public IManager {
 		public:
@@ -40,46 +39,44 @@ namespace conv {
 
 			int init();
 			int release();
-			int handleRequest(request* requestObj);
+			int handleRequest(Request* requestObj);
 
 			// discovery_manager aggregates devices with services which have been discovered through the registered discover providers
-			int append_discovered_result(IDevice* disc_device);
-			int notify_lost_device(IDevice* disc_device);
-			int notify_time_up(std::string client);
-			int stop_discovery();
-			int start_discovery();
+			int appendDiscoveredResult(IDevice* disc_device);
+			int notifyLostDevice(IDevice* disc_device);
+			int notifyTimeOut(std::string client);
+			int stopDiscovery();
+			int startDiscovery();
 
-			static void timer_worker(void* data);
+			static void __timer_worker(void* data);
 
 		private:
 			int count_discovery_request;
 
 
 			typedef std::list<IDiscoveryProvider*> discovery_provider_list_t;
-			typedef std::map<string, request*> request_map_t;
-			typedef std::map<int, json>	filter_map_t;
+			typedef std::map<string, Request*> request_map_t;
+			typedef std::map<int, Json>	filter_map_t;
 			typedef std::map<std::string, int>	timer_map_t;
 
-			int register_provider(IDiscoveryProvider *provider_base);
-			discovery_provider_list_t provider_list;
+			int registerProvider(IDiscoveryProvider *discoveryProvider);
+			discovery_provider_list_t __providerList;
 			request_map_t	request_map;
 			filter_map_t	discovery_filter_map;
 			timer_map_t		request_timer_map;
 
 			// internal function
-			int convert_service_into_json(conv::IService* service_info, json* json_data);
-			int convert_device_into_json(conv::IDevice* service_info, json* json_data);
-			int set_discovery_filter(request* req_obj);
-			int isvalid_discovery_on_filter(json& filter_json);
-			int checkBoundaryForTimeout(int givenTimeout);
-			int merge_exclude_services(conv::IDevice* org_device, conv::IDevice* new_device);
-			int exclude_services(conv::IDevice* org_device, conv::IDevice* removed_device);
+			int convertServiceIntoJson(conv::IService* service_info, Json* json_data);
+			int convertDeviceIntoJson(conv::IDevice* service_info, Json* json_data);
+			int checkBoundaryForTimeOut(int givenTimeout);
+			int mergeExcludeServices(conv::IDevice* org_device, conv::IDevice* new_device);
+			int excludeServices(conv::IDevice* org_device, conv::IDevice* removed_device);
 	};
 
 	namespace discovery_manager {
-		void set_instance(DiscoveryManager* mgr);
-		int handleRequest(request* requestObj);
-		int set_result(device* device_obj);
+		void setInstance(DiscoveryManager* mgr);
+		int handleRequest(Request* requestObj);
+		int setResult(SmartViewDevice* device_obj);
 	};
 }
 

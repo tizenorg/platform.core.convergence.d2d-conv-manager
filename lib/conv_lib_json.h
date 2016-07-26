@@ -40,11 +40,11 @@ private:
 	void release();
 
 	/* For json vs json comparison */
-	bool get_member_list(json_node_t* node, std::list<std::string>& list);
-	bool node_equals(json_node_t* lhs, json_node_t* rhs);
-	bool value_equals(json_node_t* lhs, json_node_t* rhs);
-	bool object_equals(json_node_t* lhs, json_node_t* rhs);
-	bool array_equals(json_node_t* lhs, json_node_t* rhs);
+	bool getMemberList(json_node_t* node, std::list<std::string>& list);
+	bool nodeEquals(json_node_t* lhs, json_node_t* rhs);
+	bool valueEquals(json_node_t* lhs, json_node_t* rhs);
+	bool objectEquals(json_node_t* lhs, json_node_t* rhs);
+	bool arrayEquals(json_node_t* lhs, json_node_t* rhs);
 
 public:
 	json();
@@ -73,10 +73,10 @@ public:
 	bool operator==(const json& rhs);
 	bool operator!=(const json& rhs);
 
-	char* dup_cstr();
+	char* dupCstr();
 	std::string str();
 
-	bool get_keys(std::list<std::string>* list);
+	bool getKeys(std::list<std::string>* list);
 
 	bool set(const char* path, const char* key, json& val);
 	bool set(const char* path, const char* key, int val);
@@ -94,25 +94,25 @@ public:
 
 	bool remove(const char* path, const char* key);
 
-	int array_get_size(const char* path, const char* key);
+	int getArraySize(const char* path, const char* key);
 
-	bool array_append(const char* path, const char* key, json& val);
-	bool array_append(const char* path, const char* key, int val);
-	bool array_append(const char* path, const char* key, int64_t val);
-	bool array_append(const char* path, const char* key, double val, int prec = DEFAULT_PRECISION);
-	bool array_append(const char* path, const char* key, std::string val);
+	bool appendArray(const char* path, const char* key, json& val);
+	bool appendArray(const char* path, const char* key, int val);
+	bool appendArray(const char* path, const char* key, int64_t val);
+	bool appendArray(const char* path, const char* key, double val, int prec = DEFAULT_PRECISION);
+	bool appendArray(const char* path, const char* key, std::string val);
 
-	bool array_set_at(const char* path, const char* key, int index, json& val);
-	bool array_set_at(const char* path, const char* key, int index, int val);
-	bool array_set_at(const char* path, const char* key, int index, int64_t val);
-	bool array_set_at(const char* path, const char* key, int index, double val, int prec = DEFAULT_PRECISION);
-	bool array_set_at(const char* path, const char* key, int index, std::string val);
+	bool setArrayAt(const char* path, const char* key, int index, json& val);
+	bool setArrayAt(const char* path, const char* key, int index, int val);
+	bool setArrayAt(const char* path, const char* key, int index, int64_t val);
+	bool setArrayAt(const char* path, const char* key, int index, double val, int prec = DEFAULT_PRECISION);
+	bool setArrayAt(const char* path, const char* key, int index, std::string val);
 
-	bool get_array_elem(const char* path, const char* key, int index, json* val);
-	bool get_array_elem(const char* path, const char* key, int index, int* val);
-	bool get_array_elem(const char* path, const char* key, int index, int64_t* val);
-	bool get_array_elem(const char* path, const char* key, int index, double* val);
-	bool get_array_elem(const char* path, const char* key, int index, std::string* val);
+	bool getArrayElem(const char* path, const char* key, int index, json* val);
+	bool getArrayElem(const char* path, const char* key, int index, int* val);
+	bool getArrayElem(const char* path, const char* key, int index, int64_t* val);
+	bool getArrayElem(const char* path, const char* key, int index, double* val);
+	bool getArrayElem(const char* path, const char* key, int index, std::string* val);
 };
 
 #endif // __CONV_LIB_JSON_H__

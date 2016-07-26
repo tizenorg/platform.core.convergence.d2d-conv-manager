@@ -23,9 +23,9 @@
 #include <map>
 
 #include "../IDiscoveryProvider.h"
-#include "../request.h"
-#include "smartview/service.h"
-#include "smartview/device.h"
+#include "../Request.h"
+#include "smartview/SmartViewService.h"
+#include "smartview/SmartViewDevice.h"
 
 #include "Search.h"
 #include "Service.h"
@@ -43,17 +43,17 @@ namespace conv {
 			int start();
 			int stop();
 
-			int notice_discovered(Service *service, bool bDiscovered);
+			int notifyDiscovered(Service *service, bool bDiscovered);
 		private:
 			//Service service;
 			Search*	search;
 
-			map <string, conv::service*> cache; // for double check
+			map <string, conv::SmartViewService*> cache; // for double check
 
-			conv::service* convert_into_conv_service(Service* smartview_service);
-			conv::device* convert_into_conv_device(Service* smartview_service);
-			int checkExistence(conv::service* conv_service);
-			int removeFromCache(conv::service* conv_service);
+			conv::SmartViewService* convertIntoConvService(Service* smartview_service);
+			conv::SmartViewDevice* convertIntoConvDevice(Service* smartview_service);
+			int checkExistence(conv::SmartViewService* conv_service);
+			int removeFromCache(conv::SmartViewService* conv_service);
 	};
 }
 

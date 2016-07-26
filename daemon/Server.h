@@ -19,11 +19,11 @@
 
 #define CONV_DAEMON
 #include "Log.h"
-#include "request.h"
+#include "Request.h"
 
 namespace conv {
 	void initialize();
 	void release();
-	void sendRequest(request* requestObj);
+	void sendRequest(Request* requestObj);
 }
 #endif

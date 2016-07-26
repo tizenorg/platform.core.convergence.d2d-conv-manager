@@ -29,28 +29,28 @@ conv::ServiceAdapter::~ServiceAdapter()
 
 string conv::ServiceAdapter::getName()
 {
-	return m_resource_h.get_device_name();
+	return m_resource_h.getDeviceName();
 }
 
 string conv::ServiceAdapter::getVersion()
 {
-	return m_resource_h.get_version();
+	return m_resource_h.getVersion();
 }
 
 string conv::ServiceAdapter::getType()
 {
-	return m_resource_h.get_device_type();
+	return m_resource_h.getDeviceType();
 }
 
 string conv::ServiceAdapter::getId()
 {
-	return m_resource_h.get_device_id();
+	return m_resource_h.getDeviceId();
 }
 
 string conv::ServiceAdapter::getUri()
 {
-	string uri_path = m_resource_h.get_uri_path();
-	string host_address = m_resource_h.get_host_address();
+	string uri_path = m_resource_h.getUriPath();
+	string host_address = m_resource_h.getHostAddress();
 
 	return host_address + uri_path;
 }

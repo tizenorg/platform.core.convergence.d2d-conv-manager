@@ -37,7 +37,7 @@ static bool serviceComparision(conv::IService* obj, int serviceType)
 		return false;
 }
 
-int conv::DeviceAdapter::add_service(IService* service_obj)
+int conv::DeviceAdapter::addService(IService* service_obj)
 {
 	service_list_t::iterator itr;
 	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, service_obj->getServiceType()));
@@ -53,7 +53,7 @@ int conv::DeviceAdapter::add_service(IService* service_obj)
 	return CONV_ERROR_NONE;
 }
 
-int conv::DeviceAdapter::remove_service(IService* service_obj)
+int conv::DeviceAdapter::removeService(IService* service_obj)
 {
 	service_list.remove(service_obj);
 	return CONV_ERROR_NONE;
@@ -61,20 +61,20 @@ int conv::DeviceAdapter::remove_service(IService* service_obj)
 
 string conv::DeviceAdapter::getName()
 {
-	return m_resource_h.get_device_name();
+	return m_resource_h.getDeviceName();
 }
 
 string conv::DeviceAdapter::getId()
 {
-	return m_resource_h.get_device_id();
+	return m_resource_h.getDeviceId();
 }
 
 string conv::DeviceAdapter::getAddress()
 {
-	return m_resource_h.get_host_address();
+	return m_resource_h.getHostAddress();
 }
 
-int conv::DeviceAdapter::get_services_list(std::list<IService*> *list)
+int conv::DeviceAdapter::getServiceList(std::list<IService*> *list)
 {
 	for (service_list_t::iterator iterPos = service_list.begin(); iterPos != service_list.end(); ++iterPos) {
 		list->push_back(*iterPos);

@@ -17,7 +17,7 @@
 #include "SmartviewDiscoveryProvider.h"
 
 #include "../DiscoveryManager.h"
-#include "../conv_json.h"
+#include "../Json.h"
 
 #include "../Util.h"
 
@@ -51,14 +51,14 @@ class SearchListenerImpl : public SearchListener {
 		{
 			_I("onFound on SearchListener.. towards disc_manager:%x", disc_manager);
 			if (disc_provider != NULL) {
-				disc_provider->notice_discovered(&service, true);
+				disc_provider->notifyDiscovered(&service, true);
 			}
 		}
 		void onLost(Service service)
 		{
 			_I("onLost on SearchListener");
 			if (disc_provider != NULL) {
-				disc_provider->notice_discovered(&service, false);
+				disc_provider->notifyDiscovered(&service, false);
 			}
 		}
 };
@@ -123,7 +123,7 @@ int conv::SmartviewDiscoveryProvider::stop()
 	return CONV_ERROR_NONE;
 }
 
-conv::device* conv::SmartviewDiscoveryProvider::convert_into_conv_device(Service* smartview_service)
+conv::SmartViewDevice* conv::SmartviewDiscoveryProvider::convertIntoConvDevice(Service* smartview_service)
 {
 	string serv_name, serv_version, serv_type, serv_id, serv_uri;
 
@@ -137,14 +137,14 @@ conv::device* conv::SmartviewDiscoveryProvider::convert_into_conv_device(Service
 								serv_name.c_str(), serv_version.c_str(), serv_type.c_str(),
 								serv_id.c_str(), serv_uri.c_str() );
 
-	conv::device*	device_info = new(std::nothrow) conv::device;
+	conv::SmartViewDevice*	device_info = new(std::nothrow) conv::SmartViewDevice;
 	device_info->setId(serv_id);
 	device_info->setName(serv_name);
 
 	return device_info;
 }
 
-conv::service* conv::SmartviewDiscoveryProvider::convert_into_conv_service(Service* smartview_service)
+conv::SmartViewService* conv::SmartviewDiscoveryProvider::convertIntoConvService(Service* smartview_service)
 {
 	string serv_name, serv_version, serv_type, serv_id, serv_uri;
 
@@ -158,14 +158,14 @@ conv::service* conv::SmartviewDiscoveryProvider::convert_into_conv_service(Servi
 								serv_name.c_str(), serv_version.c_str(), serv_type.c_str(),
 								serv_id.c_str(), serv_uri.c_str() );
 
-	json json_serv_info;
+	Json json_serv_info;
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_URI, serv_uri);
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_ID, serv_id);
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_NAME, serv_name);
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_VERSION, serv_version);
 	json_serv_info.set(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_TYPE, serv_type);
 
-	conv::service *conv_service = new(std::nothrow) conv::service;
+	conv::SmartViewService *conv_service = new(std::nothrow) conv::SmartViewService;
 
 	if ( conv_service == NULL ) {
 		_E("conv_service allocation failed");
@@ -183,14 +183,14 @@ conv::service* conv::SmartviewDiscoveryProvider::convert_into_conv_service(Servi
 	return conv_service;
 }
 
-int conv::SmartviewDiscoveryProvider::removeFromCache(conv::service* conv_service)
+int conv::SmartviewDiscoveryProvider::removeFromCache(conv::SmartViewService* conv_service)
 {
 	string cache_key = conv_service->getUri();
 	cache.erase(cache_key);
 	return CONV_ERROR_NONE;
 }
 
-int conv::SmartviewDiscoveryProvider::checkExistence(conv::service* conv_service)
+int conv::SmartviewDiscoveryProvider::checkExistence(conv::SmartViewService* conv_service)
 {
 	_D("Check Existence : ");
 	conv_service->printInfo();
@@ -199,7 +199,7 @@ int conv::SmartviewDiscoveryProvider::checkExistence(conv::service* conv_service
 	string cache_key = conv_service->getUri();	// Serivce URI as Map Key
 	if (cache.find(cache_key) == cache.end()){
 		_D("Flow_service with key[%s] does not exist..so go into the cache", cache_key.c_str());
-		cache.insert(map<string, conv::service*>::value_type(cache_key, conv_service));
+		cache.insert(map<string, conv::SmartViewService*>::value_type(cache_key, conv_service));
 		return CONV_ERROR_NONE;
 	} else {
 		_D("Flow_service with key[%s] already exists..", cache_key.c_str());
@@ -207,17 +207,17 @@ int conv::SmartviewDiscoveryProvider::checkExistence(conv::service* conv_service
 	}
 }
 
-int conv::SmartviewDiscoveryProvider::notice_discovered(Service* service, bool bDiscovered)
+int conv::SmartviewDiscoveryProvider::notifyDiscovered(Service* service, bool bDiscovered)
 {
 	_D("Notice Discovered called with service[%x]", service);
 
 	// Covert MSF-API's Service into D2D Flow's Device n Service
-	conv::device*	conv_device = convert_into_conv_device(service);
+	conv::SmartViewDevice*	conv_device = convertIntoConvDevice(service);
 	IF_FAIL_RETURN_TAG((conv_device != NULL), CONV_ERROR_INVALID_PARAMETER, _E, "failed to convert into flow device..");
 
-	conv::service* conv_service = convert_into_conv_service(service);
+	conv::SmartViewService* conv_service = convertIntoConvService(service);
 	IF_FAIL_RETURN_TAG((conv_service != NULL), CONV_ERROR_INVALID_PARAMETER, _E, "failed to convert into flow service..");
-	conv_device->add_service(conv_service);
+	conv_device->addService(conv_service);
 
 	_D("Success in converting into flow.service[%x] .device[%x]", conv_service, conv_device);
 
@@ -233,7 +233,7 @@ int conv::SmartviewDiscoveryProvider::notice_discovered(Service* service, bool b
 		//1. delete it from the cache..
 		removeFromCache(conv_service);
 		//2. notify
-		_discovery_manager->notify_lost_device(conv_device);
+		_discovery_manager->notifyLostDevice(conv_device);
 
 		return CONV_ERROR_NONE;
 	} else {
@@ -243,7 +243,7 @@ int conv::SmartviewDiscoveryProvider::notice_discovered(Service* service, bool b
 
 		if (!alreadyExisted) {
 			//the discovered one is NEW!!
-			_discovery_manager->append_discovered_result(conv_device);
+			_discovery_manager->appendDiscoveredResult(conv_device);
 		}
 	}
 

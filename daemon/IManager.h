@@ -18,17 +18,17 @@
 #define __CONV_MANAGER_INTERFACE_H__
 
 #include <string>
-#include "conv_json.h"
+#include "Json.h"
 
 namespace conv {
-	class request;
+	class Request;
 
 	class IManager {
 		public:
 			virtual ~IManager() {}
 			virtual int init() = 0;
 			virtual int release() = 0;
-			virtual int handleRequest(request* requestObj) = 0;
+			virtual int handleRequest(Request* requestObj) = 0;
 	};	/* class IManager */
 }
 

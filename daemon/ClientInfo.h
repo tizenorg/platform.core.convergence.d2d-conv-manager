@@ -21,31 +21,30 @@
 #include <vector>
 #include <map>
 #include <gio/gio.h>
-#include "client.h"
-#include "conv_json.h"
+#include "Json.h"
 #include "IDevice.h"
 #include "IServiceInfo.h"
 
 namespace conv {
-	class client {
-		typedef std::vector<IDevice*> device_list_t;
-		typedef std::pair<std::string, std::string> service_key_t;
-		typedef std::map<service_key_t, IServiceInfo*> service_info_map_t;
+	class ClientInfo {
+		typedef std::vector<IDevice*> DeviceList;
+		typedef std::pair<std::string, std::string> ServiceKey;
+		typedef std::map<ServiceKey, IServiceInfo*> ServiceInfoMap;
 
 		public:
-			client(std::string id, GDBusMethodInvocation *inv);
-			~client();
+			ClientInfo(std::string id, GDBusMethodInvocation *inv);
+			~ClientInfo();
 
 			int add_device();
 			int remove_device();
 
-			std::string get_id();
+			std::string getId();
 
-			IServiceInfo* get_service_info(std::string type, std::string id);
-			int add_service_info(std::string type, std::string id, IServiceInfo* info);
+			IServiceInfo* getServiceInfo(std::string type, std::string id);
+			int addServiceInfo(std::string type, std::string id, IServiceInfo* info);
 		private:
-			device_list_t device_list;
-			service_info_map_t service_info_map;
+			DeviceList device_list;
+			ServiceInfoMap service_info_map;
 
 		protected:
 			std::string id;

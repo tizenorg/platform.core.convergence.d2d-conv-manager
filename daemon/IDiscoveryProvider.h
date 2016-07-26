@@ -18,7 +18,7 @@
 #define __DISCOVERY_PROVIDER_BASE_H__
 
 #include <string>
-#include "conv_json.h"
+#include "Json.h"
 
 namespace conv {
 
@@ -32,7 +32,7 @@ namespace conv {
 			virtual int start() = 0;
 			virtual int stop() = 0;
 
-			int set_manager(DiscoveryManager* discovery_manager);
+			int setManager(DiscoveryManager* discovery_manager);
 
 		protected:
 			static DiscoveryManager* _discovery_manager;

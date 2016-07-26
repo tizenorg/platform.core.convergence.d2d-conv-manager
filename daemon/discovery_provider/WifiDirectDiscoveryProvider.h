@@ -23,8 +23,8 @@
 #include <map>
 
 #include "../IDiscoveryProvider.h"
-#include "../request.h"
-#include "smartview/service.h"
+#include "../Request.h"
+#include "smartview/SmartViewService.h"
 
 namespace conv {
 	class WifiDirectDiscoveryProvider : public IDiscoveryProvider  {
@@ -38,12 +38,12 @@ namespace conv {
 			int start();
 			int stop();
 
-			int notice_discovered(conv::service* conv_service);
+			int notifyDiscovered(conv::SmartViewService* conv_service);
 
 		private:
-			map <string, conv::service*> cache;
+			map <string, conv::SmartViewService*> cache;
 
-			int checkExistence(conv::service* conv_service);
+			int checkExistence(conv::SmartViewService* conv_service);
 	};
 }
 #endif /* __BLE_DISCOVERY_PROVIDER_H__ */

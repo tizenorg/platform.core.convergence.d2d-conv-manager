@@ -15,89 +15,89 @@
  */
 
 #include <glib.h>
-#include "service.h"
+#include "SmartViewService.h"
 
 using namespace std;
 
-conv::service::service()
+conv::SmartViewService::SmartViewService()
 {
 }
 
-conv::service::~service()
+conv::SmartViewService::~SmartViewService()
 {
 }
 
-string conv::service::getName()
+string conv::SmartViewService::getName()
 {
 	return service_name;
 }
 
-string conv::service::getVersion()
+string conv::SmartViewService::getVersion()
 {
 	return service_version;
 }
 
-string conv::service::getType()
+string conv::SmartViewService::getType()
 {
 	return this->type;
 }
 
-string conv::service::getId()
+string conv::SmartViewService::getId()
 {
 	return service_id;
 }
 
-string conv::service::getUri()
+string conv::SmartViewService::getUri()
 {
 	return service_uri;
 }
 
-int conv::service::getServiceType()
+int conv::SmartViewService::getServiceType()
 {
 	return service_type;
 }
 
-string conv::service::getServiceInfo()
+string conv::SmartViewService::getServiceInfo()
 {
 	return service_info;
 }
 
-void conv::service::setName(string name)
+void conv::SmartViewService::setName(string name)
 {
 	this->service_name = name;
 }
 
-void conv::service::setVersion(string version)
+void conv::SmartViewService::setVersion(string version)
 {
 	this->service_version = version;
 }
 
-void conv::service::setType(string type)
+void conv::SmartViewService::setType(string type)
 {
 	this->type = type;
 }
 
-void conv::service::setId(string id)
+void conv::SmartViewService::setId(string id)
 {
 	this->service_id = id;
 }
 
-void conv::service::setUri(string uri)
+void conv::SmartViewService::setUri(string uri)
 {
 	this->service_uri = uri;
 }
 
-void conv::service::setServiceInfo(string service_info)
+void conv::SmartViewService::setServiceInfo(string service_info)
 {
 	this->service_info = service_info;
 }
 
-void conv::service::setServiceType(int service_type)
+void conv::SmartViewService::setServiceType(int service_type)
 {
 	this->service_type = service_type;
 }
 
-void conv::service::printInfo()
+void conv::SmartViewService::printInfo()
 {
 	_D("Flow Service Info : Name[%s] Version[%s] Type[%d] Id[%s] Uri[%s] ",
 			service_name.c_str(), service_version.c_str(), service_type,

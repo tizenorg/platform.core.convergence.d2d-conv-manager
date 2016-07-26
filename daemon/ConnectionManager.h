@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <vector>
 #include "IManager.h"
-#include "request.h"
+#include "Request.h"
 
 namespace conv {
 	class ConnectionManager : public IManager  {
@@ -31,12 +31,12 @@ namespace conv {
 
 			int init();
 			int release();
-			int handleRequest(request* requestObj);
+			int handleRequest(Request* requestObj);
 	};
 
 	namespace connection_manager {
 		void setInstance(ConnectionManager* mgr);
-		int handleRequest(request* requestObj);
+		int handleRequest(Request* requestObj);
 	}
 }
 

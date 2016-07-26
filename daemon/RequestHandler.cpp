@@ -39,23 +39,23 @@ int conv::RequestHandler::release()
 	return CONV_ERROR_NONE;
 }
 
-int conv::RequestHandler::handleRequest(request* requestObj)
+int conv::RequestHandler::handleRequest(Request* requestObj)
 {
 	_D("handleRequest called");
 	int result = CONV_ERROR_INVALID_OPERATION;
 
-	switch (requestObj->get_type()) {
+	switch (requestObj->getType()) {
 	case REQ_SUBSCRIBE:
 		_D("Requested type : REQ_SUBSCRIBE..");
-		if ( !strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV) )
+		if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_RECV) )
 			result = service_manager::handleRequest(requestObj);
-		else if ( !strcmp(requestObj->get_subject(), CONV_SUBJECT_CONNECTION_START) )
+		else if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_CONNECTION_START) )
 			result = connection_manager::handleRequest(requestObj);
 		break;
 	case REQ_UNSUBSCRIBE:
-		if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_RECV) )
+		if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_RECV) )
 			result = service_manager::handleRequest(requestObj);
-		else if ( !strcmp(requestObj->get_subject(), CONV_SUBJECT_CONNECTION_START) )
+		else if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_CONNECTION_START) )
 			result = connection_manager::handleRequest(requestObj);
 		break;
 	case REQ_READ:
@@ -64,12 +64,12 @@ int conv::RequestHandler::handleRequest(request* requestObj)
 		break;
 	case REQ_WRITE:
 		_D("Requested type : REQ_WRITE..");
-		if (!strcmp(requestObj->get_subject(), CONV_SUBJECT_DISCOVERY_START) || !strcmp(requestObj->get_subject(), CONV_SUBJECT_DISCOVERY_STOP))
+		if (!strcmp(requestObj->getSubject(), CONV_SUBJECT_DISCOVERY_START) || !strcmp(requestObj->getSubject(), CONV_SUBJECT_DISCOVERY_STOP))
 			return discovery_manager::handleRequest (requestObj);
-		else if ( !strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_START) || !strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_STOP)
-				|| !strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_SET) || !strcmp(requestObj->get_subject(), CONV_SUBJECT_COMMUNICATION_GET))
+		else if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_START) || !strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_STOP)
+				|| !strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_SET) || !strcmp(requestObj->getSubject(), CONV_SUBJECT_COMMUNICATION_GET))
 			result = service_manager::handleRequest(requestObj);
-		else if ( !strcmp(requestObj->get_subject(), CONV_SUBJECT_CONNECTION_START) || !strcmp(requestObj->get_subject(), CONV_SUBJECT_CONNECTION_STOP) )
+		else if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_CONNECTION_START) || !strcmp(requestObj->getSubject(), CONV_SUBJECT_CONNECTION_STOP) )
 			result = connection_manager::handleRequest(requestObj);
 		break;
 	case REQ_SUPPORT:

@@ -20,7 +20,7 @@
 #include <map>
 #include <algorithm>
 #include "iotcon/ResourceHandle.h"
-#include "../conv_json.h"
+#include "../Json.h"
 
 #include "../DiscoveryManager.h"
 #include "iotcon/ServiceAdapter.h"
@@ -89,12 +89,12 @@ static bool response_attributes_cb(iotcon_attributes_h attributes, const char* k
 	return true;
 }
 
-int conv::IotconDiscoveryProvider::notice_discovered(IService* service)
+int conv::IotconDiscoveryProvider::notifyDiscovered(IService* service)
 {
 	return CONV_ERROR_NONE;
 }
 
-void conv::IotconDiscoveryProvider::_on_response_get(iotcon_remote_resource_h resource,
+void conv::IotconDiscoveryProvider::__on_response_get(iotcon_remote_resource_h resource,
 									iotcon_response_h response, void* user_data)
 {
 	_D("On Response Get..");
@@ -112,7 +112,7 @@ void conv::IotconDiscoveryProvider::_on_response_get(iotcon_remote_resource_h re
 	iotcon_remote_resource_get_host_address(resource, &resource_host);
 
 	// Check if it's already done publishing..
-	string discoveryKey = generateDiscoveryKey(resource_uri_path, resource_host);
+	string discoveryKey = __generate_discovery_key(resource_uri_path, resource_host);
 	discovery_complete_list_t::iterator itor;
 	_D("Check if key[%s] already exists in complete_list", discoveryKey.c_str());
 	itor = find(discovery_complete_list.begin(), discovery_complete_list.end(), discoveryKey);
@@ -137,7 +137,7 @@ void conv::IotconDiscoveryProvider::_on_response_get(iotcon_remote_resource_h re
 	ret = iotcon_response_get_result(response, &response_result);
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "Failed[%d] to get response result", ret);
 	IF_FAIL_VOID_TAG((response_result == IOTCON_RESPONSE_OK), _E,
-			"_on_response_get Response Error[%d]", response_result);
+			"__on_response_get Response Error[%d]", response_result);
 
 	ret = iotcon_response_get_representation(response, &recv_repr);
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_response_get_representation() Fail[%d]", ret);
@@ -155,7 +155,7 @@ void conv::IotconDiscoveryProvider::_on_response_get(iotcon_remote_resource_h re
 	char *device_id = NULL, *device_name = NULL, *device_type = NULL, *version = NULL, *service_list = NULL;
 	ret = iotcon_attributes_get_str(recv_attributes, "device_id", &device_id);		// device id (ex. bt address)
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
-	cur_resource_h.set_device_id(string(device_id));
+	cur_resource_h.setDeviceId(string(device_id));
 
 	if ( conv::util::getDeviceId().compare(device_id) == 0 ) {
 		_D("the device has found itself..[device_id:%s].. out!", device_id);
@@ -164,11 +164,11 @@ void conv::IotconDiscoveryProvider::_on_response_get(iotcon_remote_resource_h re
 
 	ret = iotcon_attributes_get_str(recv_attributes, "device_name", &device_name);
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
-	cur_resource_h.set_device_name(string(device_name));
+	cur_resource_h.setDeviceName(string(device_name));
 
 	ret = iotcon_attributes_get_str(recv_attributes, "device_type", &device_type);
 	IF_FAIL_VOID_TAG((ret == IOTCON_ERROR_NONE), _E, "iotcon_attributes_get_str() Fail[%d]", ret);
-	cur_resource_h.set_device_type(string(device_type));
+	cur_resource_h.setDeviceType(string(device_type));
 
 	char* service_json_char = NULL;
 	ret = iotcon_attributes_get_str(recv_attributes, "service_json", &service_json_char);
@@ -178,49 +178,49 @@ void conv::IotconDiscoveryProvider::_on_response_get(iotcon_remote_resource_h re
 	}
 	std::string service_json(service_json_char);
 
-	cur_resource_h.set_services_list(service_json);
-	json service_list_json(service_json);
+	cur_resource_h.setServiceList(service_json);
+	Json service_list_json(service_json);
 	_D("on_response : device_id[%s] device_name[%s] device_type[%s] version[%s] service_list[%s]"
 									, device_id, device_name, device_type, version, service_list);
 
 	if (_discovery_manager != NULL) {
 		DeviceAdapter*	device = new(std::nothrow) DeviceAdapter (cur_resource_h);
 
-		int num_service = service_list_json.array_get_size(NULL, "service_list");
+		int num_service = service_list_json.getArraySize(NULL, "service_list");
 		for (int index = 0; index < num_service; index++) {
 			int serv_type_int;
 
-			json cur_service_json;
-			bool ret = service_list_json.get_array_elem(NULL, "service_list", index, &cur_service_json);
+			Json cur_service_json;
+			bool ret = service_list_json.getArrayElem(NULL, "service_list", index, &cur_service_json);
 			if (ret != true) {
 				_D("json get array elem with service_list error..");
 				continue;
 			}
 
 			ServiceAdapter* serv = new(std::nothrow) ServiceAdapter(cur_resource_h);
-			json serv_info_json;
+			Json serv_info_json;
 
 			cur_service_json.get(NULL, CONV_JSON_DISCOVERY_SERVICE_TYPE, &serv_type_int);
 			serv->setServiceType(serv_type_int);
 			cur_service_json.get(NULL, CONV_JSON_DISCOVERY_SERVICE_INFO, &serv_info_json);
 			serv->setServiceInfo(serv_info_json.str());
 
-			device->add_service(serv);
+			device->addService(serv);
 		}
-		_discovery_manager->append_discovered_result(device);
+		_discovery_manager->appendDiscoveredResult(device);
 	}
 
 	discovery_complete_list.push_back(discoveryKey);
 }
 
-bool conv::IotconDiscoveryProvider::_get_str_list_cb(int pos, const char* value, void* user_data)
+bool conv::IotconDiscoveryProvider::__get_str_list_cb(int pos, const char* value, void* user_data)
 {
-	json* service_list = (json*) user_data;
-	service_list->array_append(NULL, "services_list", string(value));
+	Json* service_list = (Json*) user_data;
+	service_list->appendArray(NULL, "services_list", string(value));
 	return IOTCON_FUNC_CONTINUE;
 }
 
-void conv::IotconDiscoveryProvider::on_received_detail_info(iotcon_remote_resource_h resource, iotcon_error_e error,
+void conv::IotconDiscoveryProvider::__on_received_detail_info(iotcon_remote_resource_h resource, iotcon_error_e error,
 									iotcon_request_type_e request_type, iotcon_response_h response,
 									void* user_data)
 {
@@ -228,7 +228,7 @@ void conv::IotconDiscoveryProvider::on_received_detail_info(iotcon_remote_resour
 
 	switch (request_type) {
 	case IOTCON_REQUEST_GET :
-		_on_response_get(resource, response, NULL);
+		__on_response_get(resource, response, NULL);
 		break;
 	case IOTCON_REQUEST_PUT:
 	case IOTCON_REQUEST_POST:
@@ -241,12 +241,12 @@ void conv::IotconDiscoveryProvider::on_received_detail_info(iotcon_remote_resour
 	}
 }
 
-void conv::IotconDiscoveryProvider::_get_detail_info(iotcon_remote_resource_h resource)
+void conv::IotconDiscoveryProvider::__get_detail_info(iotcon_remote_resource_h resource)
 {
 	iotcon_query_h query;
 	iotcon_remote_resource_h resource_clone = NULL;
 
-	_D("_get_detail_info called..");
+	_D("__get_detail_info called..");
 
 	int ret = iotcon_remote_resource_clone(resource, &resource_clone);
 	if (ret != IOTCON_ERROR_NONE) {
@@ -264,7 +264,7 @@ void conv::IotconDiscoveryProvider::_get_detail_info(iotcon_remote_resource_h re
 	}
 
 	/* send Get Request */
-	ret = iotcon_remote_resource_get(resource_clone, query, on_received_detail_info, NULL);
+	ret = iotcon_remote_resource_get(resource_clone, query, __on_received_detail_info, NULL);
 	if (ret != IOTCON_ERROR_NONE) {
 		_E("Failed[%d] to get remote resource query", ret);
 		iotcon_query_destroy(query);
@@ -272,14 +272,14 @@ void conv::IotconDiscoveryProvider::_get_detail_info(iotcon_remote_resource_h re
 	}
 }
 
-string conv::IotconDiscoveryProvider::generateDiscoveryKey(char* uri_path, char* host_address)
+string conv::IotconDiscoveryProvider::__generate_discovery_key(char* uri_path, char* host_address)
 {
 	return string(host_address) + string(uri_path);
 }
 
-int conv::IotconDiscoveryProvider::add_iot_resource(iotcon_remote_resource_h resource)
+int conv::IotconDiscoveryProvider::__add_iot_resource(iotcon_remote_resource_h resource)
 {
-	_D("add_iot_resource called..");
+	_D("__add_iot_resource called..");
 	ResourceHandle	iot_resource_h;
 
 	char* resource_uri_path = NULL;
@@ -302,33 +302,33 @@ int conv::IotconDiscoveryProvider::add_iot_resource(iotcon_remote_resource_h res
 
 	ResourceHandle res_handle;
 	// uri_path
-	res_handle.set_uri_path(string(resource_uri_path));
+	res_handle.setUriPath(string(resource_uri_path));
 	// host_address
-	res_handle.set_host_address(string(resource_host));
+	res_handle.setHostAddress(string(resource_host));
 	// resource types
-	iotcon_resource_types_foreach(resource_types, _get_resource_foreach_types, (void*)(&res_handle.get_types()) );
+	iotcon_resource_types_foreach(resource_types, _get_resource_foreach_types, (void*)(&res_handle.getTypes()) );
 
 	// Add resource handle into Temp Cache
-	string discovery_key = generateDiscoveryKey(resource_uri_path, resource_host);
+	string discovery_key = __generate_discovery_key(resource_uri_path, resource_host);
 	_D("discovery_process_map insertion with key[%s]", discovery_key.c_str());
 	discovery_process_map.insert(discovery_process_map_t::value_type(discovery_key, res_handle));
 
 	return CONV_ERROR_NONE;
 }
 
-bool conv::IotconDiscoveryProvider::_found_resource(iotcon_remote_resource_h resource, iotcon_error_e result, void *user_data)
+bool conv::IotconDiscoveryProvider::__found_resource(iotcon_remote_resource_h resource, iotcon_error_e result, void *user_data)
 {
-	_D("_found_resource called..");
+	_D("__found_resource called..");
 
 	IF_FAIL_RETURN_TAG((resource != NULL), IOTCON_FUNC_STOP, _E, "resource is NULL..");
 
 	int ret;
 	// add the found resource into Temp cache
-	ret = add_iot_resource(resource);
+	ret = __add_iot_resource(resource);
 	IF_FAIL_RETURN_TAG((ret == CONV_ERROR_NONE), IOTCON_FUNC_CONTINUE, _E, "Failed to add iot resource");
 
 	// Get additional info from resource
-	_get_detail_info(resource);
+	__get_detail_info(resource);
 
 	return IOTCON_FUNC_CONTINUE;
 }
@@ -341,7 +341,7 @@ int conv::IotconDiscoveryProvider::start()
 	discovery_process_map.clear();
 
 	ret = iotcon_find_resource(IOTCON_MULTICAST_ADDRESS, IOTCON_CONNECTIVITY_IPV4,
-			CONV_RESOURCE_TYPE_TIZEN_D2D_SERVICE, false, _found_resource, NULL);
+			CONV_RESOURCE_TYPE_TIZEN_D2D_SERVICE, false, __found_resource, NULL);
 
 	IF_FAIL_RETURN_TAG((ret == 0), CONV_ERROR_INVALID_OPERATION, _E, "failed on iotcon_find_resource[%d]", ret);
 

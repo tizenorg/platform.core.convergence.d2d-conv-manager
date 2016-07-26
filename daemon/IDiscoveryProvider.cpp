@@ -18,7 +18,7 @@
 
 conv::DiscoveryManager* conv::IDiscoveryProvider::_discovery_manager = NULL;
 
-int conv::IDiscoveryProvider::set_manager(DiscoveryManager* discovery_manager)
+int conv::IDiscoveryProvider::setManager(DiscoveryManager* discovery_manager)
 {
 	_discovery_manager = discovery_manager;
 	return CONV_ERROR_NONE;

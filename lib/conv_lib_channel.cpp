@@ -72,7 +72,7 @@ EXTAPI int conv_channel_get_string(conv_channel_h handle, const char* key, char*
 	ASSERT_NOT_NULL(value);
 
 	std::list<std::string> key_list;
-	handle->jchannel.get_keys(&key_list);
+	handle->jchannel.getKeys(&key_list);
 	IF_FAIL_RETURN_TAG(key_list.size() > 0, CONV_ERROR_NO_DATA, _E, "No data");
 
 	// Check Invalid record key

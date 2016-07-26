@@ -18,7 +18,7 @@
 #include "access_control/Privilege.h"
 
 static conv::ConnectionManager *_instance;
-static conv::request* cur_Req;
+static conv::Request* cur_Req;
 
 using namespace std;
 
@@ -45,20 +45,20 @@ void conv::connection_manager::setInstance(conv::ConnectionManager* mgr)
 	_instance = mgr;
 }
 
-int conv::ConnectionManager::handleRequest(request* requestObj)
+int conv::ConnectionManager::handleRequest(Request* requestObj)
 {
 	_D("handle_request called");
 	int error = CONV_ERROR_INVALID_OPERATION;
 
-	if ( !conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_INTERNET) ||
-			!conv::privilege_manager::isAllowed(requestObj->get_creds(), CONV_PRIVILEGE_BLUETOOTH) ) {
+	if ( !conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_INTERNET) ||
+			!conv::privilege_manager::isAllowed(requestObj->getCreds(), CONV_PRIVILEGE_BLUETOOTH) ) {
 		_E("permission denied");
 		requestObj->reply(CONV_ERROR_PERMISSION_DENIED);
 		delete requestObj;
 		return CONV_ERROR_PERMISSION_DENIED;
 	}
 
-	switch (requestObj->get_type()) {
+	switch (requestObj->getType()) {
 		case REQ_SUBSCRIBE:
 		{
 			cur_Req = requestObj;
@@ -73,14 +73,14 @@ int conv::ConnectionManager::handleRequest(request* requestObj)
 		break;
 		case REQ_WRITE:
 		{
-			json cb_json, jservice, description, tmp_payload;
+			Json cb_json, jservice, description, tmp_payload;
 			string did;
-			description = requestObj->get_description();
+			description = requestObj->getDescription();
 			description.get(NULL, CONV_JSON_SERVICE, &jservice);
 			jservice.get(CONV_JSON_SERVICE_DATA_PATH, CONV_JSON_SERVICE_DATA_ID, &did);
 			// TODO:
 			//make callback data and invoke
-			cb_json.set(NULL, CONV_JSON_DESCRIPTION, requestObj->get_description());
+			cb_json.set(NULL, CONV_JSON_DESCRIPTION, requestObj->getDescription());
 			cb_json.set(NULL, CONV_JSON_PAYLOAD, tmp_payload);
 			if (cur_Req != NULL) {
 				cur_Req->publish(CONV_ERROR_NONE, cb_json);
@@ -101,7 +101,7 @@ int conv::ConnectionManager::handleRequest(request* requestObj)
 	return CONV_ERROR_NONE;
 }
 
-int conv::connection_manager::handleRequest(request* requestObj)
+int conv::connection_manager::handleRequest(Request* requestObj)
 {
 	IF_FAIL_RETURN_TAG(_instance, CONV_ERROR_INVALID_PARAMETER, _E, "Not initialized");
 	_instance->handleRequest(requestObj);

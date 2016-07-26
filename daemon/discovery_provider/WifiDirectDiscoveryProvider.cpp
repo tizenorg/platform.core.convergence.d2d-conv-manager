@@ -64,7 +64,7 @@ bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* u
 
 #if 0 // TODO: make and notice if it's device support d2d
 	conv::WifiDirectDiscoveryProvider* disc_provider = (conv::WifiDirectDiscoveryProvider*)user_data;
-	conv::service *conv_service = new(std::nothrow) conv::service;
+	conv::SmartViewService *conv_service = new(std::nothrow) conv::SmartViewService;
 
 	conv_service->setName(peer->device_name);
 	conv_service->setVersion("0.0");
@@ -72,7 +72,7 @@ bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* u
 	conv_service->setId(peer->mac_address);
 	conv_service->setUri("");
 
-	disc_provider->notice_discovered(conv_service);
+	disc_provider->notifyDiscovered(conv_service);
 #endif
 
 	if (NULL != peer) {
@@ -327,7 +327,7 @@ int conv::WifiDirectDiscoveryProvider::stop()
 	return CONV_ERROR_NONE;
 }
 
-int conv::WifiDirectDiscoveryProvider::checkExistence(conv::service* conv_service)
+int conv::WifiDirectDiscoveryProvider::checkExistence(conv::SmartViewService* conv_service)
 {
 	// print conv_service Info..
 	_D("Check Existence : %s", conv_service->getName().c_str());
@@ -337,7 +337,7 @@ int conv::WifiDirectDiscoveryProvider::checkExistence(conv::service* conv_servic
 	string cache_key = conv_service->getId();	// Serivce URI as Map Key..
 	if (cache.find(cache_key) == cache.end()) {
 		_D("conv_service with key[%s] does not exist..so go into the cache", cache_key.c_str());
-		cache.insert(map<string, conv::service*>::value_type(cache_key, conv_service));
+		cache.insert(map<string, conv::SmartViewService*>::value_type(cache_key, conv_service));
 		return CONV_ERROR_NONE;
 	} else {
 		_D("conv_service with key[%s] already exists..", cache_key.c_str());
@@ -345,7 +345,7 @@ int conv::WifiDirectDiscoveryProvider::checkExistence(conv::service* conv_servic
 	}
 }
 
-int conv::WifiDirectDiscoveryProvider::notice_discovered(conv::service* conv_service)
+int conv::WifiDirectDiscoveryProvider::notifyDiscovered(conv::SmartViewService* conv_service)
 {
 	_D("Notice Discovered called with service[%x]", conv_service);
 
@@ -356,7 +356,7 @@ int conv::WifiDirectDiscoveryProvider::notice_discovered(conv::service* conv_ser
 	if (!alreadyExisted) {
 		//the discovered one is NEW!!
 		// TO-DO : need to re-write this code
-		//_discovery_manager->append_discovered_result(NULL, conv_service);
+		//_discovery_manager->appendDiscoveredResult(NULL, conv_service);
 	}
 
 	return CONV_ERROR_NONE;

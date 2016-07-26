@@ -74,7 +74,7 @@ EXTAPI int conv_payload_get_string(conv_payload_h handle, const char* key, char*
 	ASSERT_NOT_NULL(value);
 
 	std::list<std::string> key_list;
-	handle->jpayload.get_keys(&key_list);
+	handle->jpayload.getKeys(&key_list);
 	IF_FAIL_RETURN_TAG(key_list.size() > 0, CONV_ERROR_NO_DATA, _E, "No data");
 
 	// Check Invalid record key
@@ -120,7 +120,7 @@ EXTAPI int conv_payload_get_app_control(conv_payload_h handle, const char* key, 
 	int ret;
 
 	std::list<std::string> key_list;
-	handle->jpayload.get_keys(&key_list);
+	handle->jpayload.getKeys(&key_list);
 	IF_FAIL_RETURN_TAG(key_list.size() > 0, CONV_ERROR_NO_DATA, _E, "No data");
 
 	// Check Invalid record key
@@ -167,7 +167,7 @@ EXTAPI int conv_payload_get_byte(conv_payload_h handle, const char* key, int* le
 	ASSERT_NOT_NULL(value);
 
 	std::list<std::string> key_list;
-	handle->jpayload.get_keys(&key_list);
+	handle->jpayload.getKeys(&key_list);
 	IF_FAIL_RETURN_TAG(key_list.size() > 0, CONV_ERROR_NO_DATA, _E, "No data");
 
 	// Check Invalid record key

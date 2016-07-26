@@ -33,20 +33,20 @@ namespace conv {
 			int init();
 			int release();
 
-			int start_request(request* request_obj);
-			int stop_request(request* request_obj);
-			int get_request(request* request_obj);
-			int set_request(request* request_obj);
-			int register_request(request* request_obj);
-			int load_service_info(request* request_obj);
-			int get_service_info_for_discovery(json* json_obj);
-			int handle_vconf_update(keynode_t *node);
+			int startRequest(Request* request_obj);
+			int stopRequest(Request* request_obj);
+			int readRequest(Request* request_obj);
+			int publishRequest(Request* request_obj);
+			int registerRequest(Request* request_obj);
+			int loadServiceInfo(Request* request_obj);
+			int getServiceInfoForDiscovery(Json* json_obj);
+			int handleVconfUpdate(keynode_t *node);
 
 		private:
 			iotcon_resource_h iotcon_resource;
-			int send_response(json payload, const char* request_type, conv_error_e error, request* request_obj);
+			int sendResponse(Json payload, const char* request_type, conv_error_e error, Request* request_obj);
 
-			static void iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h request, void *user_data);
+			static void __iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h request, void *user_data);
 	};
 }
 #endif /* __REMOTE_APP_CONTROL_SERVICE_PROVIDER_H__ */

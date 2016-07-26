@@ -15,7 +15,7 @@
  */
 
 #include <glib.h>
-#include "device.h"
+#include "SmartViewDevice.h"
 #include "Log.h"
 #include "d2d_conv_manager.h"
 #include <algorithm>
@@ -23,11 +23,11 @@
 
 using namespace std;
 
-conv::device::device()
+conv::SmartViewDevice::SmartViewDevice()
 {
 }
 
-conv::device::~device()
+conv::SmartViewDevice::~SmartViewDevice()
 {
 }
 
@@ -59,7 +59,7 @@ static bool serviceComparision(conv::IService* obj, int serviceType)
 		return false;
 }
 
-int conv::device::add_service(IService* service_obj)
+int conv::SmartViewDevice::addService(IService* service_obj)
 {
 	service_list_t::iterator itr;
 	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, service_obj->getServiceType()));
@@ -75,28 +75,28 @@ int conv::device::add_service(IService* service_obj)
 	return CONV_ERROR_NONE;
 }
 
-int conv::device::remove_service(IService* service_obj)
+int conv::SmartViewDevice::removeService(IService* service_obj)
 {
 	service_list.remove(service_obj);
 	return CONV_ERROR_NONE;
 }
 
-string conv::device::getName()
+string conv::SmartViewDevice::getName()
 {
 	return name;
 }
 
-string conv::device::getId()
+string conv::SmartViewDevice::getId()
 {
 	return id;
 }
 
-string conv::device::getAddress()
+string conv::SmartViewDevice::getAddress()
 {
 	return ip_address;
 }
 
-int conv::device::get_services_list(std::list<IService*> *list)
+int conv::SmartViewDevice::getServiceList(std::list<IService*> *list)
 {
 	for (service_list_t::iterator iterPos = service_list.begin(); iterPos != service_list.end(); ++iterPos)
 	{
@@ -106,19 +106,19 @@ int conv::device::get_services_list(std::list<IService*> *list)
 }
 
 
-int conv::device::setName(string name)
+int conv::SmartViewDevice::setName(string name)
 {
 	this->name = name;
 	return CONV_ERROR_NONE;
 }
 
-int conv::device::setId(string id)
+int conv::SmartViewDevice::setId(string id)
 {
 	this->id = id;
 	return CONV_ERROR_NONE;
 }
 
-int conv::device::setAddress(string id)
+int conv::SmartViewDevice::setAddress(string id)
 {
 	ip_address = id;
 	return CONV_ERROR_NONE;

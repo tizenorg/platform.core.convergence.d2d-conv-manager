@@ -22,7 +22,7 @@
 #include <vector>
 #include "../IServiceInfo.h"
 #include "../IotconCommunicationInfo.h"
-#include "../request.h"
+#include "../Request.h"
 #include <iotcon.h>
 
 namespace conv {
@@ -47,7 +47,7 @@ namespace conv {
 			std::string device_id;
 			std::string device_name;
 			std::string device_address;
-			request* registered_request;
+			Request* registered_request;
 			IotconCommunicationInfo iotcon_info_obj;
 	};
 

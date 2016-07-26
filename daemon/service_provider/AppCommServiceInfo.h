@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <vector>
 #include "../IServiceInfo.h"
-#include "../request.h"
+#include "../Request.h"
 #include "Service.h"
 #include "Clients.h"
 #include "Application.h"
@@ -37,7 +37,7 @@ namespace conv {
 					delete application;
 			}
 
-			conv::request** request_obj;
+			conv::Request** request_obj;
 			Channel* application;
 			string uri;
 			string channel_id;
@@ -50,13 +50,13 @@ namespace conv {
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
-					json result;
-					json payload;
-					json description;
+					Json result;
+					Json payload;
+					Json description;
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_START);
 
-					description = (*request_obj)->get_description();
+					description = (*request_obj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
@@ -80,13 +80,13 @@ namespace conv {
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
-					json result;
-					json payload;
-					json description;
+					Json result;
+					Json payload;
+					Json description;
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_STOP);
 
-					description = (*request_obj)->get_description();
+					description = (*request_obj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
@@ -103,7 +103,7 @@ namespace conv {
 			void onConnect(Client client)
 			{
 				_D("onConnect Called");
-				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_CONNECT, &client);
+				publishResponse(CONV_ERROR_NONE, CONV_JSON_ON_CONNECT, &client);
 
 				if (!is_local && application != NULL) {
 					((Application*)application)->start();
@@ -114,19 +114,19 @@ namespace conv {
 			void onDisconnect(Client client)
 			{
 				_D("onDisconnect Called");
-				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_DISCONNECT, &client);
+				publishResponse(CONV_ERROR_NONE, CONV_JSON_ON_DISCONNECT, &client);
 			}
 
 			void onClientConnect(Client client)
 			{
 				_D("onClientConnect Called");
-				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_CLIENT_CONNECT, &client);
+				publishResponse(CONV_ERROR_NONE, CONV_JSON_ON_CLIENT_CONNECT, &client);
 			}
 
 			void onClientDisconnect(Client client)
 			{
 				_D("onClientDisconnect Called");
-				publish_response(CONV_ERROR_NONE, CONV_JSON_ON_CLIENT_DISCONNECT, &client);
+				publishResponse(CONV_ERROR_NONE, CONV_JSON_ON_CLIENT_DISCONNECT, &client);
 			}
 
 			void onMessage(Message message)
@@ -135,9 +135,9 @@ namespace conv {
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
-					json result;
-					json message_json;
-					json description;
+					Json result;
+					Json message_json;
+					Json description;
 
 					_D("size %d", message.m_payload_size);
 					_D("payload %s", message.m_payload);
@@ -147,13 +147,13 @@ namespace conv {
 					message_json.set(NULL, CONV_JSON_FROM, message.m_from);
 					string payload_str(reinterpret_cast<const char*>(message.m_payload), message.m_payload_size);
 
-					json payload = payload_str;
+					Json payload = payload_str;
 
 					payload.set(NULL, CONV_JSON_PAYLOAD_SIZE, message.m_payload_size);
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_MESSAGE);
 					payload.set(NULL, CONV_JSON_MESSAGE, message_json);
 
-					description = (*request_obj)->get_description();
+					description = (*request_obj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
@@ -170,14 +170,14 @@ namespace conv {
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
-					json result;
-					json payload;
-					json description;
+					Json result;
+					Json payload;
+					Json description;
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_ERROR);
 					payload.set(NULL, CONV_JSON_ERROR_MESSAGE, error.get_error_message());
 
-					description = (*request_obj)->get_description();
+					description = (*request_obj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
@@ -194,13 +194,13 @@ namespace conv {
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
-					json result;
-					json payload;
-					json description;
+					Json result;
+					Json payload;
+					Json description;
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_PUBLISH);
 
-					description = (*request_obj)->get_description();
+					description = (*request_obj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
@@ -214,17 +214,17 @@ namespace conv {
 				}
 			}
 
-			void publish_response(int error, string result_type, Client *client)
+			void publishResponse(int error, string result_type, Client *client)
 			{
 				bool isHost = client->isHost();
 				int connecttime = client->getConnectTime();
 
 				if ((*request_obj) != NULL) {
 					_D(RED("publishing_response"));
-					json result;
-					json payload;
-					json client_json;
-					json description;
+					Json result;
+					Json payload;
+					Json client_json;
+					Json description;
 
 					client_json.set(NULL, CONV_JSON_IS_HOST, isHost);
 					client_json.set(NULL, CONV_JSON_CONNECT_TIME, connecttime);
@@ -233,7 +233,7 @@ namespace conv {
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, result_type);
 					payload.set(NULL, CONV_JSON_CLIENT, client_json);
 
-					description = (*request_obj)->get_description();
+					description = (*request_obj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
@@ -279,7 +279,7 @@ namespace conv {
 			Service service_obj;
 			bool is_local;
 			bool get_service_result;
-			conv::request* registered_request;
+			conv::Request* registered_request;
 
 			application_instance_list_t application_instance_list;
 	};

@@ -19,7 +19,7 @@
 
 #include <list>
 #include <string>
-#include "../../conv_json.h"
+#include "../../Json.h"
 
 using namespace std;
 
@@ -35,27 +35,27 @@ class ResourceHandle {
 		string	device_name;
 		string	device_type;
 		string	version;
-		json	services_list;
+		Json	services_list;
 
 	public:
-		int		set_device_id(string dev_id);
-		string	get_device_id();
-		int		set_device_name(string dev_name);
-		string	get_device_name();
-		int		set_device_type(string dev_type);
-		string	get_device_type();
-		int		set_version(string ver);
-		string	get_version();
-		int		set_services_list(string list);
+		int		setDeviceId(string dev_id);
+		string	getDeviceId();
+		int		setDeviceName(string dev_name);
+		string	getDeviceName();
+		int		setDeviceType(string dev_type);
+		string	getDeviceType();
+		int		setVersion(string ver);
+		string	getVersion();
+		int		setServiceList(string list);
 
-		int		set_uri_path(string uri_path);
-		string	get_uri_path();
-		int		set_host_address(string host_address);
-		string	get_host_address();
-		list<string>&	get_types();
-		int		add_types(string type);
-		list<string>&	get_interfaces();
-		int		add_interfaces(string interface);
+		int		setUriPath(string uri_path);
+		string	getUriPath();
+		int		setHostAddress(string host_address);
+		string	getHostAddress();
+		list<string>&	getTypes();
+		int		addType(string type);
+		list<string>&	getInterfaces();
+		int		addInterface(string interface);
 };
 }
 #endif

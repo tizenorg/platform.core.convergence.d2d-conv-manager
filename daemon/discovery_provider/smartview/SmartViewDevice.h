@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-#ifndef __CONV_DEVICE_H__
-#define __CONV_DEVICE_H__
+#ifndef __CONV_SMART_VIEW_DEVICE_H__
+#define __CONV_SMART_VIEW_DEVICE_H__
 
 #include <string>
 #include <vector>
 #include "../../IService.h"
-#include "../../conv_json.h"
+#include "../../Json.h"
 
 #include "../../IDevice.h"
 
 namespace conv {
-	class device : public IDevice {
+	class SmartViewDevice : public IDevice {
 		public:
 			typedef std::list<IService*> service_list_t;
-			device();
-			~device();
+			SmartViewDevice();
+			~SmartViewDevice();
 
 			// functions from IDevice
-			int add_service(IService* service_obj);
-			int remove_service(IService* service_obj);
-			int get_services_list(std::list<IService*> *list);
+			int addService(IService* service_obj);
+			int removeService(IService* service_obj);
+			int getServiceList(std::list<IService*> *list);
 			std::string getName();
 			std::string getId();
 			std::string getAddress();
@@ -55,4 +55,4 @@ namespace conv {
 	};
 }
 
-#endif	/* End of __CONV_DEVICE_H__ */
+#endif	/* End of __CONV_SMART_VIEW_DEVICE_H__ */

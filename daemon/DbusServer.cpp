@@ -89,9 +89,9 @@ static void __handle_request(GDBusConnection* conn, const char *sender, GVariant
 		return;
 	}
 
-	conv::request *recvRequest = NULL;
+	conv::Request *recvRequest = NULL;
 	try{
-		recvRequest = new conv::request(req_type, DEFAULT_APP_ID, req_id, subject, input, sender, creds, invocation);
+		recvRequest = new conv::Request(req_type, DEFAULT_APP_ID, req_id, subject, input, sender, creds, invocation);
 	} catch (std::bad_alloc& ba) {
 		_E("Memory Allocation Failed..");
 		g_dbus_method_invocation_return_value(invocation, g_variant_new("(iss)", CONV_ERROR_INVALID_OPERATION, EMPTY_JSON_OBJECT, EMPTY_JSON_OBJECT));

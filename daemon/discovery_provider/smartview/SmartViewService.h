@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef __CONV_SERVICE_H__
-#define __CONV_SERVICE_H__
+#ifndef __CONV_SMART_VIEW_SERVICE_H__
+#define __CONV_SMART_VIEW_SERVICE_H__
 
 #include <string>
-#include "../../conv_json.h"
+#include "../../Json.h"
 #include "../../IService.h"
 
 using namespace std;
 
 namespace conv
 {
-	class service : public IService {
+	class SmartViewService : public IService {
 		public:
-			service();
-			~service();
+			SmartViewService();
+			~SmartViewService();
 
 			// functions from IService
 			string getName();
@@ -62,4 +62,4 @@ namespace conv
 	};
 }
 
-#endif	/* End of __CONV_SERVICE_H__ */
+#endif	/* End of __CONV_SMART_VIEW_SERVICE_H__ */

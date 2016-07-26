@@ -19,7 +19,7 @@
 #include <locale>
 #include <iomanip>
 #include <json-glib/json-glib.h>
-#include "conv_json.h"
+#include "Json.h"
 
 #define PATH_DELIM	'.'
 #define GVAR_VALUES	"values"
@@ -46,7 +46,7 @@ static std::string double_to_string(double in, int prec)
 	return ostr.str();
 }
 
-json::json()
+conv::Json::Json()
 {
 	JsonObject *obj = json_object_new();
 	IF_FAIL_VOID_TAG(obj, _E, "Json object construction failed");
@@ -61,13 +61,13 @@ json::json()
 	json_object_unref(obj);
 }
 
-json::json(const json& j)
+conv::Json::Json(const Json& j)
 {
 	json_node = json_node_copy(j.json_node);
 	IF_FAIL_VOID_TAG(json_node, _E, "Json object construction failed");
 }
 
-json::json(const char* s)
+conv::Json::Json(const char* s)
 {
 	if (s)
 		parse(s);
@@ -75,7 +75,7 @@ json::json(const char* s)
 		parse(EMPTY_JSON_OBJECT);
 }
 
-json::json(const std::string& s)
+conv::Json::Json(const std::string& s)
 {
 	if (s.empty())
 		parse(EMPTY_JSON_OBJECT);
@@ -83,12 +83,12 @@ json::json(const std::string& s)
 		parse(s.c_str());
 }
 
-json::~json()
+conv::Json::~Json()
 {
 	release();
 }
 
-void json::parse(const char* s)
+void conv::Json::parse(const char* s)
 {
 	gboolean result;
 	JsonParser *parser = NULL;
@@ -111,7 +111,7 @@ CATCH:
 		g_object_unref(parser);
 }
 
-void json::release()
+void conv::Json::release()
 {
 	if (json_node) {
 		json_node_free(json_node);
@@ -119,7 +119,7 @@ void json::release()
 	}
 }
 
-json& json::operator=(const json& j)
+conv::Json& conv::Json::operator=(const Json& j)
 {
 	release();
 	json_node = json_node_copy(j.json_node);
@@ -129,7 +129,7 @@ json& json::operator=(const json& j)
 	return *this;
 }
 
-json& json::operator=(const char* s)
+conv::Json& conv::Json::operator=(const char* s)
 {
 	release();
 	if (s)
@@ -140,7 +140,7 @@ json& json::operator=(const char* s)
 	return *this;
 }
 
-json& json::operator=(const std::string& s)
+conv::Json& conv::Json::operator=(const std::string& s)
 {
 	release();
 	if (s.empty())
@@ -151,17 +151,17 @@ json& json::operator=(const std::string& s)
 	return *this;
 }
 
-bool json::operator==(const json& rhs)
+bool conv::Json::operator==(const Json& rhs)
 {
-	return node_equals(json_node, rhs.json_node);
+	return nodeEquals(json_node, rhs.json_node);
 }
 
-bool json::operator!=(const json& rhs)
+bool conv::Json::operator!=(const Json& rhs)
 {
 	return !operator==(rhs);
 }
 
-char* json::dup_cstr()
+char* conv::Json::dupCstr()
 {
 	IF_FAIL_RETURN_TAG(json_node, NULL, _E, "Json object not initialized");
 
@@ -186,10 +186,10 @@ CATCH:
 	return NULL;
 }
 
-std::string json::str()
+std::string conv::Json::str()
 {
 	std::string output;
-	char *_s = dup_cstr();
+	char *_s = dupCstr();
 	IF_FAIL_RETURN(_s, output = EMPTY_JSON_OBJECT);
 
 	output = _s;
@@ -306,7 +306,7 @@ CATCH:
 	return NULL;
 }
 
-bool json::set(const char* path, const char* key, json& val)
+bool conv::Json::set(const char* path, const char* key, Json& val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val.json_node, false, _E, "Invalid parameter");
@@ -319,17 +319,17 @@ bool json::set(const char* path, const char* key, json& val)
 
 	json_object_set_member(jobj, key, val.json_node);
 	val.json_node = NULL;
-	val = json();
+	val = Json();
 
 	return true;
 }
 
-bool json::set(const char* path, const char* key, int val)
+bool conv::Json::set(const char* path, const char* key, int val)
 {
 	return set(path, key, static_cast<int64_t>(val));
 }
 
-bool json::set(const char* path, const char* key, int64_t val)
+bool conv::Json::set(const char* path, const char* key, int64_t val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, false, _E, "Invalid parameter");
@@ -344,7 +344,7 @@ bool json::set(const char* path, const char* key, int64_t val)
 	return true;
 }
 
-bool json::set(const char* path, const char* key, double val, int prec)
+bool conv::Json::set(const char* path, const char* key, double val, int prec)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, false, _E, "Invalid parameter");
@@ -355,12 +355,12 @@ bool json::set(const char* path, const char* key, double val, int prec)
 	if (json_object_has_member(jobj, key))
 		json_object_remove_member(jobj, key);
 
-	//NOTE: json-glib causes a precision issue while handling double values
+	//NOTE: Json-glib causes a precision issue while handling double values
 	json_object_set_string_member(jobj, key, double_to_string(val, prec).c_str());
 	return true;
 }
 
-bool json::set(const char* path, const char* key, std::string val)
+bool conv::Json::set(const char* path, const char* key, std::string val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, false, _E, "Invalid parameter");
@@ -375,7 +375,7 @@ bool json::set(const char* path, const char* key, std::string val)
 	return true;
 }
 
-bool json::set(const char* path, const char* key, GVariant *val)
+bool conv::Json::set(const char* path, const char* key, GVariant *val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
@@ -386,14 +386,14 @@ bool json::set(const char* path, const char* key, GVariant *val)
 	json_node_t *node = json_gvariant_serialize(val);
 	IF_FAIL_RETURN_TAG(node, false, _E, "GVariant manipulation failed");
 
-	json gvar_json;
+	Json gvar_json;
 	gvar_json.set(NULL, GVAR_TYPES, type_str);
 	json_object_set_member(json_node_get_object(gvar_json.json_node), GVAR_VALUES, node);
 
 	return set(path, key, gvar_json);
 }
 
-bool json::get(const char* path, const char* key, json* val)
+bool conv::Json::get(const char* path, const char* key, Json* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
@@ -431,7 +431,7 @@ static JsonNode* search_value_node(JsonNode* jnode, const char* path, const char
 	return node;
 }
 
-bool json::get(const char* path, const char* key, int* val)
+bool conv::Json::get(const char* path, const char* key, int* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
@@ -446,7 +446,7 @@ bool json::get(const char* path, const char* key, int* val)
 	return false;
 }
 
-bool json::get(const char* path, const char* key, int64_t* val)
+bool conv::Json::get(const char* path, const char* key, int64_t* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
@@ -466,7 +466,7 @@ bool json::get(const char* path, const char* key, int64_t* val)
 	return true;
 }
 
-bool json::get(const char* path, const char* key, double* val)
+bool conv::Json::get(const char* path, const char* key, double* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
@@ -480,7 +480,7 @@ bool json::get(const char* path, const char* key, double* val)
 	else if (vtype == G_TYPE_INT64)
 		*val = json_node_get_int(node);
 	else if (vtype == G_TYPE_STRING)
-		//NOTE: json-glib causes a precision issue while handling double values
+		//NOTE: Json-glib causes a precision issue while handling double values
 		*val = string_to_double(json_node_get_string(node));
 	else
 		return false;
@@ -488,7 +488,7 @@ bool json::get(const char* path, const char* key, double* val)
 	return true;
 }
 
-bool json::get(const char* path, const char* key, std::string* val)
+bool conv::Json::get(const char* path, const char* key, std::string* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
@@ -506,13 +506,13 @@ bool json::get(const char* path, const char* key, std::string* val)
 	return true;
 }
 
-bool json::get(const char* path, const char* key, GVariant **val)
+bool conv::Json::get(const char* path, const char* key, GVariant **val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val, false, _E, "Invalid parameter");
 
 	bool ret;
-	json gvar_json;
+	Json gvar_json;
 	ret = get(path, key, &gvar_json);
 	IF_FAIL_RETURN(ret, false);
 
@@ -520,7 +520,7 @@ bool json::get(const char* path, const char* key, GVariant **val)
 	ret = gvar_json.get(NULL, GVAR_TYPES, &gvar_types);
 	IF_FAIL_RETURN(ret, false);
 
-	json gvar_values;
+	Json gvar_values;
 	ret = gvar_json.get(NULL, GVAR_VALUES, &gvar_values);
 	IF_FAIL_RETURN(ret, false);
 
@@ -558,7 +558,7 @@ static JsonArray* search_array(JsonNode* jnode, const char* path, const char* ke
 	return json_node_get_array(node);
 }
 
-int json::array_get_size(const char* path, const char* key)
+int conv::Json::getArraySize(const char* path, const char* key)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, -1, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, -1, _E, "Invalid parameter");
@@ -569,7 +569,7 @@ int json::array_get_size(const char* path, const char* key)
 	return json_array_get_length(jarr);
 }
 
-bool json::array_append(const char* path, const char* key, json& val)
+bool conv::Json::appendArray(const char* path, const char* key, Json& val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val.json_node, false, _E, "Invalid parameter");
@@ -579,17 +579,17 @@ bool json::array_append(const char* path, const char* key, json& val)
 
 	json_array_add_element(arr, val.json_node);
 	val.json_node = NULL;
-	val = json();
+	val = Json();
 
 	return true;
 }
 
-bool json::array_append(const char* path, const char* key, int val)
+bool conv::Json::appendArray(const char* path, const char* key, int val)
 {
-	return array_append(path, key, static_cast<int64_t>(val));
+	return appendArray(path, key, static_cast<int64_t>(val));
 }
 
-bool json::array_append(const char* path, const char* key, int64_t val)
+bool conv::Json::appendArray(const char* path, const char* key, int64_t val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, false, _E, "Invalid parameter");
@@ -601,7 +601,7 @@ bool json::array_append(const char* path, const char* key, int64_t val)
 	return true;
 }
 
-bool json::array_append(const char* path, const char* key, double val, int prec)
+bool conv::Json::appendArray(const char* path, const char* key, double val, int prec)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, false, _E, "Invalid parameter");
@@ -609,12 +609,12 @@ bool json::array_append(const char* path, const char* key, double val, int prec)
 	JsonArray *arr = search_array(json_node, path, key, true);
 	IF_FAIL_RETURN(arr, false);
 
-	//NOTE: json-glib causes a precision issue while handling double values
+	//NOTE: Json-glib causes a precision issue while handling double values
 	json_array_add_string_element(arr, double_to_string(val, prec).c_str());
 	return true;
 }
 
-bool json::array_append(const char* path, const char* key, std::string val)
+bool conv::Json::appendArray(const char* path, const char* key, std::string val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key, false, _E, "Invalid parameter");
@@ -640,7 +640,7 @@ static JsonNode* search_array_elem(JsonNode* jnode, const char* path, const char
 	return node;
 }
 
-bool json::array_set_at(const char* path, const char* key, int index, json& val)
+bool conv::Json::setArrayAt(const char* path, const char* key, int index, Json& val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(val.json_node && key && index >= 0, false, _E, "Invalid parameter");
@@ -655,17 +655,17 @@ bool json::array_set_at(const char* path, const char* key, int index, json& val)
 	json_node_set_object(node, obj);
 	json_node_free(val.json_node);
 	val.json_node = NULL;
-	val = json();
+	val = Json();
 
 	return true;
 }
 
-bool json::array_set_at(const char* path, const char* key, int index, int val)
+bool conv::Json::setArrayAt(const char* path, const char* key, int index, int val)
 {
-	return array_set_at(path, key, index, static_cast<int64_t>(val));
+	return setArrayAt(path, key, index, static_cast<int64_t>(val));
 }
 
-bool json::array_set_at(const char* path, const char* key, int index, int64_t val)
+bool conv::Json::setArrayAt(const char* path, const char* key, int index, int64_t val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && index >= 0, false, _E, "Invalid parameter");
@@ -679,7 +679,7 @@ bool json::array_set_at(const char* path, const char* key, int index, int64_t va
 	return true;
 }
 
-bool json::array_set_at(const char* path, const char* key, int index, double val, int prec)
+bool conv::Json::setArrayAt(const char* path, const char* key, int index, double val, int prec)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && index >= 0, false, _E, "Invalid parameter");
@@ -693,7 +693,7 @@ bool json::array_set_at(const char* path, const char* key, int index, double val
 	return true;
 }
 
-bool json::array_set_at(const char* path, const char* key, int index, std::string val)
+bool conv::Json::setArrayAt(const char* path, const char* key, int index, std::string val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && index >= 0, false, _E, "Invalid parameter");
@@ -707,7 +707,7 @@ bool json::array_set_at(const char* path, const char* key, int index, std::strin
 	return true;
 }
 
-bool json::get_array_elem(const char* path, const char* key, int index, json* val)
+bool conv::Json::getArrayElem(const char* path, const char* key, int index, Json* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val && index >= 0, false, _E, "Invalid parameter");
@@ -726,13 +726,13 @@ bool json::get_array_elem(const char* path, const char* key, int index, json* va
 	return true;
 }
 
-bool json::get_array_elem(const char* path, const char* key, int index, int* val)
+bool conv::Json::getArrayElem(const char* path, const char* key, int index, int* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val && index >= 0, false, _E, "Invalid parameter");
 
 	int64_t v;
-	if (get_array_elem(path, key, index, &v)) {
+	if (getArrayElem(path, key, index, &v)) {
 		*val = v;
 		return true;
 	}
@@ -740,7 +740,7 @@ bool json::get_array_elem(const char* path, const char* key, int index, int* val
 	return false;
 }
 
-bool json::get_array_elem(const char* path, const char* key, int index, int64_t* val)
+bool conv::Json::getArrayElem(const char* path, const char* key, int index, int64_t* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val && index >= 0, false, _E, "Invalid parameter");
@@ -764,7 +764,7 @@ bool json::get_array_elem(const char* path, const char* key, int index, int64_t*
 	return true;
 }
 
-bool json::get_array_elem(const char* path, const char* key, int index, double* val)
+bool conv::Json::getArrayElem(const char* path, const char* key, int index, double* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val && index >= 0, false, _E, "Invalid parameter");
@@ -781,7 +781,7 @@ bool json::get_array_elem(const char* path, const char* key, int index, double* 
 	} else if (vtype == G_TYPE_INT64) {
 		*val = json_node_get_int(node);
 	} else if (vtype == G_TYPE_STRING) {
-		//NOTE: json-glib causes a precision issue while handling double values
+		//NOTE: Json-glib causes a precision issue while handling double values
 		*val = string_to_double(json_node_get_string(node));
 	} else {
 		_E("Type mismatched: %s", key);
@@ -791,7 +791,7 @@ bool json::get_array_elem(const char* path, const char* key, int index, double* 
 	return true;
 }
 
-bool json::get_array_elem(const char* path, const char* key, int index, std::string* val)
+bool conv::Json::getArrayElem(const char* path, const char* key, int index, std::string* val)
 {
 	IF_FAIL_RETURN_TAG(this->json_node, false, _E, "Json object not initialized");
 	IF_FAIL_RETURN_TAG(key && val && index >= 0, false, _E, "Invalid parameter");
@@ -812,13 +812,13 @@ bool json::get_array_elem(const char* path, const char* key, int index, std::str
 	return true;
 }
 
-bool json::get_member_list(json_node_t* node, std::list<std::string>& list)
+bool conv::Json::getMemberList(json_node_t* node, std::list<std::string>& list)
 {
 	IF_FAIL_RETURN(node, false);
 	list.clear();
 
 	JsonObject *jobj = json_node_get_object(node);
-	IF_FAIL_RETURN_TAG(jobj, false, _E, "Getting json object failed");
+	IF_FAIL_RETURN_TAG(jobj, false, _E, "Getting Json object failed");
 
 	GList *members = json_object_get_members(jobj);
 	IF_FAIL_RETURN(members, true);
@@ -839,13 +839,13 @@ bool json::get_member_list(json_node_t* node, std::list<std::string>& list)
 	return true;
 }
 
-bool json::get_keys(std::list<std::string>* list)
+bool conv::Json::getKeys(std::list<std::string>* list)
 {
 	IF_FAIL_RETURN_TAG(list, false, _E, "Invalid parameter");
-	return get_member_list(json_node, *list);
+	return getMemberList(json_node, *list);
 }
 
-bool json::node_equals(json_node_t* lhs, json_node_t* rhs)
+bool conv::Json::nodeEquals(json_node_t* lhs, json_node_t* rhs)
 {
 	IF_FAIL_RETURN(lhs && rhs, false);
 
@@ -855,13 +855,13 @@ bool json::node_equals(json_node_t* lhs, json_node_t* rhs)
 
 	switch (ltype) {
 	case JSON_NODE_VALUE:
-		IF_FAIL_RETURN(value_equals(lhs, rhs), false);
+		IF_FAIL_RETURN(valueEquals(lhs, rhs), false);
 		break;
 	case JSON_NODE_OBJECT:
-		IF_FAIL_RETURN(object_equals(lhs, rhs), false);
+		IF_FAIL_RETURN(objectEquals(lhs, rhs), false);
 		break;
 	case JSON_NODE_ARRAY:
-		IF_FAIL_RETURN(array_equals(lhs, rhs), false);
+		IF_FAIL_RETURN(arrayEquals(lhs, rhs), false);
 		break;
 	default:
 		_W("Unsupported type");
@@ -871,7 +871,7 @@ bool json::node_equals(json_node_t* lhs, json_node_t* rhs)
 	return true;
 }
 
-bool json::value_equals(json_node_t* lhs, json_node_t* rhs)
+bool conv::Json::valueEquals(json_node_t* lhs, json_node_t* rhs)
 {
 	GType ltype = json_node_get_value_type(lhs);
 	GType rtype = json_node_get_value_type(rhs);
@@ -890,11 +890,11 @@ bool json::value_equals(json_node_t* lhs, json_node_t* rhs)
 	}
 }
 
-bool json::object_equals(json_node_t* lhs, json_node_t* rhs)
+bool conv::Json::objectEquals(json_node_t* lhs, json_node_t* rhs)
 {
 	std::list<std::string> lm, rm;
-	IF_FAIL_RETURN(get_member_list(lhs, lm), false);
-	IF_FAIL_RETURN(get_member_list(rhs, rm), false);
+	IF_FAIL_RETURN(getMemberList(lhs, lm), false);
+	IF_FAIL_RETURN(getMemberList(rhs, rm), false);
 	IF_FAIL_RETURN(lm.size() == rm.size(), false);
 
 	lm.sort();
@@ -909,7 +909,7 @@ bool json::object_equals(json_node_t* lhs, json_node_t* rhs)
 
 		json_node_t *lhs_child = json_object_get_member(json_node_get_object(lhs), (*lit).c_str());
 		json_node_t *rhs_child = json_object_get_member(json_node_get_object(rhs), (*rit).c_str());
-		IF_FAIL_RETURN(node_equals(lhs_child, rhs_child), false);
+		IF_FAIL_RETURN(nodeEquals(lhs_child, rhs_child), false);
 
 		++lit;
 		++rit;
@@ -918,7 +918,7 @@ bool json::object_equals(json_node_t* lhs, json_node_t* rhs)
 	return true;
 }
 
-bool json::array_equals(json_node_t* lhs, json_node_t* rhs)
+bool conv::Json::arrayEquals(json_node_t* lhs, json_node_t* rhs)
 {
 	JsonArray *larr = json_node_get_array(lhs);
 	JsonArray *rarr = json_node_get_array(rhs);
@@ -929,7 +929,7 @@ bool json::array_equals(json_node_t* lhs, json_node_t* rhs)
 	for (int i = 0; i < size; ++i) {
 		json_node_t *lhs_child = json_array_get_element(larr, i);
 		json_node_t *rhs_child = json_array_get_element(rarr, i);
-		IF_FAIL_RETURN(node_equals(lhs_child, rhs_child), false);
+		IF_FAIL_RETURN(nodeEquals(lhs_child, rhs_child), false);
 	}
 
 	return true;

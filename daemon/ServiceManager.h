@@ -22,7 +22,7 @@
 #include <vector>
 #include <vconf.h>
 #include "IManager.h"
-#include "request.h"
+#include "Request.h"
 #include "IServiceProvider.h"
 
 namespace conv {
@@ -33,25 +33,25 @@ namespace conv {
 
 			int init();
 			int release();
-			int handleRequest(request* requestObj);
+			int handleRequest(Request* requestObj);
 
-			int get_service_info_for_discovery(json* service_json);
-			int handle_vconf_update(keynode_t *node);
+			int getServiceInfoForDiscovery(Json* service_json);
+			int handleVconfUpdate(keynode_t *node);
 
 		private:
-			int activation_state;
+			int __activationState;
 
-			typedef std::list<IServiceProvider*> service_provider_list_t;
+			typedef std::list<IServiceProvider*> ServiceProviderList;
 
-			int register_provider(IServiceProvider *provider_base);
-			int register_discovery_info();
-			int unregister_discovery_info();
-			service_provider_list_t provider_list;
+			int registerProvider(IServiceProvider *serviceProvider);
+			int registerDiscoveryInfo();
+			int unregisterDiscoveryInfo();
+			ServiceProviderList __providerList;
 	};
 
 	namespace service_manager {
-		void set_instance(ServiceManager* mgr);
-		int handleRequest(request* requestObj);
+		void setInstance(ServiceManager* mgr);
+		int handleRequest(Request* requestObj);
 	}
 }
 

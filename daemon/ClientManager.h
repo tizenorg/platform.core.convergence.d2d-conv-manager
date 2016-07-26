@@ -22,19 +22,19 @@
 #include <vector>
 #include <string>
 #include "IManager.h"
-#include "client.h"
+#include "ClientInfo.h"
 
 namespace conv {
 	class ClientManager : public IManager  {
-		typedef std::vector<client*> ClientList;
+		typedef std::vector<ClientInfo*> ClientList;
 		public:
 			ClientManager();
 			~ClientManager();
 
 			int init();
 			int release();
-			int handleRequest(request* requestObj);
-			conv::client* getClient(std::string clientId);
+			int handleRequest(Request* requestObj);
+			conv::ClientInfo* getClient(std::string clientId);
 
 		private:
 			ClientList clientList;
@@ -42,7 +42,7 @@ namespace conv {
 
 	namespace client_manager {
 		void setInstance(ClientManager* mgr);
-		conv::client* getClient(std::string clientId);
+		conv::ClientInfo* getClient(std::string clientId);
 	}
 }
 

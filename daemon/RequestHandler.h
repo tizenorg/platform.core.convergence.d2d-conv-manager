@@ -18,7 +18,7 @@
 #define __REQUEST_HANDLER_H__
 
 #include <glib.h>
-#include "request.h"
+#include "Request.h"
 
 namespace conv {
 	class RequestHandler {
@@ -29,7 +29,7 @@ namespace conv {
 			int init();
 			int release();
 
-			int handleRequest(request* requestObj);
+			int handleRequest(Request* requestObj);
 	};
 }
 
