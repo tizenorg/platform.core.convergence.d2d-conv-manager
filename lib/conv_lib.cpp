@@ -84,7 +84,6 @@ EXTAPI int conv_destroy(conv_h handle)
 	ASSERT_NOT_NULL(handle);
 
 	_D("conv_destroy..");
-	conv::dbus_client::release();
 	std::list<int>::iterator itr_end = handle->request_ids.end();
 	callback_map_t::iterator map_iter_end = callback_map.end();
 	for (std::list<int>::iterator iter_pos = handle->request_ids.begin(); iter_pos != itr_end; iter_pos++) {

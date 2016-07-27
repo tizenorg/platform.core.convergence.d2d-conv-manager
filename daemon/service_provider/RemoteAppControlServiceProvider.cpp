@@ -218,10 +218,18 @@ static int handle_request(iotcon_representation_h rep, iotcon_request_h request)
 			cb_info.request_handle = request;
 			app_control_cb_map[reply_id] = cb_info;
 
-			app_control_send_launch_request(app_control, _app_control_cb, (void*)reply_id);
+			ret = app_control_send_launch_request(app_control, _app_control_cb, (void*)reply_id);
 			_D("app_control_send_launch_request with callback");
 
+			if (ret != APP_CONTROL_ERROR_NONE) {
+				_E("Launch request failed(%d)", ret);
+				iotcon_response_result_e result = IOTCON_RESPONSE_ERROR;
+				_send_response(request, NULL, result);
+				app_control_cb_map.erase(reply_id);
+			}
+
 			bundle_free(appctl_bundle);
+			app_control_destroy(app_control);
 		}
 	} else {
 		iotcon_response_result_e result;
@@ -272,7 +280,7 @@ void conv::RemoteAppControlServiceProvider::__iotcon_request_cb(iotcon_resource_
 
 	if (IOTCON_REQUEST_PUT == type) {
 		iotcon_representation_h req_repr;
-		_I("GET request");
+		_I("PUT request");
 
 		ret = iotcon_request_get_representation(request, &req_repr);
 		if (IOTCON_ERROR_NONE != ret) {
