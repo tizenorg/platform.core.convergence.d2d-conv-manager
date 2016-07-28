@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#include "mDNSSearchProvider.h"
 #include <stdlib.h>
-#include "Debug.h"
 #include <list>
 #include "Error.h"
+#include "Debug.h"
+#include "mDNSSearchProvider.h"
+#include "Search.h"
 
 #define SERVICE_TYPE "_samsungmsf._tcp"
 
@@ -75,11 +76,6 @@ SearchProvider mDNSSearchProvider::create(Search *searchListener)
 {
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n", __FUNCTION__, __LINE__, __FILE__);
 	return (SearchProvider)mDNSSearchProvider(searchListener);
-}
-
-void mDNSSearchProvider::addService(Service service)
-{
-	this->SearchProvider::addService(service);
 }
 
 void mDNSSearchProvider::updateAlive(long ttl, string id, int service_type)
@@ -295,7 +291,7 @@ void mDNSSearchProvider::reapServices()
 void MDNSServiceCallback::onSuccess(Service service)
 {
 	MSF_DBG("\n [MSF : API] Debug log Function : [%s] and line [%d] in file [%s] \n",__FUNCTION__ ,__LINE__,__FILE__);
-	provider->addService(service);
+	Search::addService(service);
 	string ip = provider->getIP(service.getUri());
 	provider->push_in_alivemap(0x00ffffff, ip, MDNS);
 	MSF_DBG("service : id( %s ) registerd.", ip.c_str());

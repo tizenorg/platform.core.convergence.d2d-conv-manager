@@ -25,8 +25,8 @@
 int Search::SERVICE_CHECK_TIMEOUT = 5000;
 bool Search::clearProviders;
 pthread_t Search::threads[NUM_OF_THREADS];
-mDNSSearchProvider Search::provider1;
-MSFDSearchProvider Search::provider2;
+mDNSSearchProvider Search::provider_mdns;
+MSFDSearchProvider Search::provider_msfd;
 Search *Search::instance = NULL;
 bool Search::starting = false;
 bool Search::stopping = false;
@@ -40,27 +40,7 @@ int Search::numRunning;
 
 void Search::onStart()
 {
-	st_onStart();
-}
-
-void Search::onStop()
-{
-	st_onStop();
-}
-
-void Search::onFound(Service service)
-{
-	st_onFound(service);
-}
-
-void Search::onLost(Service service)
-{
-	st_onLost(service);
-}
-
-void  Search :: st_onStart()
-{
-	MSF_DBG("Search::st_onStart()");
+	MSF_DBG("Search::onStart()");
 
 	// ....... ==0 ??
 	if (onStartNotified > 0) {
@@ -75,9 +55,9 @@ void  Search :: st_onStart()
 	}
 }
 
-void  Search::st_onStop()
+void Search::onStop()
 {
-	MSF_DBG("Search::st_onStop()");
+	MSF_DBG("Search::onStop()");
 	list<Search*>::iterator itr;
 	for (itr = search_list.begin(); itr != search_list.end(); itr++) {
 		if ((*itr)->searchListener != NULL && (*itr)->searching_now) {
@@ -86,15 +66,13 @@ void  Search::st_onStop()
 	}
 }
 
-void  Search::st_onFound(Service service)
+void Search::onFound(Service service)
 {
-	MSF_DBG("Search::st_onFound()");
-
-	addService(service);
+	MSF_DBG("Search::onFound()");
 
 	list<Search*>::iterator itr;
 
-	MSF_DBG("Search::st_onFound() list size = %d", search_list.size());
+	MSF_DBG("Search::onFound() list size = %d", services.size());
 
 	for (itr = search_list.begin(); itr != search_list.end(); itr++) {
 		if ((*itr)->searchListener != NULL && (*itr)->searching_now) {
@@ -103,11 +81,9 @@ void  Search::st_onFound(Service service)
 	}
 }
 
-void  Search::st_onLost(Service service)
+void Search::onLost(Service service)
 {
-	MSF_DBG("Search::st_onLost()");
-
-	removeService(service);
+	MSF_DBG("Search::onLost()");
 
 	list<Search*>::iterator itr;
 
@@ -215,56 +191,8 @@ bool Search::stop()
 
 list<Service> Search::getServices()
 {
-	return SearchProvider::getServices();
-}
-
-void Search::addProvider(SearchProvider provider)
-{
-	providers.push_back(provider);
-	provider.setSearchListener(this);
-}
-
-bool Search::isEqualto(SearchProvider s1, SearchProvider s2)
-{
-	list<Service> services1 = s1.getServices();
-	list<Service> services2 = s1.getServices();
-	int len1 = services1.size();
-	int len2 = services2.size();
-	if (len1 == len2)
-		return false;
-
-	std::list<Service>::iterator iter1;
-	std::list<Service>::iterator iter2;
-	for(iter1 = services1.begin(); iter1 != services1.end(); ++iter1) {
-		if (services2.size() != 0) {
-			iter2 = services2.begin();
-			while(iter2 != services2.end()) {
-				if (((*iter2).getId()) == ((*iter1).getId())) {
-					services2.erase(iter2++);
-					break;
-				} else {
-					iter2++;
-				}
-			}
-		}
-	}
-	if (services2.size() == 0)
-		return true;
-	else
-		return false;
-}
-
-bool Search::remove(list<SearchProvider> *providers, SearchProvider provider)
-{
-	std::list<SearchProvider>::iterator it = providers->begin();
-	while(it != providers->end()) {
-		bool match = isEqualto(*it, provider);
-		if (match) {
-			providers->erase(it);
-			return true;
-		}
-	}
-	return false;
+	//return SearchProvider::getServices();
+	return services;
 }
 
 void *Search::pt_startMDNS(void *arg)
@@ -274,7 +202,7 @@ void *Search::pt_startMDNS(void *arg)
 
 void *Search::pt_startMSFD(void *arg)
 {
-	provider2.start();
+	provider_msfd.start();
 	return NULL;
 }
 
@@ -305,7 +233,7 @@ void Search::startDiscovery()
 
 	int ret = -1;
 
-	provider1.start();
+	provider_mdns.start();
 
 	ret = pthread_create(&threads[MSFD_THREAD_NUMBER], NULL, pt_startMSFD, NULL);
 	if (ret == -1)
@@ -323,8 +251,8 @@ void Search::stopDiscovery()
 	MSF_DBG("Search::stopDiscovery()");
 	stopping = true;
 	bool stop = false;
-	stop = provider1.stop();
-	stop = provider2.stop();
+	stop = provider_mdns.stop();
+	stop = provider_msfd.stop();
 	pt_update_start = false;
 
 	if (stop)
@@ -350,8 +278,11 @@ bool Search::addService(Service service)
 			break;
 		}
 	}
-	if (!match)
+	if (!match) {
 		services.push_back(service);
+		onFound(service);
+	}
+
 	return true;
 }
 
@@ -366,10 +297,10 @@ bool Search::removeService(Service service)
 	return true;
 }
 
-void Search::removeAndNotify(Service service)
+void Search::removeServiceAndNotify(Service service)
 {
-	if (removeService(service)) {
-	}
+	removeService(service);
+	onLost(service);
 }
 
 void Search::validateService(Service service)
