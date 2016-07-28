@@ -81,11 +81,12 @@ int conv::DiscoveryManager::notifyTimeOut(std::string client)
 	}
 
 	// 2. Reqeust to stop timer related to client in the timer_map
-	TimerMap::iterator timer_itr = __requestTimerMap.find(client);
-	if (timer_itr != __requestTimerMap.end()) {
-		int timerId = timer_itr->second;
-		_D("timer_id[%d]", timerId);
+	TimerMap::iterator timerIter = __requestTimerMap.find(client);
+	if (timerIter != __requestTimerMap.end()) {
+		int timerId = timerIter->second;
+		_D("timerId[%d]", timerId);
 		conv::util::miscStopTimer(reinterpret_cast<void*> (timerId));
+		__requestTimerMap.erase(timerIter);
 	}
 
 	// 3. Notify the client that the requested discovery has been finished
@@ -162,11 +163,12 @@ int conv::DiscoveryManager::handleRequest(Request* requestObj)
 				_D("client[%s] already in __requestMap.. Replace!!!", client);
 				map_itr->second = requestObj;
 				// stop the timer if there's one already running
-				TimerMap::iterator timer_itr = __requestTimerMap.find(client);
-				if (timer_itr != __requestTimerMap.end()) {
-					int timer_id = timer_itr->second;
-					_D("timer_id[%d]", timer_id);
-					conv::util::miscStopTimer(reinterpret_cast<void*> (timer_id));
+				TimerMap::iterator timerIter = __requestTimerMap.find(client);
+				if (timerIter != __requestTimerMap.end()) {
+					int timerId = timerIter->second;
+					_D("timerId[%d]", timerId);
+					conv::util::miscStopTimer(reinterpret_cast<void*> (timerId));
+					__requestTimerMap.erase(timerIter);
 				}
 			}
 
@@ -175,8 +177,8 @@ int conv::DiscoveryManager::handleRequest(Request* requestObj)
 			param[0] = reinterpret_cast<void*>(new(std::nothrow) string(client));
 			param[1] = reinterpret_cast<void*>(this);
 
-			int timer_id = reinterpret_cast<int>(conv::util::miscStartTimer(__timer_worker, timeout, param));
-			__requestTimerMap[ string(client) ] = timer_id;
+			int timerId = reinterpret_cast<int>(conv::util::miscStartTimer(__timer_worker, timeout, param));
+			__requestTimerMap[string(client)] = timerId;
 
 			requestObj->reply(CONV_ERROR_NONE);
 		} else if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_DISCOVERY_STOP) ){
