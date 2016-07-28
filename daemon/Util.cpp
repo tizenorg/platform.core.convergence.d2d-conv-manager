@@ -169,7 +169,9 @@ bool conv::util::isServiceActivated(int serviceValue)
 
 	if (error != 0) {
 		_D("vconf_get_int failed %d", error);
-		return false;
+//		return false;
+//		temporary code for binary without vconf
+		return true;
 	}
 
 	if ((serviceValue & currentState) > 0) {
