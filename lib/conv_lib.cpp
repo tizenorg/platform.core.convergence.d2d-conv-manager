@@ -57,13 +57,6 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 	}
 	device_callback_info_s* callback_info = itor->second;
 	callback_info->cb(device, (conv_discovery_result_e)error, callback_info->user_data);
-
-	// unset callback..on finished
-	if (error == CONV_DISCOVERY_RESULT_FINISHED) {
-		_D("free memory for callback[id:%d]", req_id);
-		delete callback_map[req_id];
-		callback_map.erase(itor);
-	}
 }
 
 static void register_subject_callbacks()
@@ -95,8 +88,11 @@ EXTAPI int conv_destroy(conv_h handle)
 	callback_map_t::iterator map_iter_end = callback_map.end();
 	for (std::list<int>::iterator iter_pos = handle->request_ids.begin(); iter_pos != itr_end; iter_pos++) {
 		callback_map_t::iterator map_iter = callback_map.find(*iter_pos);
-		if (map_iter != map_iter_end)
+		if (map_iter != map_iter_end) {
+			_D("free memory for callback[id:%d]", *iter_pos);
+			delete map_iter->second;
 			callback_map.erase(map_iter);
+		}
 	}
 	delete handle;
 	return CONV_ERROR_NONE;
