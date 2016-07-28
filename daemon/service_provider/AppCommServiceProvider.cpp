@@ -169,6 +169,9 @@ int conv::AppCommServiceProvider::startRequest(Request* requestObj)
 	channel.get(NULL, CONV_JSON_URI, &uri);
 	channel.get(NULL, CONV_JSON_CHANNEL_ID, &channelId);
 
+	IF_FAIL_RETURN_TAG(!uri.empty() || svcInfo->isLocal, CONV_ERROR_INVALID_PARAMETER, _E, "uri is empty");
+	IF_FAIL_RETURN_TAG(!channelId.empty(), CONV_ERROR_INVALID_PARAMETER, _E, "channelId is empty");
+
 	ApplicationInstance *appInfo = NULL;
 
 	for (ApplicationInstanceList::iterator iter = svcInfo->applicationInstanceList.begin(); iter != svcInfo->applicationInstanceList.end(); ++iter) {
@@ -260,6 +263,9 @@ int conv::AppCommServiceProvider::stopRequest(Request* requestObj)
 	channel.get(NULL, CONV_JSON_URI, &uri);
 	channel.get(NULL, CONV_JSON_CHANNEL_ID, &channelId);
 
+	IF_FAIL_RETURN_TAG(!uri.empty() || svcInfo->isLocal, CONV_ERROR_INVALID_PARAMETER, _E, "uri is empty");
+	IF_FAIL_RETURN_TAG(!channelId.empty(), CONV_ERROR_INVALID_PARAMETER, _E, "channelId is empty");
+
 	for (ApplicationInstanceList::iterator iter = svcInfo->applicationInstanceList.begin(); iter != svcInfo->applicationInstanceList.end(); ++iter) {
 		_D("%s, %s", (*iter)->uri.c_str(), (*iter)->channelId.c_str());
 		if ( (*iter) != NULL && !(*iter)->uri.compare(uri) && !(*iter)->channelId.compare(channelId) ) {
@@ -301,6 +307,9 @@ int conv::AppCommServiceProvider::readRequest(Request* requestObj)
 
 	channel.get(NULL, CONV_JSON_URI, &uri);
 	channel.get(NULL, CONV_JSON_CHANNEL_ID, &channelId);
+
+	IF_FAIL_RETURN_TAG(!uri.empty() || svcInfo->isLocal, CONV_ERROR_INVALID_PARAMETER, _E, "uri is empty");
+	IF_FAIL_RETURN_TAG(!channelId.empty(), CONV_ERROR_INVALID_PARAMETER, _E, "channelId is empty");
 
 	ApplicationInstance *appInfo = NULL;
 	Json result;
@@ -346,7 +355,8 @@ int conv::AppCommServiceProvider::readRequest(Request* requestObj)
 						if (cha != NULL)
 							client.set(NULL, CONV_JSON_CHANNEL_URI, cha->getChannelUri(NULL).c_str());
 
-						result.appendArray(NULL, CONV_JSON_CLIENT_LIST, client);
+//						result.appendArray(NULL, CONV_JSON_CLIENT_LIST, client);
+						result.appendArray(NULL, CONV_JSON_CLIENT_LIST, client.dupCstr());
 					}
 					sendReadResponse(result, CONV_JSON_GET_CLIENTS, CONV_ERROR_NONE, svcInfo->registeredRequest);
 
@@ -393,6 +403,9 @@ int conv::AppCommServiceProvider::publishRequest(Request* requestObj)
 
 	channel.get(NULL, CONV_JSON_URI, &uri);
 	channel.get(NULL, CONV_JSON_CHANNEL_ID, &channelId);
+
+	IF_FAIL_RETURN_TAG(!uri.empty() || svcInfo->isLocal, CONV_ERROR_INVALID_PARAMETER, _E, "uri is empty");
+	IF_FAIL_RETURN_TAG(!channelId.empty(), CONV_ERROR_INVALID_PARAMETER, _E, "channelId is empty");
 
 	for (ApplicationInstanceList::iterator iter = svcInfo->applicationInstanceList.begin(); iter != svcInfo->applicationInstanceList.end(); ++iter) {
 		_D("iteration");

@@ -64,7 +64,7 @@ int conv::ServiceManager::init()
 
 	if ( error < 0 ) {
 		_E("vconf error (%d)", error);
-		// temporary code
+//		temporary code for binary without vconf
 		__activationState = 1;
 	}
 
@@ -75,6 +75,7 @@ int conv::ServiceManager::init()
 	}
 
 	error = vconf_notify_key_changed(VCONFKEY_SETAPPL_D2D_CONVERGENCE, vconf_update_cb, this);
+//	temporarily commented out for binary without vconf
 //	IF_FAIL_RETURN_TAG(error >= 0, CONV_ERROR_INVALID_OPERATION, _E, "vconf error (%d)", error);
 
 	return CONV_ERROR_NONE;
