@@ -57,6 +57,13 @@ static void conv_subject_cb(const char* subject, int req_id, int error, json dat
 	}
 	device_callback_info_s* callback_info = itor->second;
 	callback_info->cb(device, (conv_discovery_result_e)error, callback_info->user_data);
+
+	// unset callback..on finished
+	if (error == CONV_DISCOVERY_RESULT_FINISHED) {
+		_D("free memory for callback[id:%d]", req_id);
+		delete callback_map[req_id];
+		callback_map.erase(itor);
+	}
 }
 
 static void register_subject_callbacks()
@@ -133,17 +140,6 @@ EXTAPI int conv_discovery_stop(conv_h handle)
 	int req_id;
 	int err = conv::dbus_client::request(REQ_WRITE, &req_id, CONV_SUBJECT_DISCOVERY_STOP, NULL, NULL, NULL);
 	IF_FAIL_RETURN_TAG(err == CONV_ERROR_NONE, err, _E, "Failed in starting flow service");
-
-	// unset callback..
-	std::list<int>::iterator req_itr = handle->request_ids.begin();
-	for (; req_itr != handle->request_ids.end(); req_itr++) {
-		int cur_req_id = *req_itr;
-		if (callback_map[cur_req_id] !=  NULL) {
-			_D("free memory for callback[id:%d]", cur_req_id);
-			delete callback_map[cur_req_id];
-			callback_map.erase(callback_map.find(cur_req_id));
-		}
-	}
 
 	return CONV_ERROR_NONE;
 }

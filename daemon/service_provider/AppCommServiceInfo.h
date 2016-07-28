@@ -151,7 +151,9 @@ namespace conv {
 
 					payload.set(NULL, CONV_JSON_PAYLOAD_SIZE, message.m_payload_size);
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_MESSAGE);
-					payload.set(NULL, CONV_JSON_MESSAGE, message_json);
+//					payload.set(NULL, CONV_JSON_MESSAGE, message_json);
+					payload.set(NULL, CONV_JSON_MESSAGE, message_json.dupCstr());
+					payload.set(NULL, CONV_JSON_FROM, message.m_from);
 
 					description = (*requestObj)->getDescription();
 
@@ -231,7 +233,8 @@ namespace conv {
 					client_json.set(NULL, CONV_JSON_CLIENT_ID, client->getId());
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, result_type);
-					payload.set(NULL, CONV_JSON_CLIENT, client_json);
+//					payload.set(NULL, CONV_JSON_CLIENT, client_json);
+					payload.set(NULL, CONV_JSON_CLIENT, client_json.dupCstr());
 
 					description = (*requestObj)->getDescription();
 

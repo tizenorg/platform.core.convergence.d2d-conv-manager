@@ -90,11 +90,12 @@ int conv::DiscoveryManager::notifyTimeOut(std::string client)
 	}
 
 	// 3. Notify the client that the requested discovery has been finished
-	RequestMap::iterator request_itr = __requestMap.find(client);
-	if (request_itr != __requestMap.end()) {
+	RequestMap::iterator requestIter = __requestMap.find(client);
+	if (requestIter != __requestMap.end()) {
 		Json noData;
-		Request* currentRequest = request_itr->second;
+		Request* currentRequest = requestIter->second;
 		currentRequest->publish(CONV_DISCOVERY_FINISHED, noData);
+		__requestMap.erase(requestIter);
 	}
 
 	return CONV_ERROR_NONE;
