@@ -276,11 +276,11 @@ static iotcon_representation_h _get_d2d_service_representation(conv::ServiceMana
 		return NULL;
 	}
 
-	char* device_id = (char*) conv::util::getDeviceId().c_str();
-	char* device_name = (char*) conv::util::getDeviceName().c_str();
+	char* deviceId = (char*) conv::util::getDeviceId().c_str();
+	char* deviceName = (char*) conv::util::getDeviceName().c_str();
 
-	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_ID, device_id);
-	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_NAME, device_name);
+	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_ID, deviceId);
+	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_NAME, deviceName);
 #ifdef _TV_
 	string device_type("TV");
 #else
@@ -288,11 +288,11 @@ static iotcon_representation_h _get_d2d_service_representation(conv::ServiceMana
 #endif
 	iotcon_attributes_add_str(attributes, CONV_JSON_DEVICE_TYPE, (char*) device_type.c_str());
 
-	conv::Json service_json;
-	instance->getServiceInfoForDiscovery(&service_json);
-	char* service_json_char = service_json.dupCstr();
+	conv::Json serviceJson;
+	instance->getServiceInfoForDiscovery(&serviceJson);
+	char* service_json_char = serviceJson.dupCstr();
 
-	iotcon_attributes_add_str(attributes, "service_json", service_json_char);
+	iotcon_attributes_add_str(attributes, "serviceJson", service_json_char);
 
 	ret = iotcon_representation_set_attributes(repr, attributes);
 	g_free(service_json_char);
@@ -308,18 +308,18 @@ static iotcon_representation_h _get_d2d_service_representation(conv::ServiceMana
 	return repr;
 }
 
-int conv::ServiceManager::getServiceInfoForDiscovery(Json* service_json)
+int conv::ServiceManager::getServiceInfoForDiscovery(Json* serviceJson)
 {
-	IF_FAIL_RETURN_TAG(service_json, CONV_ERROR_INVALID_OPERATION, _E, "service_json is NULL");
+	IF_FAIL_RETURN_TAG(serviceJson, CONV_ERROR_INVALID_OPERATION, _E, "serviceJson is NULL");
 
 	for (ServiceProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
-		Json service_info;
-		if ((*it)->getServiceInfoForDiscovery(&service_info) == CONV_ERROR_NONE) {
-			service_json->appendArray(NULL, "service_list", service_info);
+		Json serviceInfo;
+		if ((*it)->getServiceInfoForDiscovery(&serviceInfo) == CONV_ERROR_NONE) {
+			serviceJson->appendArray(NULL, "service_list", serviceInfo);
 		}
 	}
 
-	_D("service_info : %s", service_json->str().c_str());
+	_D("service_info : %s", serviceJson->str().c_str());
 
 	return CONV_ERROR_NONE;
 }

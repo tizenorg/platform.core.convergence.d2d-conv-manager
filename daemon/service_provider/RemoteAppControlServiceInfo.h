@@ -30,25 +30,25 @@ namespace conv {
 		public:
 			~RemoteAppControlServiceInfo()
 			{
-				if ( registered_request != NULL )
+				if ( registeredRequest != NULL )
 				{
-					delete registered_request;
+					delete registeredRequest;
 				}
 
-				if ( iotcon_info_obj.iotcon_resource_handle != NULL )
+				if ( iotconInfoObj.iotconResourceHandle != NULL )
 				{
-					iotcon_remote_resource_destroy(iotcon_info_obj.iotcon_resource_handle);
+					iotcon_remote_resource_destroy(iotconInfoObj.iotconResourceHandle);
 				}
-				if ( iotcon_info_obj.iotcon_representation_handle != NULL )
+				if ( iotconInfoObj.iotconRepresentationHandle != NULL )
 				{
-					iotcon_representation_destroy(iotcon_info_obj.iotcon_representation_handle);
+					iotcon_representation_destroy(iotconInfoObj.iotconRepresentationHandle);
 				}
 			}
-			std::string device_id;
-			std::string device_name;
-			std::string device_address;
-			Request* registered_request;
-			IotconCommunicationInfo iotcon_info_obj;
+			std::string deviceId;
+			std::string deviceName;
+			std::string deviceAddress;
+			Request* registeredRequest;
+			IotconCommunicationInfo iotconInfoObj;
 	};
 
 }

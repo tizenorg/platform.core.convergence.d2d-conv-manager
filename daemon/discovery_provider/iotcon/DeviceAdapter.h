@@ -29,8 +29,8 @@ namespace conv {
 			DeviceAdapter(ResourceHandle res_h);
 			~DeviceAdapter();
 
-			int addService(IService* service_obj);
-			int removeService(IService* service_obj);
+			int addService(IService* serviceObj);
+			int removeService(IService* serviceObj);
 			int getServiceList(std::list<IService*> *list);
 			string getName();
 			string getId();

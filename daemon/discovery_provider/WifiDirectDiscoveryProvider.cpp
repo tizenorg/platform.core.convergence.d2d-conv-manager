@@ -55,7 +55,7 @@ bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* u
 {
 #if 0//def TEMP_TEST
 	static int first = 1;
-	if (!strcmp(peer->device_name, "D2d note" ) ) {
+	if (!strcmp(peer->deviceName, "D2d note" ) ) {
 		first = 0;
 		int	result = wifi_direct_connect(peer->mac_address);
 		_D("connect result = %d", result);
@@ -66,7 +66,7 @@ bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* u
 	conv::WifiDirectDiscoveryProvider* disc_provider = (conv::WifiDirectDiscoveryProvider*)user_data;
 	conv::SmartViewService *conv_service = new(std::nothrow) conv::SmartViewService;
 
-	conv_service->setName(peer->device_name);
+	conv_service->setName(peer->deviceName);
 	conv_service->setVersion("0.0");
 	conv_service->setType("");
 	conv_service->setId(peer->mac_address);
@@ -356,7 +356,7 @@ int conv::WifiDirectDiscoveryProvider::notifyDiscovered(conv::SmartViewService* 
 	if (!alreadyExisted) {
 		//the discovered one is NEW!!
 		// TO-DO : need to re-write this code
-		//_discovery_manager->appendDiscoveredResult(NULL, conv_service);
+		//__discoveryManager->appendDiscoveredResult(NULL, conv_service);
 	}
 
 	return CONV_ERROR_NONE;

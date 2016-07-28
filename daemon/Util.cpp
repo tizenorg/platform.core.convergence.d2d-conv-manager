@@ -28,60 +28,60 @@ using namespace std;
 
 std::string conv::util::getBtMacAddress()
 {
-	static std::string g_mac_address;
-	if(g_mac_address.empty()) {
+	static std::string __macAddress;
+	if(__macAddress.empty()) {
 		bt_initialize();
-		char* mac_address;
+		char* macAddress;
 		bt_adapter_enable();
-		int ret = bt_adapter_get_address(&mac_address);
+		int ret = bt_adapter_get_address(&macAddress);
 		IF_FAIL_RETURN_TAG(ret == 0, NULL, _E, "bluetooth get mac address failed : %d", ret);
-		_D("bluetooth get mac address : %s", mac_address);
-		g_mac_address = mac_address;
-		free(mac_address);
+		_D("bluetooth get mac address : %s", macAddress);
+		__macAddress = macAddress;
+		free(macAddress);
 		bt_deinitialize();
 	}
-	_D("mac address:%s", g_mac_address.c_str());
-	return g_mac_address;
+	_D("mac address:%s", __macAddress.c_str());
+	return __macAddress;
 }
 
 
 std::string conv::util::getDeviceName()
 {
-	static std::string g_device_name;
-	if(g_device_name.empty()) {
-		char* device_name = vconf_get_str(VCONFKEY_SETAPPL_DEVICE_NAME_STR);
-		if (device_name == NULL) {
-			g_device_name = "Tizen";
+	static std::string __deviceName;
+	if(__deviceName.empty()) {
+		char* deviceName = vconf_get_str(VCONFKEY_SETAPPL_DEVICE_NAME_STR);
+		if (deviceName == NULL) {
+			__deviceName = "Tizen";
 		} else {
-			g_device_name = device_name;
+			__deviceName = deviceName;
 		}
-		_D("device_name: %s", g_device_name.c_str());
+		_D("device_name: %s", __deviceName.c_str());
 	}
 
-	return g_device_name;
+	return __deviceName;
 }
 
 static char __make_p2p_mac(char c)
 {
-	char convert_c = c;
-	if ((convert_c >= 'A') && (convert_c <= 'F')) {
-		convert_c = ((((convert_c - 'A') + 10) | 0x02) - 10) + 'A';
-	} else if ((convert_c >= '0') && (convert_c <= '9')) {
-		convert_c = ((convert_c - '0') | 0x02);
-		if (convert_c < 10)
-			convert_c = convert_c + '0';
+	char convertC = c;
+	if ((convertC >= 'A') && (convertC <= 'F')) {
+		convertC = ((((convertC - 'A') + 10) | 0x02) - 10) + 'A';
+	} else if ((convertC >= '0') && (convertC <= '9')) {
+		convertC = ((convertC - '0') | 0x02);
+		if (convertC < 10)
+			convertC = convertC + '0';
 		else
-			convert_c = 'A' + (convert_c - 10);
+			convertC = 'A' + (convertC - 10);
 	} else {
 		_E("wrong byte for mac!");
 	}
-	return convert_c;
+	return convertC;
 }
 
 std::string conv::util::getP2pMacAddress()
 {
-	static std::string g_p2p_mac_address;
-	if(g_p2p_mac_address.empty()) {
+	static std::string __p2pMacAddress;
+	if(__p2pMacAddress.empty()) {
 		char p2p_mac[MAC_ADDR_STR_LEN];
 		memset(p2p_mac, 0x0, MAC_ADDR_STR_LEN);
 
@@ -94,11 +94,11 @@ std::string conv::util::getP2pMacAddress()
 			_I("P2P mac is %s", p2p_mac);
 			free(temp_addr);
 
-			g_p2p_mac_address = p2p_mac;
+			__p2pMacAddress = p2p_mac;
 		}
 	}
-	_D("p2p mac address:%s", g_p2p_mac_address.c_str());
-	return g_p2p_mac_address;
+	_D("p2p mac address:%s", __p2pMacAddress.c_str());
+	return __p2pMacAddress;
 }
 
 static gboolean __misc_timer_worker(gpointer ud)
@@ -146,20 +146,20 @@ void conv::util::miscStopTimer(void *timer)
 
 std::string conv::util::getDeviceId()
 {
-	static std::string g_device_id;
-	if(g_device_id.empty()) {
-		g_device_id = Service::getUniqueId("127.0.0.1:8001");
+	static std::string __deviceId;
+	if(__deviceId.empty()) {
+		__deviceId = Service::getUniqueId("127.0.0.1:8001");
 
-		if(g_device_id.empty())
+		if(__deviceId.empty())
 #ifdef _TV_
-			g_device_id = getBtMacAddress();
+			__deviceId = getBtMacAddress();
 #else
-			g_device_id = getP2pMacAddress();
+			__deviceId = getP2pMacAddress();
 #endif
 	}
-	_D("device id : %s", g_device_id.c_str());
+	_D("device id : %s", __deviceId.c_str());
 
-	return g_device_id;
+	return __deviceId;
 }
 
 bool conv::util::isServiceActivated(int serviceValue)

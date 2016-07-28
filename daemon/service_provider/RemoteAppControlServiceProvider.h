@@ -33,18 +33,18 @@ namespace conv {
 			int init();
 			int release();
 
-			int startRequest(Request* request_obj);
-			int stopRequest(Request* request_obj);
-			int readRequest(Request* request_obj);
-			int publishRequest(Request* request_obj);
-			int registerRequest(Request* request_obj);
-			int loadServiceInfo(Request* request_obj);
-			int getServiceInfoForDiscovery(Json* json_obj);
+			int startRequest(Request* requestObj);
+			int stopRequest(Request* requestObj);
+			int readRequest(Request* requestObj);
+			int publishRequest(Request* requestObj);
+			int registerRequest(Request* requestObj);
+			int loadServiceInfo(Request* requestObj);
+			int getServiceInfoForDiscovery(Json* jsonObj);
 			int handleVconfUpdate(keynode_t *node);
 
 		private:
 			iotcon_resource_h iotcon_resource;
-			int sendResponse(Json payload, const char* request_type, conv_error_e error, Request* request_obj);
+			int sendResponse(Json payload, const char* request_type, conv_error_e error, Request* requestObj);
 
 			static void __iotcon_request_cb(iotcon_resource_h resource, iotcon_request_h request, void *user_data);
 	};

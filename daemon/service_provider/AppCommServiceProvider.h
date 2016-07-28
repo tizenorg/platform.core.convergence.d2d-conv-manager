@@ -33,18 +33,18 @@ namespace conv {
 			int init();
 			int release();
 
-			AppCommServiceInfo* get_svc_info(Request* request_obj);
-			int startRequest(Request* request_obj);
-			int stopRequest(Request* request_obj);
-			int readRequest(Request* request_obj);
-			int publishRequest(Request* request_obj);
-			int registerRequest(Request* request_obj);
-			int loadServiceInfo(Request* request_obj);
-			int getServiceInfoForDiscovery(Json* json_obj);
+			AppCommServiceInfo* get_svc_info(Request* requestObj);
+			int startRequest(Request* requestObj);
+			int stopRequest(Request* requestObj);
+			int readRequest(Request* requestObj);
+			int publishRequest(Request* requestObj);
+			int registerRequest(Request* requestObj);
+			int loadServiceInfo(Request* requestObj);
+			int getServiceInfoForDiscovery(Json* jsonObj);
 			int handleVconfUpdate(keynode_t *node);
 
 		private:
-			int sendReadResponse(Json payload, const char* read_type, conv_error_e error, Request* request_obj);
+			int sendReadResponse(Json payload, const char* read_type, conv_error_e error, Request* requestObj);
 	};
 }
 #endif /* __APP_COMMUNICATION_SERVICE_PROVIDER_H__ */

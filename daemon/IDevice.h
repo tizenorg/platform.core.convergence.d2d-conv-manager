@@ -27,8 +27,8 @@ namespace conv {
 		public:
 			virtual ~IDevice() {}
 
-			virtual int addService(IService* service_obj) = 0;
-			virtual int removeService(IService* service_obj) = 0;
+			virtual int addService(IService* serviceObj) = 0;
+			virtual int removeService(IService* serviceObj) = 0;
 			virtual int getServiceList(std::list<IService*> *list) = 0;
 
 			virtual string getName() = 0;

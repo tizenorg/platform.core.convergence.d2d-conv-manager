@@ -20,31 +20,31 @@
 using namespace std;
 
 
-int conv::ResourceHandle::setDeviceId(string dev_id)
+int conv::ResourceHandle::setDeviceId(string devId)
 {
-	this->device_id = dev_id;
+	this->deviceId = devId;
 	return CONV_ERROR_NONE;
 }
 
 string conv::ResourceHandle::getDeviceId()
 {
-	return this->device_id;
+	return this->deviceId;
 }
 
-int conv::ResourceHandle::setDeviceName(string dev_name)
+int conv::ResourceHandle::setDeviceName(string devName)
 {
-	this->device_name = dev_name;
+	this->deviceName = devName;
 	return CONV_ERROR_NONE;
 }
 
 string conv::ResourceHandle::getDeviceName()
 {
-	return device_name;
+	return deviceName;
 }
 
-int conv::ResourceHandle::setDeviceType(string dev_type)
+int conv::ResourceHandle::setDeviceType(string devType)
 {
-	this->device_type = dev_type;
+	this->device_type = devType;
 	return CONV_ERROR_NONE;
 }
 

@@ -42,8 +42,8 @@ namespace conv {
 			int handleRequest(Request* requestObj);
 
 			// discovery_manager aggregates devices with services which have been discovered through the registered discover providers
-			int appendDiscoveredResult(IDevice* disc_device);
-			int notifyLostDevice(IDevice* disc_device);
+			int appendDiscoveredResult(IDevice* discoveredDevice);
+			int notifyLostDevice(IDevice* discoveredDevice);
 			int notifyTimeOut(std::string client);
 			int stopDiscovery();
 			int startDiscovery();
@@ -51,32 +51,30 @@ namespace conv {
 			static void __timer_worker(void* data);
 
 		private:
-			int count_discovery_request;
+			int __countDiscoveryRequest;
 
 
-			typedef std::list<IDiscoveryProvider*> discovery_provider_list_t;
-			typedef std::map<string, Request*> request_map_t;
-			typedef std::map<int, Json>	filter_map_t;
-			typedef std::map<std::string, int>	timer_map_t;
+			typedef std::list<IDiscoveryProvider*> DiscoveryProviderList;
+			typedef std::map<string, Request*> RequestMap;
+			typedef std::map<std::string, int>	TimerMap;
 
 			int registerProvider(IDiscoveryProvider *discoveryProvider);
-			discovery_provider_list_t __providerList;
-			request_map_t	request_map;
-			filter_map_t	discovery_filter_map;
-			timer_map_t		request_timer_map;
+			DiscoveryProviderList __providerList;
+			RequestMap __requestMap;
+			TimerMap __requestTimerMap;
 
 			// internal function
-			int convertServiceIntoJson(conv::IService* service_info, Json* json_data);
-			int convertDeviceIntoJson(conv::IDevice* service_info, Json* json_data);
+			int convertServiceIntoJson(conv::IService* serviceInfo, Json* jsonData);
+			int convertDeviceIntoJson(conv::IDevice* serviceInfo, Json* jsonData);
 			int checkBoundaryForTimeOut(int givenTimeout);
-			int mergeExcludeServices(conv::IDevice* org_device, conv::IDevice* new_device);
-			int excludeServices(conv::IDevice* org_device, conv::IDevice* removed_device);
+			int mergeExcludeServices(conv::IDevice* org_device, conv::IDevice* newDevice);
+			int excludeServices(conv::IDevice* org_device, conv::IDevice* removedDevice);
 	};
 
 	namespace discovery_manager {
 		void setInstance(DiscoveryManager* mgr);
 		int handleRequest(Request* requestObj);
-		int setResult(SmartViewDevice* device_obj);
+		int setResult(SmartViewDevice* deviceObj);
 	};
 }
 

@@ -29,9 +29,9 @@ class SearchListenerImpl : public SearchListener {
 		conv::SmartviewDiscoveryProvider*	disc_provider;
 
 	public:
-		void set_discovery_manager(conv::DiscoveryManager* discovery_manager)
+		void set_discovery_manager(conv::DiscoveryManager* discoveryManager)
 		{
-			this->disc_manager = discovery_manager;
+			this->disc_manager = discoveryManager;
 		}
 
 		void set_discovery_provider(conv::SmartviewDiscoveryProvider* discovery_provider)
@@ -86,7 +86,7 @@ int conv::SmartviewDiscoveryProvider::init()
 			return CONV_ERROR_OUT_OF_MEMORY;
 		}
 		listener_impl->set_discovery_provider(this);
-		listener_impl->set_discovery_manager(_discovery_manager);
+		listener_impl->set_discovery_manager(__discoveryManager);
 	}
 	search->setSearchListener(listener_impl);
 
@@ -233,7 +233,7 @@ int conv::SmartviewDiscoveryProvider::notifyDiscovered(Service* service, bool bD
 		//1. delete it from the cache..
 		removeFromCache(conv_service);
 		//2. notify
-		_discovery_manager->notifyLostDevice(conv_device);
+		__discoveryManager->notifyLostDevice(conv_device);
 
 		return CONV_ERROR_NONE;
 	} else {
@@ -243,7 +243,7 @@ int conv::SmartviewDiscoveryProvider::notifyDiscovered(Service* service, bool bD
 
 		if (!alreadyExisted) {
 			//the discovered one is NEW!!
-			_discovery_manager->appendDiscoveredResult(conv_device);
+			__discoveryManager->appendDiscoveredResult(conv_device);
 		}
 	}
 

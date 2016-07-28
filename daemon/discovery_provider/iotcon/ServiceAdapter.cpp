@@ -68,11 +68,11 @@ int conv::ServiceAdapter::setServiceType(int serviceType)
 
 int conv::ServiceAdapter::setServiceInfo(string serviceInfo)
 {
-	this->service_info = serviceInfo;
+	this->__serviceInfo = serviceInfo;
 	return CONV_ERROR_NONE;
 }
 
 string conv::ServiceAdapter::getServiceInfo()
 {
-	return service_info;
+	return __serviceInfo;
 }
