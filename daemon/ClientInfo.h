@@ -43,8 +43,8 @@ namespace conv {
 			IServiceInfo* getServiceInfo(std::string type, std::string id);
 			int addServiceInfo(std::string type, std::string id, IServiceInfo* info);
 		private:
-			DeviceList device_list;
-			ServiceInfoMap service_info_map;
+			DeviceList deviceList;
+			ServiceInfoMap serviceInfoMap;
 
 		protected:
 			std::string id;

@@ -28,10 +28,10 @@ conv::ClientInfo::ClientInfo(string clientId, GDBusMethodInvocation *inv)
 
 conv::ClientInfo::~ClientInfo()
 {
-	for (ServiceInfoMap::iterator it = service_info_map.begin(); it != service_info_map.end(); ++it) {
+	for (ServiceInfoMap::iterator it = serviceInfoMap.begin(); it != serviceInfoMap.end(); ++it) {
 		delete (it->second);
 	}
-	service_info_map.clear();
+	serviceInfoMap.clear();
 }
 
 int conv::ClientInfo::add_device()
@@ -52,9 +52,9 @@ string conv::ClientInfo::getId()
 conv::IServiceInfo* conv::ClientInfo::getServiceInfo(string type, string id)
 {
 	ServiceInfoMap::iterator it;
-	it = service_info_map.find(std::pair<string, string>(type, id));
+	it = serviceInfoMap.find(std::pair<string, string>(type, id));
 
-	if ( it != service_info_map.end() ) {
+	if ( it != serviceInfoMap.end() ) {
 		_D("service info found : %s, %s", type.c_str(), id.c_str());
 		return (IServiceInfo*)(it->second);
 	} else {
@@ -65,7 +65,7 @@ conv::IServiceInfo* conv::ClientInfo::getServiceInfo(string type, string id)
 
 int conv::ClientInfo::addServiceInfo(string type, string id, IServiceInfo* info)
 {
-	service_info_map.insert(std::pair<ServiceKey, IServiceInfo*>(std::pair<string, string>(type, id), info));
+	serviceInfoMap.insert(std::pair<ServiceKey, IServiceInfo*>(std::pair<string, string>(type, id), info));
 	_D("service info is added : %s, %s", type.c_str(), id.c_str());
 
 	return CONV_ERROR_NONE;

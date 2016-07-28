@@ -28,13 +28,13 @@ namespace conv {
 			virtual int init() = 0;
 			virtual int release() = 0;
 
-			virtual int startRequest(Request* request_obj) = 0;
-			virtual int stopRequest(Request* request_obj) = 0;
-			virtual int readRequest(Request* request_obj) = 0;
-			virtual int publishRequest(Request* request_obj) = 0;
-			virtual int registerRequest(Request* request_obj) = 0;
-			virtual int loadServiceInfo(Request* request_obj) = 0;
-			virtual int getServiceInfoForDiscovery(Json* json_obj) = 0;
+			virtual int startRequest(Request* requestObj) = 0;
+			virtual int stopRequest(Request* requestObj) = 0;
+			virtual int readRequest(Request* requestObj) = 0;
+			virtual int publishRequest(Request* requestObj) = 0;
+			virtual int registerRequest(Request* requestObj) = 0;
+			virtual int loadServiceInfo(Request* requestObj) = 0;
+			virtual int getServiceInfoForDiscovery(Json* jsonObj) = 0;
 			int checkActivationState() {
 				if (__activationState == 1) {
 					return CONV_ERROR_NONE;

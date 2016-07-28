@@ -32,10 +32,10 @@ namespace conv {
 			virtual int start() = 0;
 			virtual int stop() = 0;
 
-			int setManager(DiscoveryManager* discovery_manager);
+			int setManager(DiscoveryManager* discoveryManager);
 
 		protected:
-			static DiscoveryManager* _discovery_manager;
+			static DiscoveryManager* __discoveryManager;
 	};	/* class IDiscoveryProvider */
 }
 

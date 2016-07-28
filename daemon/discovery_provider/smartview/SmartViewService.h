@@ -44,7 +44,7 @@ namespace conv
 			void setType(string type);
 			void setId(string id);
 			void setUri(string uri);
-			void setServiceInfo(string service_info);
+			void setServiceInfo(string serviceInfo);
 			void setServiceType(int service_type);
 
 			void printInfo();
@@ -53,7 +53,7 @@ namespace conv
 			int connection_state;
 			string service_name;
 			int service_type;
-			string service_info;
+			string __serviceInfo;
 
 			string service_version;
 			string service_id;

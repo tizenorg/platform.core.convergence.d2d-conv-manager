@@ -42,7 +42,7 @@ namespace conv {
 			ResourceHandle	m_resource_h;
 
 			int service_type;
-			string service_info;
+			string __serviceInfo;
 	};
 
 }

@@ -31,8 +31,8 @@ class ResourceHandle {
 		list<string>	types;
 		list<string>	interfaces;
 
-		string	device_id;
-		string	device_name;
+		string	deviceId;
+		string	deviceName;
 		string	device_type;
 		string	version;
 		Json	services_list;

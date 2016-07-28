@@ -16,10 +16,10 @@
 
 #include "DiscoveryManager.h"
 
-conv::DiscoveryManager* conv::IDiscoveryProvider::_discovery_manager = NULL;
+conv::DiscoveryManager* conv::IDiscoveryProvider::__discoveryManager = NULL;
 
-int conv::IDiscoveryProvider::setManager(DiscoveryManager* discovery_manager)
+int conv::IDiscoveryProvider::setManager(DiscoveryManager* discoveryManager)
 {
-	_discovery_manager = discovery_manager;
+	__discoveryManager = discoveryManager;
 	return CONV_ERROR_NONE;
 }

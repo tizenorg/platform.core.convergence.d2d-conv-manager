@@ -59,7 +59,7 @@ int conv::SmartViewService::getServiceType()
 
 string conv::SmartViewService::getServiceInfo()
 {
-	return service_info;
+	return __serviceInfo;
 }
 
 void conv::SmartViewService::setName(string name)
@@ -87,9 +87,9 @@ void conv::SmartViewService::setUri(string uri)
 	this->service_uri = uri;
 }
 
-void conv::SmartViewService::setServiceInfo(string service_info)
+void conv::SmartViewService::setServiceInfo(string serviceInfo)
 {
-	this->service_info = service_info;
+	this->__serviceInfo = serviceInfo;
 }
 
 void conv::SmartViewService::setServiceType(int service_type)

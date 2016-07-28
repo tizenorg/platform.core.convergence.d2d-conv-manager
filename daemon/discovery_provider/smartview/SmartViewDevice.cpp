@@ -59,25 +59,25 @@ static bool serviceComparision(conv::IService* obj, int serviceType)
 		return false;
 }
 
-int conv::SmartViewDevice::addService(IService* service_obj)
+int conv::SmartViewDevice::addService(IService* serviceObj)
 {
 	service_list_t::iterator itr;
-	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, service_obj->getServiceType()));
+	itr = std::find_if(service_list.begin(), service_list.end(), std::bind(serviceComparision, std::placeholders::_1, serviceObj->getServiceType()));
 
 	if (itr == service_list.end()) {
 		_D("New Service Type[%d] added to the device[%s]",
-											service_obj->getServiceType(), getId().c_str());
-		service_list.push_back(service_obj);
+											serviceObj->getServiceType(), getId().c_str());
+		service_list.push_back(serviceObj);
 	} else {
 		_D("Service Type[%d] is already included in device[%s] so skipped!",
-											service_obj->getServiceType(), getId().c_str());
+											serviceObj->getServiceType(), getId().c_str());
 	}
 	return CONV_ERROR_NONE;
 }
 
-int conv::SmartViewDevice::removeService(IService* service_obj)
+int conv::SmartViewDevice::removeService(IService* serviceObj)
 {
-	service_list.remove(service_obj);
+	service_list.remove(serviceObj);
 	return CONV_ERROR_NONE;
 }
 

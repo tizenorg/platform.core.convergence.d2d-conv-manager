@@ -28,10 +28,10 @@ namespace conv {
 		public:
 			std::string address;
 			std::string uri;
-			std::string resource_type;
+			std::string resourceType;
 
-			iotcon_remote_resource_h iotcon_resource_handle;
-			iotcon_representation_h iotcon_representation_handle;
+			iotcon_remote_resource_h iotconResourceHandle;
+			iotcon_representation_h iotconRepresentationHandle;
 	};
 
 }

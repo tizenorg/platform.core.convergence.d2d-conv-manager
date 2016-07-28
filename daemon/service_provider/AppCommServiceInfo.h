@@ -28,27 +28,27 @@
 #include "Result.h"
 
 namespace conv {
-	class application_instance : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
+	class ApplicationInstance : public OnConnectListener, public OnDisconnectListener, public OnClientConnectListener, public OnClientDisconnectListener,
 									public OnMessageListener, public OnErrorListener, public OnStartAppListener, public OnStopAppListener, public OnPublishListener {
 		public:
-			virtual ~application_instance()
+			virtual ~ApplicationInstance()
 			{
 				if (application != NULL)
 					delete application;
 			}
 
-			conv::Request** request_obj;
+			conv::Request** requestObj;
 			Channel* application;
 			string uri;
-			string channel_id;
-			Service local_service;
-			bool is_local;
+			string channelId;
+			Service localService;
+			bool isLocal;
 
 			void onStart(bool start_result)
 			{
 				_D("onStart Called");
 
-				if ((*request_obj) != NULL) {
+				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
@@ -56,17 +56,17 @@ namespace conv {
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_START);
 
-					description = (*request_obj)->getDescription();
+					description = (*requestObj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
-					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channelId);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
 					if (start_result)
-						(*request_obj)->publish(CONV_ERROR_NONE, result);
+						(*requestObj)->publish(CONV_ERROR_NONE, result);
 					else
-						(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+						(*requestObj)->publish(CONV_ERROR_INVALID_OPERATION, result);
 				}
 			}
 
@@ -74,11 +74,11 @@ namespace conv {
 			{
 				_D("onStop Called");
 
-				if (!is_local && application != NULL) {
+				if (!isLocal && application != NULL) {
 					application->disconnect();
 				}
 
-				if ((*request_obj) != NULL) {
+				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
@@ -86,17 +86,17 @@ namespace conv {
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_STOP);
 
-					description = (*request_obj)->getDescription();
+					description = (*requestObj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
-					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channelId);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
 					if (start_result)
-						(*request_obj)->publish(CONV_ERROR_NONE, result);
+						(*requestObj)->publish(CONV_ERROR_NONE, result);
 					else
-						(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+						(*requestObj)->publish(CONV_ERROR_INVALID_OPERATION, result);
 				}
 			}
 
@@ -105,7 +105,7 @@ namespace conv {
 				_D("onConnect Called");
 				publishResponse(CONV_ERROR_NONE, CONV_JSON_ON_CONNECT, &client);
 
-				if (!is_local && application != NULL) {
+				if (!isLocal && application != NULL) {
 					((Application*)application)->start();
 					_D("Application start requested");
 				}
@@ -133,7 +133,7 @@ namespace conv {
 			{
 				_D("onMessage Called");
 
-				if ((*request_obj) != NULL) {
+				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json message_json;
@@ -153,14 +153,14 @@ namespace conv {
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_MESSAGE);
 					payload.set(NULL, CONV_JSON_MESSAGE, message_json);
 
-					description = (*request_obj)->getDescription();
+					description = (*requestObj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
-					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channelId);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
-					(*request_obj)->publish(CONV_ERROR_NONE, result);
+					(*requestObj)->publish(CONV_ERROR_NONE, result);
 				}
 			}
 
@@ -168,7 +168,7 @@ namespace conv {
 			{
 				_D("onError Called");
 
-				if ((*request_obj) != NULL) {
+				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
@@ -177,14 +177,14 @@ namespace conv {
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_ERROR);
 					payload.set(NULL, CONV_JSON_ERROR_MESSAGE, error.get_error_message());
 
-					description = (*request_obj)->getDescription();
+					description = (*requestObj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
-					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channelId);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
-					(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+					(*requestObj)->publish(CONV_ERROR_INVALID_OPERATION, result);
 				}
 			}
 
@@ -192,7 +192,7 @@ namespace conv {
 			{
 				_D("onPublished Called");
 
-				if ((*request_obj) != NULL) {
+				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
@@ -200,17 +200,17 @@ namespace conv {
 
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_PUBLISH);
 
-					description = (*request_obj)->getDescription();
+					description = (*requestObj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
-					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channelId);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
 					if (publish_result)
-						(*request_obj)->publish(CONV_ERROR_NONE, result);
+						(*requestObj)->publish(CONV_ERROR_NONE, result);
 					else
-						(*request_obj)->publish(CONV_ERROR_INVALID_OPERATION, result);
+						(*requestObj)->publish(CONV_ERROR_INVALID_OPERATION, result);
 				}
 			}
 
@@ -219,7 +219,7 @@ namespace conv {
 				bool isHost = client->isHost();
 				int connecttime = client->getConnectTime();
 
-				if ((*request_obj) != NULL) {
+				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
@@ -233,19 +233,19 @@ namespace conv {
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, result_type);
 					payload.set(NULL, CONV_JSON_CLIENT, client_json);
 
-					description = (*request_obj)->getDescription();
+					description = (*requestObj)->getDescription();
 
 					description.set(CONV_JSON_CHANNEL, CONV_JSON_URI, uri);
-					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channel_id);
+					description.set(CONV_JSON_CHANNEL, CONV_JSON_CHANNEL_ID, channelId);
 
 					result.set(NULL, CONV_JSON_DESCRIPTION, description);
 					result.set(NULL, CONV_JSON_PAYLOAD, payload);
-					(*request_obj)->publish(error, result);
+					(*requestObj)->publish(error, result);
 				}
 			}
 	};
 
-	typedef vector<application_instance*> application_instance_list_t;
+	typedef vector<ApplicationInstance*> ApplicationInstanceList;
 
 	// service information to handle app-to-app service with specific device 'id'
 	class AppCommServiceInfo : public IServiceInfo, public Result_Base {
@@ -253,35 +253,35 @@ namespace conv {
 			void onSuccess(Service service)
 			{
 				_D("getByUri : service name : %s", service.getName().c_str() ? service.getName().c_str() : "name is NULL");
-				service_obj = service;
-				get_service_result = true;
+				serviceObj = service;
+				readRequestResult = true;
 			}
 
 			void onError(Error)
 			{
 				_D("getByUri Error");
-				get_service_result = false;
+				readRequestResult = false;
 			}
 
 			~AppCommServiceInfo()
 			{
-				if (registered_request != NULL) {
-					delete registered_request;
+				if (registeredRequest != NULL) {
+					delete registeredRequest;
 				}
 
-				for (application_instance_list_t::iterator iter = application_instance_list.begin(); iter != application_instance_list.end(); ++iter) {
-					application_instance *app_info = *iter;
-					delete app_info;
-					application_instance_list.erase(iter);
+				for (ApplicationInstanceList::iterator iter = applicationInstanceList.begin(); iter != applicationInstanceList.end(); ++iter) {
+					ApplicationInstance *appInfo = *iter;
+					delete appInfo;
+					applicationInstanceList.erase(iter);
 				}
 			}
 			std::string id;
-			Service service_obj;
-			bool is_local;
-			bool get_service_result;
-			conv::Request* registered_request;
+			Service serviceObj;
+			bool isLocal;
+			bool readRequestResult;
+			conv::Request* registeredRequest;
 
-			application_instance_list_t application_instance_list;
+			ApplicationInstanceList applicationInstanceList;
 	};
 
 }

@@ -33,7 +33,7 @@ static discovered_ones_map_t discovered_results;
 
 conv::DiscoveryManager::DiscoveryManager()
 {
-	count_discovery_request = 0;
+	__countDiscoveryRequest = 0;
 }
 
 conv::DiscoveryManager::~DiscoveryManager()
@@ -47,18 +47,18 @@ int conv::DiscoveryManager::init()
 	registerProvider(new(std::nothrow) conv::WifiDirectDiscoveryProvider());
 	registerProvider(new(std::nothrow) conv::IotconDiscoveryProvider());
 
-	request_map.clear();
-	request_timer_map.clear();
+	__requestMap.clear();
+	__requestTimerMap.clear();
 
 	return CONV_ERROR_NONE;
 }
 
 int conv::DiscoveryManager::release()
 {
-	for (discovery_provider_list_t::iterator it = __providerList.begin(); it != __providerList.end(); ++it)
+	for (DiscoveryProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it)
 		(*it)->stop();
 
-	for (discovery_provider_list_t::iterator it = __providerList.begin(); it != __providerList.end(); ++it)
+	for (DiscoveryProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it)
 		delete *it;
 
 	__providerList.clear();
@@ -74,23 +74,23 @@ void conv::discovery_manager::setInstance(conv::DiscoveryManager* mgr)
 int conv::DiscoveryManager::notifyTimeOut(std::string client)
 {
 	// 1. When no client is using discovery, it should be stopped
-	_D("notifyTimeOut.. with current discovery count :%d", count_discovery_request);
-	if (--count_discovery_request <= 0) {
-		count_discovery_request = 0;
+	_D("notifyTimeOut.. with current discovery count :%d", __countDiscoveryRequest);
+	if (--__countDiscoveryRequest <= 0) {
+		__countDiscoveryRequest = 0;
 		stopDiscovery();
 	}
 
 	// 2. Reqeust to stop timer related to client in the timer_map
-	timer_map_t::iterator timer_itr = request_timer_map.find(client);
-	if (timer_itr != request_timer_map.end()) {
+	TimerMap::iterator timer_itr = __requestTimerMap.find(client);
+	if (timer_itr != __requestTimerMap.end()) {
 		int timer_id = timer_itr->second;
 		_D("timer_id[%d]", timer_id);
 		conv::util::miscStopTimer(reinterpret_cast<void*> (timer_id));
 	}
 
 	// 3. Notify the client that the requested discovery has been finished
-	request_map_t::iterator request_itr = request_map.find(client);
-	if (request_itr != request_map.end()) {
+	RequestMap::iterator request_itr = __requestMap.find(client);
+	if (request_itr != __requestMap.end()) {
 		Json no_data;
 		Request* cur_Req = request_itr->second;
 		cur_Req->publish(CONV_DISCOVERY_FINISHED, no_data);
@@ -135,7 +135,7 @@ int conv::DiscoveryManager::handleRequest(Request* requestObj)
 
 			discovered_results.clear();
 
-			for (discovery_provider_list_t::iterator it = __providerList.begin(); it != __providerList.end(); ++it)
+			for (DiscoveryProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it)
 				// Discovery Provider Starts!!!!
 				(*it)->start();
 
@@ -151,19 +151,19 @@ int conv::DiscoveryManager::handleRequest(Request* requestObj)
 			description.get(NULL, "timeout", &timeout);
 			timeout = checkBoundaryForTimeOut(timeout);
 
-			request_map_t::iterator map_itr = request_map.find(string(client));
+			RequestMap::iterator map_itr = __requestMap.find(string(client));
 
-			if ( map_itr == request_map.end()) {
-				// current request inserted into request_map..
-				request_map.insert(request_map_t::value_type(string(client), requestObj));
-				_D("client[%s] inserted into request_map", client);
-				count_discovery_request++;
+			if ( map_itr == __requestMap.end()) {
+				// current request inserted into __requestMap..
+				__requestMap.insert(RequestMap::value_type(string(client), requestObj));
+				_D("client[%s] inserted into __requestMap", client);
+				__countDiscoveryRequest++;
 			} else {
-				_D("client[%s] already in request_map.. Replace!!!", client);
+				_D("client[%s] already in __requestMap.. Replace!!!", client);
 				map_itr->second = requestObj;
 				// stop the timer if there's one already running
-				timer_map_t::iterator timer_itr = request_timer_map.find(client);
-				if (timer_itr != request_timer_map.end()) {
+				TimerMap::iterator timer_itr = __requestTimerMap.find(client);
+				if (timer_itr != __requestTimerMap.end()) {
 					int timer_id = timer_itr->second;
 					_D("timer_id[%d]", timer_id);
 					conv::util::miscStopTimer(reinterpret_cast<void*> (timer_id));
@@ -176,13 +176,13 @@ int conv::DiscoveryManager::handleRequest(Request* requestObj)
 			param[1] = reinterpret_cast<void*>(this);
 
 			int timer_id = reinterpret_cast<int>(conv::util::miscStartTimer(__timer_worker, timeout, param));
-			request_timer_map[ string(client) ] = timer_id;
+			__requestTimerMap[ string(client) ] = timer_id;
 
 			requestObj->reply(CONV_ERROR_NONE);
 		} else if ( !strcmp(requestObj->getSubject(), CONV_SUBJECT_DISCOVERY_STOP) ){
 			const char* client = requestObj->getSender();
 
-			if (count_discovery_request <= 0) {
+			if (__countDiscoveryRequest <= 0) {
 				_D("discovery is already stopped");
 				requestObj->reply(CONV_ERROR_INVALID_OPERATION);
 			} else {
@@ -207,7 +207,7 @@ int conv::DiscoveryManager::startDiscovery()
 int conv::DiscoveryManager::stopDiscovery()
 {
 	_D("Stop_Discovery...");
-	for (discovery_provider_list_t::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
+	for (DiscoveryProviderList::iterator it = __providerList.begin(); it != __providerList.end(); ++it) {
 		(*it)->stop();
 	}
 	return CONV_ERROR_NONE;
@@ -236,22 +236,22 @@ int conv::DiscoveryManager::registerProvider(IDiscoveryProvider *provider)
 
 	return CONV_ERROR_NONE;
 }
-int conv::DiscoveryManager::convertDeviceIntoJson(conv::IDevice* device_info, Json* json_data)
+int conv::DiscoveryManager::convertDeviceIntoJson(conv::IDevice* device_info, Json* jsonData)
 {
-	json_data->set(NULL, CONV_JSON_DEVICE_ID, device_info->getId());
-	json_data->set(NULL, CONV_JSON_DEVICE_NAME, device_info->getName());
-	json_data->set(NULL, CONV_JSON_DEVICE_ADDRESS, device_info->getAddress());
+	jsonData->set(NULL, CONV_JSON_DEVICE_ID, device_info->getId());
+	jsonData->set(NULL, CONV_JSON_DEVICE_NAME, device_info->getName());
+	jsonData->set(NULL, CONV_JSON_DEVICE_ADDRESS, device_info->getAddress());
 
 	return CONV_ERROR_NONE;
 }
 
-int conv::DiscoveryManager::convertServiceIntoJson(conv::IService* service_info, Json* json_data)
+int conv::DiscoveryManager::convertServiceIntoJson(conv::IService* serviceInfo, Json* jsonData)
 {
-	string service_info_str = service_info->getServiceInfo();
+	string service_info_str = serviceInfo->getServiceInfo();
 	_D("Service-2-Json Conversion : %s", service_info_str.c_str());
-	Json service_json(service_info_str);
-	json_data->appendArray(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_DATA, service_json);
-	json_data->appendArray(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_TYPE, service_info->getServiceType());
+	Json serviceJson(service_info_str);
+	jsonData->appendArray(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_DATA, serviceJson);
+	jsonData->appendArray(CONV_JSON_SERVICE_PATH, CONV_JSON_SERVICE_TYPE, serviceInfo->getServiceType());
 
 	return CONV_ERROR_NONE;
 }
@@ -264,7 +264,7 @@ static bool serviceComparision(conv::IService* obj, int serviceType)
 		return false;
 }
 
-int conv::DiscoveryManager::excludeServices(conv::IDevice* org_device, conv::IDevice* removed_device)
+int conv::DiscoveryManager::excludeServices(conv::IDevice* org_device, conv::IDevice* removedDevice)
 {
 	int remained_serv_count = 0;
 	std::list<IService*> org_serv_list;
@@ -274,8 +274,8 @@ int conv::DiscoveryManager::excludeServices(conv::IDevice* org_device, conv::IDe
 	_D("[%d] Services in the origin device info[%s]", org_serv_list.size(), org_device->getName().c_str());
 	remained_serv_count = org_serv_list.size();
 
-	removed_device->getServiceList(&removed_serv_list);
-	_D("[%d] Services in the removed device info[%s]", removed_serv_list.size(), removed_device->getName().c_str());
+	removedDevice->getServiceList(&removed_serv_list);
+	_D("[%d] Services in the removed device info[%s]", removed_serv_list.size(), removedDevice->getName().c_str());
 
 	std::list<IService*>::iterator removed_itr = removed_serv_list.begin();
 	for (; removed_itr != removed_serv_list.end(); ++removed_itr) {
@@ -294,7 +294,7 @@ int conv::DiscoveryManager::excludeServices(conv::IDevice* org_device, conv::IDe
 
 
 // return value : the number of new services
-int conv::DiscoveryManager::mergeExcludeServices(conv::IDevice* org_device, conv::IDevice* new_device)
+int conv::DiscoveryManager::mergeExcludeServices(conv::IDevice* org_device, conv::IDevice* newDevice)
 {
 	int new_serv_count = 0;
 	std::list<IService*> org_serv_list;
@@ -302,8 +302,8 @@ int conv::DiscoveryManager::mergeExcludeServices(conv::IDevice* org_device, conv
 
 	org_device->getServiceList(&org_serv_list);
 	_D("[%d] Services in the origin device info[%s]", org_serv_list.size(), org_device->getName().c_str() );
-	new_device->getServiceList(&new_serv_list);
-	_D("[%d] Services in the new device info[%s]", new_serv_list.size(), new_device->getName().c_str() );
+	newDevice->getServiceList(&new_serv_list);
+	_D("[%d] Services in the new device info[%s]", new_serv_list.size(), newDevice->getName().c_str() );
 
 	std::list<IService*>::iterator new_iter = new_serv_list.begin();
 	for (; new_iter != new_serv_list.end(); ++new_iter) {
@@ -312,7 +312,7 @@ int conv::DiscoveryManager::mergeExcludeServices(conv::IDevice* org_device, conv
 			std::find_if(org_serv_list.begin(), org_serv_list.end(), std::bind(serviceComparision, std::placeholders::_1, cur_serv->getServiceType()));
 		if (org_iter != org_serv_list.end()) {
 			// already exists in org_device.. means it's not new!.. so remove the service from new!!
-			new_device->removeService(cur_serv);
+			newDevice->removeService(cur_serv);
 			_D("Service[%d] has been already found in Device[%s]", cur_serv->getServiceType(), org_device->getName().c_str() );
 		} else {
 			_D("New Service[%d] found in Device[%s]", cur_serv->getServiceType(), org_device->getName().c_str() );
@@ -324,31 +324,31 @@ int conv::DiscoveryManager::mergeExcludeServices(conv::IDevice* org_device, conv
 	return new_serv_count;
 }
 
-int conv::DiscoveryManager::notifyLostDevice(IDevice* disc_device)
+int conv::DiscoveryManager::notifyLostDevice(IDevice* discoveredDevice)
 {
 	int num_remained_service = 0;
-	// 1. find the device and remove the services included in disc_device from cache (discovered_results)
+	// 1. find the device and remove the services included in discoveredDevice from cache (discovered_results)
 	discovered_ones_map_t::iterator itor_disc;
-	itor_disc = discovered_results.find(disc_device->getId());
+	itor_disc = discovered_results.find(discoveredDevice->getId());
 	if (itor_disc != discovered_results.end()) {
 		IDevice* cur_device = itor_disc->second;
-		num_remained_service = excludeServices(cur_device, disc_device);
+		num_remained_service = excludeServices(cur_device, discoveredDevice);
 	} else {
-		_D("Lost Notify dismissed - No discovered results corresponding to id[%s]", disc_device->getId().c_str());
+		_D("Lost Notify dismissed - No discovered results corresponding to id[%s]", discoveredDevice->getId().c_str());
 		return CONV_ERROR_NO_DATA;
 	}
 
-	// 2. if no services is left included in disc_device, then remove the device from the cache and notify to a client
+	// 2. if no services is left included in discoveredDevice, then remove the device from the cache and notify to a client
 	if (num_remained_service == 0) {
 		// remove from the cache
-		discovered_results.erase(disc_device->getId());
+		discovered_results.erase(discoveredDevice->getId());
 
-		// iterate through request_map for service
-		_D("Iterate through request_map to publish..");
-		request_map_t::iterator IterPos;
+		// iterate through __requestMap for service
+		_D("Iterate through __requestMap to publish..");
+		RequestMap::iterator IterPos;
 		Json device_json;
-		convertDeviceIntoJson(disc_device, &device_json);
-		for (IterPos = request_map.begin(); IterPos != request_map.end(); ++IterPos) {
+		convertDeviceIntoJson(discoveredDevice, &device_json);
+		for (IterPos = __requestMap.begin(); IterPos != __requestMap.end(); ++IterPos) {
 			Request* cur_Req = IterPos->second;
 			cur_Req->publish(CONV_DISCOVERY_DEVICE_LOST, device_json);
 		}
@@ -357,28 +357,28 @@ int conv::DiscoveryManager::notifyLostDevice(IDevice* disc_device)
 	return CONV_ERROR_NONE;
 }
 
-int conv::DiscoveryManager::appendDiscoveredResult(conv::IDevice* disc_device)
+int conv::DiscoveryManager::appendDiscoveredResult(conv::IDevice* discoveredDevice)
 {
 	conv::IDevice* publish_device_info = NULL;
 
 	_D("Append Discovered Result.. Device:%x, Service:%x");
-	IF_FAIL_RETURN_TAG((disc_device != NULL), CONV_ERROR_INVALID_PARAMETER, _E, "IDevice not initialized..");
+	IF_FAIL_RETURN_TAG((discoveredDevice != NULL), CONV_ERROR_INVALID_PARAMETER, _E, "IDevice not initialized..");
 	// discovery_manager deals with the cache for discovered ones
-	_D("Check if key[%s] exists in discovered_results", disc_device->getId().c_str());
+	_D("Check if key[%s] exists in discovered_results", discoveredDevice->getId().c_str());
 	discovered_ones_map_t::iterator itor_disc;
-	itor_disc = discovered_results.find(disc_device->getId());
+	itor_disc = discovered_results.find(discoveredDevice->getId());
 	if (itor_disc != discovered_results.end()) {
-		_D("update discovered device's info [%s]", disc_device->getId().c_str());
+		_D("update discovered device's info [%s]", discoveredDevice->getId().c_str());
 		IDevice* cur_device = itor_disc->second;
 
-		int count_new_services = mergeExcludeServices(cur_device, disc_device);
+		int count_new_services = mergeExcludeServices(cur_device, discoveredDevice);
 		if (count_new_services == 0)
 			return CONV_ERROR_NONE;
 	} else {
-		_D("newbie!! discovered device's info [%s]", disc_device->getId().c_str());
-		discovered_results.insert(discovered_ones_map_t::value_type(disc_device->getId(), disc_device));
+		_D("newbie!! discovered device's info [%s]", discoveredDevice->getId().c_str());
+		discovered_results.insert(discovered_ones_map_t::value_type(discoveredDevice->getId(), discoveredDevice));
 	}
-	publish_device_info = disc_device;
+	publish_device_info = discoveredDevice;
 
 	_D("Convert device_info into Json type..");
 	Json device_json;
@@ -394,11 +394,11 @@ int conv::DiscoveryManager::appendDiscoveredResult(conv::IDevice* disc_device)
 		convertServiceIntoJson(cur_serv, &device_json);
 	}
 
-	// iterate through request_map for service
-	_D("Iterate through request_map to publish..");
+	// iterate through __requestMap for service
+	_D("Iterate through __requestMap to publish..");
 	int index = 0;
-	request_map_t::iterator IterPos;
-	for (IterPos = request_map.begin(); IterPos != request_map.end(); ++IterPos) {
+	RequestMap::iterator IterPos;
+	for (IterPos = __requestMap.begin(); IterPos != __requestMap.end(); ++IterPos) {
 		Request* cur_Req = IterPos->second;
 		cur_Req->publish(CONV_ERROR_NONE, device_json);
 

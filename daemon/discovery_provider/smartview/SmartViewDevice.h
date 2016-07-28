@@ -32,8 +32,8 @@ namespace conv {
 			~SmartViewDevice();
 
 			// functions from IDevice
-			int addService(IService* service_obj);
-			int removeService(IService* service_obj);
+			int addService(IService* serviceObj);
+			int removeService(IService* serviceObj);
 			int getServiceList(std::list<IService*> *list);
 			std::string getName();
 			std::string getId();

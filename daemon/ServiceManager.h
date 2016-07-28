@@ -35,7 +35,7 @@ namespace conv {
 			int release();
 			int handleRequest(Request* requestObj);
 
-			int getServiceInfoForDiscovery(Json* service_json);
+			int getServiceInfoForDiscovery(Json* serviceJson);
 			int handleVconfUpdate(keynode_t *node);
 
 		private:
