@@ -169,5 +169,8 @@ enum request_type {
 // remote app control service
 #define CONV_JSON_APP_CONTROL			"app_control"
 #define CONV_JSON_REPLY					"reply"
+#define CONV_JSON_APP_CONTROL_REPLY		"app_control_reply"
+#define CONV_JSON_APP_CONTROL_REQUEST	"app_control_request"
+#define CONV_JSON_APP_CONTROL_RESULT	"app_control_result"
 
 #endif

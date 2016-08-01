@@ -142,20 +142,29 @@ static void _app_control_cb(app_control_h request, app_control_h reply, app_cont
 	app_control_cb_info_s cb_info = find_iter->second;
 
 	bundle* p_bundle;
+	bundle* p_bundle_request;
 	iotcon_representation_h rep;
 	iotcon_representation_create(&rep);
 	iotcon_attributes_h attributes;
 	iotcon_attributes_create(&attributes);
 
 	app_control_export_as_bundle(reply, &p_bundle);
+	app_control_export_as_bundle(request, &p_bundle_request);
 
 	bundle_raw* p_bundle_raw;
-	int len;
+	bundle_raw* p_bundle_request_raw;
+
+	int len, len_request;
 	bundle_encode(p_bundle, &p_bundle_raw, &len);
 	char* bundle_raw = reinterpret_cast<char*>(p_bundle_raw);
 
-	iotcon_attributes_add_str(attributes, CONV_JSON_APP_CONTROL, bundle_raw);
-	iotcon_attributes_add_int(attributes, CONV_JSON_REQ_ID,  cb_info.req_id);
+	bundle_encode(p_bundle_request, &p_bundle_request_raw, &len_request);
+	char* bundle_request_raw = reinterpret_cast<char*>(p_bundle_request_raw);
+
+	iotcon_attributes_add_str(attributes, CONV_JSON_APP_CONTROL_REPLY, bundle_raw);
+	iotcon_attributes_add_str(attributes, CONV_JSON_APP_CONTROL_REQUEST, bundle_request_raw);
+	iotcon_attributes_add_int(attributes, CONV_JSON_REQ_ID, cb_info.req_id);
+	iotcon_attributes_add_int(attributes, CONV_JSON_APP_CONTROL_RESULT,  result);
 
 	iotcon_representation_set_attributes(rep, attributes);
 
@@ -164,6 +173,7 @@ static void _app_control_cb(app_control_h request, app_control_h reply, app_cont
 	_D("Response sent");
 
 	bundle_free(p_bundle);
+	bundle_free(p_bundle_request);
 	app_control_cb_map.erase(find_iter);
 }
 
@@ -476,9 +486,23 @@ static void __on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 
 	char* appctl_char;
 
-	ret = iotcon_attributes_get_str(attributes, CONV_JSON_APP_CONTROL, &appctl_char);
+	ret = iotcon_attributes_get_str(attributes, CONV_JSON_APP_CONTROL_REPLY, &appctl_char);
 	if (IOTCON_ERROR_NONE != ret) {
 		_E("iotcon_attributes_get_str() Fail(%d)", ret);
+		return;
+	}
+
+	char* appctl_request_char;
+	ret = iotcon_attributes_get_str(attributes, CONV_JSON_APP_CONTROL_REQUEST, &appctl_request_char);
+	if (IOTCON_ERROR_NONE != ret) {
+		_E("iotcon_attributes_get_str() Fail(%d)", ret);
+		return;
+	}
+
+	int appctl_result;
+	ret = iotcon_attributes_get_int(attributes, CONV_JSON_APP_CONTROL_RESULT, &appctl_result);
+	if (IOTCON_ERROR_NONE != ret) {
+		_E("iotcon_attributes_get_int() Fail(%d)", ret);
 		return;
 	}
 
@@ -492,7 +516,9 @@ static void __on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 			_E("listener_cb is not registered");
 		} else {
 			payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_PUBLISH);
-			payload.set(NULL, CONV_JSON_APP_CONTROL, appctl_char);
+			payload.set(NULL, CONV_JSON_APP_CONTROL_REPLY, appctl_char);
+			payload.set(NULL, CONV_JSON_APP_CONTROL_REQUEST, appctl_request_char);
+			payload.set(NULL, CONV_JSON_APP_CONTROL_RESULT, appctl_result);
 			result.set(NULL, CONV_JSON_DESCRIPTION, cb_info.requestObj->getDescription());
 			result.set(NULL, CONV_JSON_PAYLOAD, payload);
 
