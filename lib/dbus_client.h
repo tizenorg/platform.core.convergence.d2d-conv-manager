@@ -30,6 +30,7 @@ namespace conv {
 		int request(int type, int* req_id, const char* subject, const char* input, std::string* req_result, std::string* data_read);
 		int request_with_no_reply(int type, int* req_id, const char* subject, const char* input);
 		int register_callback(const char* subject, subject_response_cb callback);
+		int call(const char* subject);
 	}
 
 }	/* namespace ctx */

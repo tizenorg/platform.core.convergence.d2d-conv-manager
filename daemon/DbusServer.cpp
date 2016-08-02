@@ -45,6 +45,9 @@ static const gchar introspectionXml[] =
 	"			<arg type='s' name='" ARG_RESULT_ADD "' direction='out'/>"
 	"			<arg type='s' name='" ARG_OUTPUT "' direction='out'/>"
 	"		</method>"
+	"		<method name='" METHOD_CHK_PRIV_NETWORK_GET "'>"
+	"			<arg type='i' name='" ARG_RESULT_ERR "' direction='out'/>"
+	"		</method>"
 	"	</interface>"
 	"</node>";
 
@@ -95,18 +98,19 @@ static void __handle_request(GDBusConnection* conn, const char *sender, GVariant
 	} catch (std::bad_alloc& ba) {
 		_E("Memory Allocation Failed..");
 		g_dbus_method_invocation_return_value(invocation, g_variant_new("(iss)", CONV_ERROR_INVALID_OPERATION, EMPTY_JSON_OBJECT, EMPTY_JSON_OBJECT));
-//		delete creds;
+		delete creds;
 		return;
 	} catch (int e) {
 		_E("Caught %d", e);
 		g_dbus_method_invocation_return_value(invocation, g_variant_new("(iss)", CONV_ERROR_INVALID_OPERATION, EMPTY_JSON_OBJECT, EMPTY_JSON_OBJECT));
-//		delete creds;
+		delete creds;
 		return;
 	}
 
 	if (!recvRequest) {
 		_E("Memory allocation failed");
 		g_dbus_method_invocation_return_value(invocation, g_variant_new("(iss)", CONV_ERROR_INVALID_OPERATION, EMPTY_JSON_OBJECT, EMPTY_JSON_OBJECT));
+		delete creds;
 		return;
 	}
 
@@ -122,6 +126,8 @@ static void __handle_method_call(GDBusConnection *conn, const gchar *sender,
 
 	if (STR_EQ(method_name, METHOD_REQUEST))
 		__handle_request(conn, sender, param, invocation);
+	else if (STR_EQ(method_name, METHOD_CHK_PRIV_NETWORK_GET))
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(i)", CONV_ERROR_NONE));
 	else
 		_W("Invalid method: %s", method_name);
 

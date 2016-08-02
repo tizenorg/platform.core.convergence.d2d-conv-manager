@@ -240,3 +240,24 @@ int conv::dbus_client::register_callback(const char* subject, subject_response_c
 
 	return true;
 }
+
+int conv::dbus_client::call(const char* subject)
+{
+	int ret = CONV_ERROR_NONE;
+	GError *err = NULL;
+
+	GVariant *response = g_dbus_connection_call_sync(dbus_connection, DBUS_DEST, DBUS_PATH, DBUS_IFACE,
+			subject, NULL, NULL, G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT, NULL, &err);
+
+	if (response) {
+		g_variant_unref(response);
+		return CONV_ERROR_NONE;
+	}
+
+	ret = CONV_ERROR_INVALID_OPERATION;
+	if (err->code == G_DBUS_ERROR_ACCESS_DENIED)
+		ret = CONV_ERROR_PERMISSION_DENIED;
+
+	HANDLE_GERROR(err);
+	return ret;
+}

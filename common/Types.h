@@ -38,6 +38,7 @@
 #define METHOD_REQUEST	"Request"
 #define METHOD_RESPOND	"Respond"
 #define SIGNAL_LAUNCHED	"Launched"
+#define METHOD_CHK_PRIV_NETWORK_GET	"ChkPrivNetworkGet"
 
 #define ARG_REQTYPE		"type"
 #define ARG_COOKIE		"cookie"

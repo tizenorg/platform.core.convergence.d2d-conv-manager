@@ -485,6 +485,10 @@ static int conv_service_unset_connected_cb(conv_service_h handle)
 EXTAPI int conv_service_get_connection_state(conv_service_h handle, conv_service_connection_state_e* state)
 {
 	IF_FAIL_RETURN_TAG(conv::util::is_feature_supported(), CONV_ERROR_NOT_SUPPORTED, _E, "Not supported");
+
+	int error = conv::dbus_client::call(METHOD_CHK_PRIV_NETWORK_GET);
+	IF_FAIL_RETURN_TAG(error == CONV_ERROR_NONE, error, _E, "Privilege checking failed (%#x)", error);
+
 	ASSERT_NOT_NULL(handle);
 	ASSERT_NOT_NULL(state);
 
