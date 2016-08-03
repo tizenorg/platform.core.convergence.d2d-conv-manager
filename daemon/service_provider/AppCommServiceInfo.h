@@ -225,16 +225,12 @@ namespace conv {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
-					Json client_json;
 					Json description;
 
-					client_json.set(NULL, CONV_JSON_IS_HOST, isHost);
-					client_json.set(NULL, CONV_JSON_CONNECT_TIME, connecttime);
-					client_json.set(NULL, CONV_JSON_CLIENT_ID, client->getId());
-
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, result_type);
-//					payload.set(NULL, CONV_JSON_CLIENT, client_json);
-					payload.set(NULL, CONV_JSON_CLIENT, client_json.dupCstr());
+					payload.set(NULL, CONV_JSON_CLIENT_IS_HOST, isHost);
+					payload.set(NULL, CONV_JSON_CLIENT_CONNECT_TIME, connecttime);
+					payload.set(NULL, CONV_JSON_CLIENT_CLIENT_ID, client->getId());
 
 					description = (*requestObj)->getDescription();
 

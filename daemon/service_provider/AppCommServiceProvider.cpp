@@ -356,7 +356,7 @@ int conv::AppCommServiceProvider::readRequest(Request* requestObj)
 							client.set(NULL, CONV_JSON_CHANNEL_URI, cha->getChannelUri(NULL).c_str());
 
 //						result.appendArray(NULL, CONV_JSON_CLIENT_LIST, client);
-						result.appendArray(NULL, CONV_JSON_CLIENT_LIST, client.dupCstr());
+						result.set(NULL, CONV_JSON_CLIENT_LIST, client.dupCstr());
 					}
 					sendReadResponse(result, CONV_JSON_GET_CLIENTS, CONV_ERROR_NONE, svcInfo->registeredRequest);
 

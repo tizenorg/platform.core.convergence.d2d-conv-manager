@@ -151,6 +151,9 @@ enum request_type {
 #define CONV_JSON_CHANNEL_URI			"channelUri"
 #define CONV_JSON_CLIENT_LIST			"client_list"
 #define CONV_JSON_ERROR_MESSAGE			"error_message"
+#define CONV_JSON_CLIENT_IS_HOST		"client_is_host"
+#define CONV_JSON_CLIENT_CONNECT_TIME	"client_connect_time"
+#define CONV_JSON_CLIENT_CLIENT_ID		"client_id"
 
 #define CONV_JSON_ON_START				"onStart"
 #define CONV_JSON_ON_CONNECT			"onConnect"
