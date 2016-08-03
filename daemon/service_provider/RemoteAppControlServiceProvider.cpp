@@ -515,10 +515,11 @@ static void __on_response(iotcon_remote_resource_h resource, iotcon_error_e err,
 		if (cb_info.requestObj == NULL) {
 			_E("listener_cb is not registered");
 		} else {
+			string resultStr = to_string(appctl_result);
 			payload.set(NULL, CONV_JSON_RESULT_TYPE, CONV_JSON_ON_PUBLISH);
 			payload.set(NULL, CONV_JSON_APP_CONTROL_REPLY, appctl_char);
 			payload.set(NULL, CONV_JSON_APP_CONTROL_REQUEST, appctl_request_char);
-			payload.set(NULL, CONV_JSON_APP_CONTROL_RESULT, appctl_result);
+			payload.set(NULL, CONV_JSON_APP_CONTROL_RESULT, resultStr.c_str());
 			result.set(NULL, CONV_JSON_DESCRIPTION, cb_info.requestObj->getDescription());
 			result.set(NULL, CONV_JSON_PAYLOAD, payload);
 

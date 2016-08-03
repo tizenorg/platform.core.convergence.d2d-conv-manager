@@ -345,10 +345,12 @@ int conv::AppCommServiceProvider::readRequest(Request* requestObj)
 					for (auto cs_itr = cl.begin(); cs_itr != cl.end(); cs_itr++) {
 						cs_index++;
 						Json client;
+						string isHostStr = to_string((*cs_itr).isHost());
+						string connectTimeStr = to_string((*cs_itr).getConnectTime());
 
 						client.set(NULL, CONV_JSON_CLIENT_ID, (*cs_itr).getId());
-						client.set(NULL, CONV_JSON_IS_HOST, (*cs_itr).isHost());
-						client.set(NULL, CONV_JSON_CONNECT_TIME, (*cs_itr).getConnectTime());
+						client.set(NULL, CONV_JSON_IS_HOST, isHostStr.c_str());
+						client.set(NULL, CONV_JSON_CONNECT_TIME, connectTimeStr.c_str());
 						Channel* cha = NULL;
 						cha = (*cs_itr).getChannel();
 

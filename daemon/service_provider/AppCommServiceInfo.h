@@ -218,18 +218,18 @@ namespace conv {
 
 			void publishResponse(int error, string result_type, Client *client)
 			{
-				bool isHost = client->isHost();
-				int connecttime = client->getConnectTime();
-
 				if ((*requestObj) != NULL) {
 					_D(RED("publishing_response"));
 					Json result;
 					Json payload;
 					Json description;
 
+					string isHostStr = to_string(client->isHost());
+					string connectTimeStr = to_string(client->getConnectTime());
+
 					payload.set(NULL, CONV_JSON_RESULT_TYPE, result_type);
-					payload.set(NULL, CONV_JSON_CLIENT_IS_HOST, isHost);
-					payload.set(NULL, CONV_JSON_CLIENT_CONNECT_TIME, connecttime);
+					payload.set(NULL, CONV_JSON_CLIENT_IS_HOST, isHostStr.c_str());
+					payload.set(NULL, CONV_JSON_CLIENT_CONNECT_TIME, connectTimeStr.c_str());
 					payload.set(NULL, CONV_JSON_CLIENT_CLIENT_ID, client->getId());
 
 					description = (*requestObj)->getDescription();
