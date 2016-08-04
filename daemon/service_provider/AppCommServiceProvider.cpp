@@ -172,7 +172,7 @@ int conv::AppCommServiceProvider::startRequest(Request* requestObj)
 	IF_FAIL_RETURN_TAG(!uri.empty() || svcInfo->isLocal, CONV_ERROR_INVALID_PARAMETER, _E, "uri is empty");
 	IF_FAIL_RETURN_TAG(!channelId.empty(), CONV_ERROR_INVALID_PARAMETER, _E, "channelId is empty");
 
-	ApplicationInstance *appInfo = NULL;
+	AppCommServiceApplication *appInfo = NULL;
 
 	for (ApplicationInstanceList::iterator iter = svcInfo->applicationInstanceList.begin(); iter != svcInfo->applicationInstanceList.end(); ++iter) {
 		_D("iteration");
@@ -190,7 +190,7 @@ int conv::AppCommServiceProvider::startRequest(Request* requestObj)
 	}
 
 	if ( appInfo == NULL ) {
-		appInfo = new(std::nothrow) ApplicationInstance();
+		appInfo = new(std::nothrow) AppCommServiceApplication();
 		ASSERT_ALLOC(appInfo);
 
 		appInfo->uri = uri;
@@ -269,7 +269,7 @@ int conv::AppCommServiceProvider::stopRequest(Request* requestObj)
 	for (ApplicationInstanceList::iterator iter = svcInfo->applicationInstanceList.begin(); iter != svcInfo->applicationInstanceList.end(); ++iter) {
 		_D("%s, %s", (*iter)->uri.c_str(), (*iter)->channelId.c_str());
 		if ( (*iter) != NULL && !(*iter)->uri.compare(uri) && !(*iter)->channelId.compare(channelId) ) {
-			ApplicationInstance *appInfo = *iter;
+			AppCommServiceApplication *appInfo = *iter;
 
 			_D("COMMUNCATION_STOP : uri : %s, channel_id : %s", uri.c_str(), channelId.c_str());
 
@@ -311,7 +311,7 @@ int conv::AppCommServiceProvider::readRequest(Request* requestObj)
 	IF_FAIL_RETURN_TAG(!uri.empty() || svcInfo->isLocal, CONV_ERROR_INVALID_PARAMETER, _E, "uri is empty");
 	IF_FAIL_RETURN_TAG(!channelId.empty(), CONV_ERROR_INVALID_PARAMETER, _E, "channelId is empty");
 
-	ApplicationInstance *appInfo = NULL;
+	AppCommServiceApplication *appInfo = NULL;
 	Json result;
 
 	for (ApplicationInstanceList::iterator iter = svcInfo->applicationInstanceList.begin(); iter != svcInfo->applicationInstanceList.end(); ++iter) {
