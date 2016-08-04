@@ -175,13 +175,18 @@ void SearchProvider::updateAlive(long ttl, string id, int service_type)
 void SearchProvider::reapServices()
 {
 	map<string,ttl_info>::iterator it;
-	for(it=aliveMap.begin();it!=aliveMap.end();++it) {
+	it=aliveMap.begin();
+	while(it!=aliveMap.end()) {
 		ttl_info info=it->second;
 		if ( info.is_expired()) {
-			Service service=getServiceByIp(it->first);
+			map<string,ttl_info>::iterator toEraseIter = it;
+			++it;
+			Service service=getServiceByIp(toEraseIter->first);
 			MSF_DBG("reapServices - Remove service : [%s]", service.getId().c_str());
-			aliveMap.erase(it->first);
+			aliveMap.erase(toEraseIter->first);
 			Search::removeServiceAndNotify(service);
+		} else {
+			++it;
 		}
 	}
 }
